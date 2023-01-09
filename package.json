@@ -20,7 +20,9 @@
   },
   "homepage": "https://github.com/aida-artepref/Prueba-Arte#readme",
   "dependencies": {
-    "web-ifc": "^0.0.36"
+    "three": "^0.135.0",
+    "web-ifc": "^0.0.35",
+    "web-ifc-viewer": "^1.0.213"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1"

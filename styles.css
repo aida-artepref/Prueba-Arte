@@ -1,0 +1,144 @@
+/*SIEMPRE EN APPWEB*/
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    overflow: hidden;  /*no aparezce barra scroll*/
+    font-family: 'Roboto', sans-serif;
+
+    --dark-grey:#888888;
+    --border:solid 1px var(--dark-grey);
+
+}
+
+.app-container{
+   display: flex;
+   flex-direction: row;
+   position: absolute;    
+   width: 100vw;
+   height: 100vh;
+   top: 0;
+}
+
+.slidebar{
+    min-width: 25rem;
+    height: 100%;
+    background-color: whitepink;
+    border:var(--border);
+ }
+
+.button-container{
+    display: flex;
+    height: 3rem;
+    border-bottom: var(--border);
+}
+
+.button{
+    display:flex;
+    align-items: center;
+    padding: 0 1rem;
+    margin: 0.5rem;
+    border: var(--border);
+    border-radius: 0.5rem;
+    user-select: none;
+    cursor: pointer;
+}
+.button-recarga{
+  width: 3rem;
+  text-align: center;
+  display:flex;
+  align-items: center;
+  padding: 0 1rem;
+  margin: 0.5rem;
+  border: var(--border);
+  border-radius: 0.5rem;
+  user-select: none;
+  cursor: pointer;
+  text-align: center;
+  cursor: pointer;
+}
+
+.button:hover{
+    background-color: #bbbaba;
+}
+
+.three-menu{
+    height: calc(45%);
+    border-bottom:var(--border);
+    overflow-y: auto;
+}
+
+.property-menu{
+    overflow-y:auto;
+    height: calc(55%);
+}
+
+.property-root{
+    display: flex;
+    text-align: right;
+    padding: 0.5rem;
+    border-bottom: var(--border);
+}
+
+.property-name{
+    width: 30%;
+    text-align: left;
+}
+
+.property-value{
+    width: 70%;
+    text-align: right;
+}
+
+#viewer-container{
+    height: 100vh;
+    width: 100%;
+}
+
+#file-input{
+    visibility: collapse;
+}
+
+
+/* Remove default bullets */
+ul, #myUL {
+    list-style-type: none;
+  }
+  
+  /* Remove margins and padding from the parent ul */
+  #myUL {
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Style the caret/arrow */
+  .caret {
+    cursor: pointer;
+    user-select: none; /* Prevent text selection */
+  }
+  
+  /* Create the caret/arrow with a unicode, and style it */
+  .caret::before {
+    content: "\25B6";
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  
+  /* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+  .caret-down::before {
+    transform: rotate(90deg);
+  }
+  
+  /* Hide the nested list */
+  .nested {
+    display: none;
+    margin-left: 1rem
+  }
+  
+  /* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+  .active {
+    display: block;
+  }
+
+/**/

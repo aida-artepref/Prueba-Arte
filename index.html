@@ -5,8 +5,65 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prueba Arte</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,400;1,100&family=Zen+Dots&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
 </head>
 <body>
-    <script src="bundle.js"></script>
-</body>
+    
+    <input type="file" id="file-input" accept=".ifc" >
+       <div class="app-container">
+        <div id="viewer-container"></div>  
+            <div class="slidebar">
+                <div class="button-container">
+                    <button onclick="location.reload();" class="button-recarga" title="Recarga">
+                        <i style="color: blue" class="fas fa-sync-alt"></i>
+                    </button>
+                    <div id="loader-button" class="button">Abrir IFC</div>
+                </div>
+    
+                <div class="three-menu" >
+                    <ul id="myUL">
+                        <li id="tree-root">
+                          <span class="caret"></span>
+                          <ul class="nested">
+                            <li>Water</li>
+                            <li>Coffee</li>
+                            <li><span class="caret">Tea</span>
+                              <ul class="nested">
+                                <li>Black Tea</li>
+                                <li>White Tea</li>
+                                <li><span class="caret">Green Tea</span>
+                                  <ul class="nested">
+                                    <li>Sencha</li>
+                                    <li>Gyokuro</li>
+                                    <li>Matcha</li>
+                                    <li>Pi Lo Chun</li>
+                                  </ul>
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                </div>
+               
+                <div id="property-menu" class="property-menu">
+    
+                    <div class="property-root" id ="property-root">
+                        <div class="property-name">Nombre:</div>
+                        <div class="property-value">Valor</div>
+                    </div>
+                
+                </div>
+                
+                <div class="button-container"></div>    
+            </div>
+            
+        </div>
+        <script src="bundle.js"></script> 
+    </body>
 </html>
