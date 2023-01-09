@@ -121856,31 +121856,73 @@ const GUI={
     input: document.getElementById("file-input"),
     loader: document.getElementById("loader-button"),
     props: document.getElementById("property-menu"),
-    tree: document.getElementById("tree-root")
+    tree: document.getElementById("tree-root"),
+    
 };
 
 GUI.loader.onclick = () => GUI.input.click();  //al hacer clic al boton abre cuadro de dialogo para cargar archivo
+
+let allIDs;
+//const hideButton = document.getElementById("hidebutton");
+document.getElementById("toolbar");
+document.getElementById("hidebutton");
+
+
+
+
+
+
 
 //cada vez elemento imput cambia, genera uURL y lo pasa a la lib IFC
 GUI.input.onchange = async (event) => {
     const file=event.target.files[0];
     const url=URL.createObjectURL(file);
-    const model = await viewer.IFC.loadIfcUrl(url);
-    viewer.IFC.getSpatialStructure(model.modelID);
-    createTreeMenu(model.modelID);
-   
+    loadModel(url);
 };
 
+
+
 //si el Ifc ya esta cargado por defecto y no selecciona atraves del input
-async function loadModel(){
-   const model= await viewer.IFC.loadIfcUrl("01.ifc"); 
+async function loadModel(url){
+   const model= await viewer.IFC.loadIfcUrl(url); 
    createTreeMenu(model.modelID);
-   await viewer.IFC.getSpatialStructure(model.modelID);
+   tree= await viewer.IFC.getSpatialStructure(model.modelID);
+   allIDs = getAllIds(model);
+   console.log(allIDs);
+   
    //console.log(tree);
    //carga el modelo indicado y nos da el arbol del entidades
 }
 
-loadModel();
+
+ 
+
+//devuelve todos los elementos del modelo
+function getAllIds(ifcModel) {
+	return Array.from(
+		new Set(ifcModel.geometry.attributes.expressID.array),
+	);
+}
+
+//#region HIDE
+//2. Hide geometry
+
+
+container.ondblclick=() =>{
+   const result = viewer.context.castRayIfc();
+	if (!result) return;
+	const manager = viewer.IFC.loader.ifcManager;
+	const id = manager.getExpressId(result.object.geometry, result.faceIndex);
+	viewer.IFC.loader.ifcManager.removeFromSubset(
+		0,
+		[id],
+		'full-model-subset',
+	);
+
+};
+
+
+
 
 
 // ACCEDER A PROPIEDADES
@@ -121888,8 +121930,8 @@ loadModel();
 //para darle otro aspecto en **const viewer = new IfcViewerAPI({container, backgroundColor: new Color(255,255,255)}); se puede modificar su aspecto                                           
 container.onmousemove = () => viewer.IFC.selector.prePickIfcItem();
 
-//dbclick y selecciona elemento
-container.ondblclick = async()=>{
+//onclick y selecciona elemento
+container.onclick = async()=>{
     const found=await viewer.IFC.selector.pickIfcItem(true);
     if(found === null || found === undefined) return; //elemnto no seleccionado no hace nada
     //y para acceder a propiedades de ese elemnto
@@ -121898,6 +121940,9 @@ container.ondblclick = async()=>{
     updatePropertyMenu(props);
 };
 
+
+//PAra crear arbol del proyecto cuando se selecciona ifc
+let tree;
 //menu con propiedades nativas 
 function updatePropertyMenu (props){
 
