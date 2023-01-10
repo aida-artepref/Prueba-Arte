@@ -23,8 +23,7 @@ const GUI={
 GUI.loader.onclick = () => GUI.input.click();  //al hacer clic al boton abre cuadro de dialogo para cargar archivo
 
 let allIDs;
-//--------------HIDEN
-let enableHide = false;
+
 //const hideButton = document.getElementById("hidebutton");
 const toolbar = document.getElementById("toolbar");
 const hideButton= document.getElementById("hidebutton");
@@ -42,8 +41,6 @@ GUI.input.onchange = async (event) => {
     loadModel(url);
 }
 
-
-
 //si el Ifc ya esta cargado por defecto y no selecciona atraves del input
 async function loadModel(url){
    const model= await viewer.IFC.loadIfcUrl(url); 
@@ -51,13 +48,65 @@ async function loadModel(url){
    tree= await viewer.IFC.getSpatialStructure(model.modelID);
    allIDs = getAllIds(model);
    console.log(allIDs);
-   
    //console.log(tree);
    //carga el modelo indicado y nos da el arbol del entidades
+   const subset = getWholeSubset(viewer, model, allIDs);
+	replaceOriginalModelBySubset(viewer, model, subset);
+	setupEvents(viewer, allIDs);
 }
 
+function getWholeSubset(viewer, model, allIDs) {
+	return viewer.IFC.loader.ifcManager.createSubset({
+		modelID: model.modelID,
+		ids: allIDs,
+		applyBVH: true,
+		scene: model.parent,
+		removePrevious: true,
+		customID: 'full-model-subset',
+	});
+}
 
- 
+function replaceOriginalModelBySubset(viewer, model, subset) {
+	const items = viewer.context.items;
+
+	items.pickableIfcModels = items.pickableIfcModels.filter(model => model !== model);
+	items.ifcModels = items.ifcModels.filter(model => model !== model);
+	model.removeFromParent();
+
+	items.ifcModels.push(subset);
+	items.pickableIfcModels.push(subset);
+}
+
+function setupEvents(viewer, allIDs) {
+	window.ondblclick = () => hideClickedItem(viewer);
+	window.onkeydown = (event) => {
+		if (event.code === 'Escape') {
+			showAllItems(viewer, allIDs);
+		}
+	};
+}
+
+function showAllItems(viewer, ids) {
+	viewer.IFC.loader.ifcManager.createSubset({
+		modelID: 0,
+		ids,
+		removePrevious: false,
+		applyBVH: true,
+		customID: 'full-model-subset',
+	});
+}
+
+function hideClickedItem(viewer) {
+	const result = viewer.context.castRayIfc();
+	if (!result) return;
+	const manager = viewer.IFC.loader.ifcManager;
+	const id = manager.getExpressId(result.object.geometry, result.faceIndex);
+	viewer.IFC.loader.ifcManager.removeFromSubset(
+		0,
+		[id],
+		'full-model-subset',
+	);
+}
 
 //devuelve todos los elementos del modelo
 function getAllIds(ifcModel) {
