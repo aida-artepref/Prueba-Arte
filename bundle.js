@@ -121851,7 +121851,6 @@ viewer.axes.setAxes();
 
 viewer.context.renderer.usePostproduction = true;
 
-//
 const GUI={
     input: document.getElementById("file-input"),
     loader: document.getElementById("loader-button"),
@@ -121867,10 +121866,6 @@ let allIDs;
 //const hideButton = document.getElementById("hidebutton");
 document.getElementById("toolbar");
 document.getElementById("hidebutton");
-
-
-
-
 
 
 
@@ -121891,9 +121886,12 @@ async function loadModel(url){
    //console.log(tree);
    //carga el modelo indicado y nos da el arbol del entidades
    const subset = getWholeSubset(viewer, model, allIDs);
-	replaceOriginalModelBySubset(viewer, model, subset);
-	setupEvents(viewer, allIDs);
+    replaceOriginalModelBySubset(viewer, model, subset);
+    setupEvents(viewer, allIDs);
 }
+
+
+
 
 function getWholeSubset(viewer, model, allIDs) {
 	return viewer.IFC.loader.ifcManager.createSubset({
@@ -121908,11 +121906,9 @@ function getWholeSubset(viewer, model, allIDs) {
 
 function replaceOriginalModelBySubset(viewer, model, subset) {
 	const items = viewer.context.items;
-
 	items.pickableIfcModels = items.pickableIfcModels.filter(model => model !== model);
 	items.ifcModels = items.ifcModels.filter(model => model !== model);
 	model.removeFromParent();
-
 	items.ifcModels.push(subset);
 	items.pickableIfcModels.push(subset);
 }
@@ -121946,6 +121942,7 @@ function hideClickedItem(viewer) {
 		[id],
 		'full-model-subset',
 	);
+    viewer.IFC.selector.unpickIfcItems();
 }
 
 //devuelve todos los elementos del modelo
@@ -121954,25 +121951,6 @@ function getAllIds(ifcModel) {
 		new Set(ifcModel.geometry.attributes.expressID.array),
 	);
 }
-
-//#region HIDE
-//2. Hide geometry
-
-
-container.ondblclick=() =>{
-   const result = viewer.context.castRayIfc();
-	if (!result) return;
-	const manager = viewer.IFC.loader.ifcManager;
-	const id = manager.getExpressId(result.object.geometry, result.faceIndex);
-	viewer.IFC.loader.ifcManager.removeFromSubset(
-		0,
-		[id],
-		'full-model-subset',
-	);
-
-};
-
-
 
 
 
@@ -121983,7 +121961,7 @@ container.onmousemove = () => viewer.IFC.selector.prePickIfcItem();
 
 //onclick y selecciona elemento
 container.onclick = async()=>{
-    const found=await viewer.IFC.selector.pickIfcItem(true);
+    const found=await viewer.IFC.selector.pickIfcItem(false);
     if(found === null || found === undefined) return; //elemnto no seleccionado no hace nada
     //y para acceder a propiedades de ese elemnto
     const props = await viewer.IFC.getProperties (found.modelID, found.id, true);
