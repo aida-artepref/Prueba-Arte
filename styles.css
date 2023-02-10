@@ -58,6 +58,11 @@
   cursor: pointer;
 }
 
+.button-recarga:hover{
+  background-color: #dadada;
+    border-style: solid;
+    border-width: thin;
+}
 .button:hover{
     background-color: #dadada;
     border-style: solid;
@@ -90,7 +95,7 @@
 
 .property-menu{
     overflow-y:auto;
-    height: calc(55%);
+    height: calc(50%);
 }
 
 .property-root{
@@ -101,13 +106,23 @@
 }
 
 .property-name{
-    width: 30%;
+    width: 50%;
     text-align: left;
 }
 
 .property-value{
     width: 70%;
     text-align: right;
+}
+
+#elementosOcultosDiv{
+  position:fixed;
+  top:10px;
+  left:10px;
+  width:auto;
+  height:auto;
+  background-color:lightblue;  
+  padding: 10px;
 }
 
 #viewer-container{
@@ -162,3 +177,53 @@ ul, #myUL {
   }
 
 /**/
+.item-list-elementos-cargados{
+  display: inline-block;
+}
+.divCargas {
+ 
+    position: fixed;
+    top:10px;
+    left:10px;
+    background-color: white;
+    border: 1px solid gray;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: auto;
+    height: auto;
+    text-align: center;
+  }
+
+  .divCheck {
+  
+    position: fixed;
+    bottom: 10px;
+    left:10px;
+    background-color: white;
+    border: 1px solid gray;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: auto;
+    height: auto;
+    
+  }
+
+  .titleCargas {
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  #file-name {
+    padding-top: 15px;
+    text-align: center;
+    display: block;
+    color: #e20a17
+  }
+
+
+  
+  .header-logo {
+    height: 40px;
+    margin-top: 5px;
+    float: right;
+  }
