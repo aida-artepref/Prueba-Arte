@@ -362,13 +362,13 @@ async function precastProperties(precast,modelID, precastID){
 
     let resultCamion = properties2.find(element => element.Name.value.startsWith('Cami'));
     if (resultCamion) {
-        precast[resultCamion.Name.value] = resultCamion.NominalValue.value;
+        precast['Camion'] = resultCamion.NominalValue.value;
     }
 
     addPropEstructura();
 }
 
-//recorre el array precastElement y añade campos de propiedades(con valores vacios) a los objetos que no los tenian
+// recorre el array precastElement y añade campos de propiedades(con valores vacios) a los objetos que no los tenian
 // conseguimos que todos los elementos tengan la misma estructura de propiedades
 function addPropEstructura(){
       const propertiesAdd = ['expressID', 'ifcType', 'GlobalId', 'Transporte', 'Camion'];
@@ -381,6 +381,8 @@ function addPropEstructura(){
         }
       }
 }
+
+
 
 
 //PAra crear arbol del proyecto cuando se selecciona ifc
