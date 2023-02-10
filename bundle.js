@@ -121902,9 +121902,7 @@ async function loadModel(url){
     const subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset);
 
-	
-
-    //Aqui llama a la función que carga las propiedades/psets al array
+    //Carga las propiedades/psets al array
      precastElements.forEach(precast => {
         if (precast.ifcType !='IFCBUILDING'){
              precastProperties(precast, 0, precast.expressID);
@@ -122009,8 +122007,15 @@ function showAllItems(viewer, ids) {
 		customID: 'full-model-subset',
 	});
 }
-
+let numCamion=1;
+const nuevoCamionBtn = document.getElementById("nuevoCamion");
+nuevoCamionBtn.addEventListener("click", function() {
+  numCamion += 1;
+});
 function hideClickedItem(viewer) {
+
+  const divCargas = document.querySelector('.divCargas');
+  divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
     const result = viewer.context.castRayIfc();
     if (!result) return;
     const manager = viewer.IFC.loader.ifcManager;
@@ -122029,7 +122034,7 @@ function hideClickedItem(viewer) {
     // busca el elemento con el identificador expressID en el array precastElements y modifica su valor en la prop Camion
     const actValorCamion = precastElements.find(element => element.expressID === id);
       if (actValorCamion) {
-          actValorCamion.Camion = 1;
+          actValorCamion.Camion = numCamion;
       }
     
     listarOcultos(elementosOcultos);
@@ -122040,6 +122045,8 @@ function hideClickedItem(viewer) {
     if (indexToRemove !== -1) {
         allIDs.splice(indexToRemove, 1);
     }
+
+    
 }
 
 //Lógica para eliminar de la tabla HTML los elementos cargados, volver a visualizarlos
@@ -122056,7 +122063,6 @@ listaElementos.addEventListener('dblclick', function(event) {
     elementoEliminadoTabla = target.parentNode.firstChild.textContent;
     target.parentNode.remove();
     let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
-    console.log(`Se eliminó  de la tabla el elemento con expressID: ${elementoEliminadoTabla}`);
     if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
               elementosOcultos.splice(indexToRemove, 1);
               globalIds.splice(indexToRemove, 1);
@@ -122068,41 +122074,42 @@ listaElementos.addEventListener('dblclick', function(event) {
       if (actValorCamion) {
           actValorCamion.Camion = "";
       }
+      
 });
 
 
 //muestra en HTML a través de una tabla los elemntos no visibles en visor
 async function listarOcultos(elementosOcultos) {
-  const itemList = document.querySelector(".item-list-elementos-cargados");
-  itemList.innerHTML = "";
-  
-  const table = document.createElement("table");
-  table.classList.add("table");
-  
-  const thead = document.createElement("thead");
-  thead.innerHTML = "<tr><th>expressID</th><th>GlobalId</th><th>Camion</th></tr>";
-  table.appendChild(thead);
-  
-  const tbody = document.createElement("tbody");
-  for (const id of elementosOcultos) {
-    const elemento = precastElements.find(elemento => elemento.expressID === id);
-    if (!elemento) {
-      throw new Error(`No se encontró el elemento con expressID = ${id}`);
-    }
+    const itemList = document.querySelector(".item-list-elementos-cargados");
+    itemList.innerHTML = "";
     
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td>`;
-    tbody.appendChild(tr);
-  }
-  table.appendChild(tbody);
-  itemList.appendChild(table);
+    const table = document.createElement("table");
+    table.classList.add("table");
+    
+    const thead = document.createElement("thead");
+    thead.innerHTML = "<tr><th>expressID</th><th>GlobalId</th><th>Camion</th></tr>";
+    table.appendChild(thead);
+    
+    const tbody = document.createElement("tbody");
+    for (const id of elementosOcultos) {
+        const elemento = precastElements.find(elemento => elemento.expressID === id);
+        if (!elemento) {
+            throw new Error(`No se encontró el elemento con expressID = ${id}`);
+        }
+      
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td>`;
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    itemList.appendChild(table);
 }
 
 //devuelve todos los elementos del modelo
 function getAllIds(ifcModel) {
-	return Array.from(
-		new Set(ifcModel.geometry.attributes.expressID.array),
-	);
+    return Array.from(
+      new Set(ifcModel.geometry.attributes.expressID.array),
+    );
 }
 
 
