@@ -55,15 +55,15 @@ async function loadModel(url){
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
     idsTotal=getAllIds(model); 
-
+ 
     const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     setIfcPropertiesContent(ifcProject, viewer, model);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
 
     const subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset);
-   
-	  getName(categories); 
+
+	
 
     //Aqui llama a la función que carga las propiedades/psets al array
      precastElements.forEach(precast => {
@@ -77,33 +77,34 @@ async function loadModel(url){
 
 //*********************************************************************************** */
 //---------------------Funciones para extraer categorias-------------------------------//
- function getName(category) {
-    const names = Object.keys(categories);
-    console.log(names);
-    return names.find((name) => categories[name] === category);
-  }
-  // Obtiene los ID de todos los artículos de una categoría específica
-  async function getAll(category) {
+function getName(category) {
+      const names = Object.keys(categories);
+      console.log(names);
+      return names.find((name) => categories[name] === category);
+}
+  // toma una categoría como entrada y devuelve todos los elementos de esa categoría
+async function getAll(category) {
     const manager = Loader.ifcManager;
     return manager.getAllItemsOfType(0, category, false);
-  }
-  
-  async function setupAllCategories() {
+}
+
+//crear un nuevo subconjunto para cada categoría de elementos en el objeto categories
+async function setupAllCategories() {
     const allCategories = Object.values(categories);
     for (let i = 0; i < allCategories.length; i++) {
       const category = allCategories[i];
       await setupCategory(category);
     }
-  }
+}
 
 // Crea un nuevo subconjunto y configura el checkbox
-  async function setupCategory(category) {
+async function setupCategory(category) {
     subsets[category] = await newSubsetOfType(category);
     setupCheckBox(category);
-  }
+}
   
 // Configura el evento checkbox para ocultar/mostrar elementos
-  function setupCheckBox(category) {
+function setupCheckBox(category) {
     const name = getName(category);
     const checkbox = document.getElementById(name);
     checkbox.addEventListener("change", () => {
@@ -121,18 +122,11 @@ async function loadModel(url){
     function updatePostproduction() {
       viewer.context.renderer.postProduction.update();
   }
-    //   const name =  getName(category);
-    //   const checkBox = document.getElementById(checktiposIfc);
-    //   checkBox.addEventListener("change", (event) => {
-    //   const checked = event.target.checked;
-    //   const subset = subset[category];
-    //   if (checked) scene.add(subset);
-    //   else subset.removeFromParent();
-    // });
-  }
+
+}
 
   // Crea un nuevo subconjunto que contiene todos los elementos de una categoría
-  async function newSubsetOfType(category) {
+async function newSubsetOfType(category) {
     const ids = await getAll(category);
     return Loader.ifcManager.createSubset({
       modelID: 0,
@@ -141,11 +135,11 @@ async function loadModel(url){
       removePrevious: true,
       customID: category.toString(),
     });
-  }
+}
 
   //******************************************************************************************************************* */
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
- function setIfcPropertiesContent(ifcProject, viewer, model) {
+function setIfcPropertiesContent(ifcProject, viewer, model) {
     const ifcClass = getIfcClass(ifcProject); //obtiene todos los Tipos de ifc de cada elemento que carga en el visor, ej: si hay 80 elemen obtiene 80 tipos 
     let uniqueClasses = [...new Set(ifcClass)];  // agrupa los tipos de elementos 
     generateCheckboxes(uniqueClasses)
@@ -154,14 +148,15 @@ async function loadModel(url){
     for (let i = 0; i < uniqueClasses.length; i++) {   //genero el obj categories 
         categories[uniqueClasses[i]] = {};
      }
- }
+}
 
-  function getIfcClass(ifcProject) {
+ //extrae todos los tipos de elementos del modelo y los almacena en un obj categories
+function getIfcClass(ifcProject) {
     let typeArray = [];
     return getIfcClass_base(ifcProject, typeArray);
-  }
+}
 
-  function getIfcClass_base(ifcProject, typeArray) {
+function getIfcClass_base(ifcProject, typeArray) {
     const children = ifcProject.children;
     if (children.length === 0) {
       typeArray.push(ifcProject.type);
@@ -171,17 +166,17 @@ async function loadModel(url){
       }
     }
     return typeArray;
-  }
+}
 
 // Crea automaticamente los check con las categorias del IFC cargado
-  function generateCheckboxes(uniqueClasses) {
+function generateCheckboxes(uniqueClasses) {
     let html = '';
   
     uniqueClasses.forEach(function(uniqueClasses) {
       html += `<input type="checkbox" checked>${uniqueClasses}<br>`;
     });
     return html;
-  }
+}
  ////-----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -199,10 +194,10 @@ async function loadModel(url){
 
 //Remplaza un modelo original (model) por un subconjunto previamente creado (subset).
 function replaceOriginalModelBySubset(viewer, model, subset) {
-	const items = viewer.context.items;
-	items.pickableIfcModels = items.pickableIfcModels.filter(model => model !== model);
+	const items = viewer.context.items;  //obtiene el objeto "items" del contexto del visor y lo almacena en una variable local.
+	items.pickableIfcModels = items.pickableIfcModels.filter(model => model !== model);  //Filtra las matrices y elimina cualquier referencia al modelo original
 	items.ifcModels = items.ifcModels.filter(model => model !== model);
-	model.removeFromParent();
+	model.removeFromParent();  //Elimina el modelo original de su contenedor principal
 	items.ifcModels.push(subset);
 	items.pickableIfcModels.push(subset);
    
@@ -231,19 +226,27 @@ function showAllItems(viewer, ids) {
 }
 
 function hideClickedItem(viewer) {
-	const result = viewer.context.castRayIfc();
-	if (!result) return;
-	const manager = viewer.IFC.loader.ifcManager;
-	const id = manager.getExpressId(result.object.geometry, result.faceIndex);
-	viewer.IFC.loader.ifcManager.removeFromSubset(
-		0,
-		[id],
-		'full-model-subset',
-	);
+    const result = viewer.context.castRayIfc();
+    if (!result) return;
+    const manager = viewer.IFC.loader.ifcManager;
+    const id = manager.getExpressId(result.object.geometry, result.faceIndex);
+    viewer.IFC.loader.ifcManager.removeFromSubset(
+        0,
+        [id],
+        'full-model-subset',
+    );
     viewer.IFC.selector.unpickIfcItems();
     elementosOcultos.push(id);
     globalIds.push(globalId);// cuando oculto un elemnto su globalId se añade al array globalIds
-    console.log("ARRAY de Global ids "+globalIds);
+   
+    
+  
+    // busca el elemento con el identificador expressID en el array precastElements y modifica su valor en la prop Camion
+    const actValorCamion = precastElements.find(element => element.expressID === id);
+      if (actValorCamion) {
+          actValorCamion.Camion = 1;
+      }
+    
     listarOcultos(elementosOcultos);
 
     //indexOf se utiliza para encontrar el índice del elemento que quieres eliminar.
@@ -254,57 +257,60 @@ function hideClickedItem(viewer) {
     }
 }
 
-//Lógica para eliminar de la lista HTML los elementos cargados, volver a verlos
-//los elementos que quita de la lista HTML los devuelve al array allIDs
-// y los elimina de la lista elementosOcultos
+//Lógica para eliminar de la tabla HTML los elementos cargados, volver a visualizarlos
+//los elementos que borra de la tabla HTML los devuelve al array allIDs
+// los elimina de la lista elementosOcultos
+//y vuelve a colocar el valor de la prop Camion ''
 const divCargas = document.querySelector('.divCargas');
-const listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
+let listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
 
 listaElementos.addEventListener('dblclick', function(event) {
-  if (event.target.tagName === 'LI') {
-    const elementoEliminado = event.target.textContent;
-    console.log(elementoEliminado);
-    event.target.remove();
-    let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminado));
-    console.log(indexToRemove);
+  const target = event.target;
+  let elementoEliminadoTabla;
+  if (target.tagName === 'TD') {
+    elementoEliminadoTabla = target.parentNode.firstChild.textContent;
+    target.parentNode.remove();
+    let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
+    console.log(`Se eliminó  de la tabla el elemento con expressID: ${elementoEliminadoTabla}`);
     if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
-        elementosOcultos.splice(indexToRemove, 1);
-        globalIds.splice(indexToRemove, 1);
-      }
-    allIDs.push(parseInt(elementoEliminado));
+              elementosOcultos.splice(indexToRemove, 1);
+              globalIds.splice(indexToRemove, 1);
+        }
+    allIDs.push(parseInt(elementoEliminadoTabla));
   }
-
-showAllItems(viewer, allIDs);
-
+  showAllItems(viewer, allIDs);
+  const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
+      if (actValorCamion) {
+          actValorCamion.Camion = "";
+      }
 });
 
 
-//muestar por HTML el Id mas el global Id del elemento que hemos ocultado en el visor
-
-// let contador = 1;
-
-// document.querySelector("#nuevoCamion").addEventListener("click", function() {
-//   listarOcultos(elementosOcultos);
-//   contador += 1;
-// });
-
-// async function listarOcultos(elementosOcultos) {
-//   const itemList = document.querySelector(".item-list-elementos-cargados");
-//   itemList.innerHTML = "";
-//   for (let i = 0; i < elementosOcultos.length; i++) {
-//     const item = document.createElement("li");
-//    item.textContent = `C${contador}${elementosOcultos[i]}${globalIds[i]}`;
-//     itemList.appendChild(item);
-//   }
-// }
+//muestra en HTML a través de una tabla los elemntos no visibles en visor
 async function listarOcultos(elementosOcultos) {
   const itemList = document.querySelector(".item-list-elementos-cargados");
   itemList.innerHTML = "";
-  for (let i = 0; i < elementosOcultos.length; i++) {
-    const item = document.createElement("li");
-    item.textContent = `${elementosOcultos[i]} --- ${globalIds[i]}`;
-    itemList.appendChild(item);
+  
+  const table = document.createElement("table");
+  table.classList.add("table");
+  
+  const thead = document.createElement("thead");
+  thead.innerHTML = "<tr><th>expressID</th><th>GlobalId</th><th>Camion</th></tr>";
+  table.appendChild(thead);
+  
+  const tbody = document.createElement("tbody");
+  for (const id of elementosOcultos) {
+    const elemento = precastElements.find(elemento => elemento.expressID === id);
+    if (!elemento) {
+      throw new Error(`No se encontró el elemento con expressID = ${id}`);
+    }
+    
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td>`;
+    tbody.appendChild(tr);
   }
+  table.appendChild(tbody);
+  itemList.appendChild(table);
 }
 
 //devuelve todos los elementos del modelo

@@ -227,3 +227,19 @@ ul, #myUL {
     margin-top: 5px;
     float: right;
   }
+
+  table.table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  table.table td,
+  table.table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  table.table th {
+    background-color: #ddd;
+  }
