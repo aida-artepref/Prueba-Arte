@@ -55,88 +55,88 @@ async function loadModel(url){
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
     idsTotal=getAllIds(model); 
- console.log("IDS TOTAL "+idsTotal.length);
+
     const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     setIfcPropertiesContent(ifcProject, viewer, model);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
 
     const subset = getWholeSubset(viewer, model, allIDs);
-    replaceOriginalModelBySubset(viewer, model, subset);
+    replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
 
     //Carga las propiedades/psets al array
      precastElements.forEach(precast => {
         if (precast.ifcType !='IFCBUILDING'){
              precastProperties(precast, 0, precast.expressID);
-             //console.log(precast.expressID + " " + precast.ifcType)
         }
      }); 
-  
+     
  }
 
 //*********************************************************************************** */
 //---------------------Funciones para extraer categorias-------------------------------//
-function getName(category) {
-      const names = Object.keys(categories);
-      console.log(names);
-      return names.find((name) => categories[name] === category);
-}
-  // toma una categoría como entrada y devuelve todos los elementos de esa categoría
-async function getAll(category) {
-    const manager = Loader.ifcManager;
-    return manager.getAllItemsOfType(0, category, false);
-}
+// function getName(category) {
+//       const names = Object.keys(categories);
+//       console.log(names);
+//       return names.find((name) => categories[name] === category);
+// }
+//   // toma una categoría como entrada y devuelve todos los elementos de esa categoría
+// async function getAll(category) {
+//     const manager = Loader.ifcManager;
+//     return manager.getAllItemsOfType(0, category, false);
+// }
 
-//crear un nuevo subconjunto para cada categoría de elementos en el objeto categories
-async function setupAllCategories() {
-    const allCategories = Object.values(categories);
-    for (let i = 0; i < allCategories.length; i++) {
-      const category = allCategories[i];
-      await setupCategory(category);
-    }
-}
+// //crear un nuevo subconjunto para cada categoría de elementos en el objeto categories
+// async function setupAllCategories() {
+//     const allCategories = Object.values(categories);
+//     for (let i = 0; i < allCategories.length; i++) {
+//       const category = allCategories[i];
+//       await setupCategory(category);
+//     }
+// }
 
-// Crea un nuevo subconjunto y configura el checkbox
-async function setupCategory(category) {
-    subsets[category] = await newSubsetOfType(category);
-    setupCheckBox(category);
-}
+// // // Crea un nuevo subconjunto y configura el checkbox
+// async function setupCategory(category) {
+//     subsets[category] = await newSubsetOfType(category);
+//     setupCheckBox(category);
+// }
   
-// Configura el evento checkbox para ocultar/mostrar elementos
-function setupCheckBox(category) {
-    const name = getName(category);
-    const checkbox = document.getElementById(name);
-    checkbox.addEventListener("change", () => {
-    const subset = subsets[category];
-        if (checkbox.checked) {
-            scene.add(subset);
-            togglePickable(subset, true);
-        } else {
-            subset.removeFromParent();
-            togglePickable(subset, false);
-        }
-        updatePostproduction();
-    });
+// // // Configura el evento checkbox para ocultar/mostrar elementos
+// function setupCheckBox(category) {
+//     const name = getName(category);
+//     const checkbox = document.getElementById(name);
+//     checkbox.addEventListener("change", () => {
+//     const subset = subsets[category];
+//         if (checkbox.checked) {
+//             scene.add(subset);
+//             togglePickable(subset, true);
+//         } else {
+//             subset.removeFromParent();
+//             togglePickable(subset, false);
+//         }
+//         updatePostproduction();
+//     });
 
-    function updatePostproduction() {
-      viewer.context.renderer.postProduction.update();
-  }
+//     function updatePostproduction() {
+//       viewer.context.renderer.postProduction.update();
+//   }
 
-}
+// }
 
-  // Crea un nuevo subconjunto que contiene todos los elementos de una categoría
-async function newSubsetOfType(category) {
-    const ids = await getAll(category);
-    return Loader.ifcManager.createSubset({
-      modelID: 0,
-      scene,
-      ids,
-      removePrevious: true,
-      customID: category.toString(),
-    });
-}
+// //   // Crea un nuevo subconjunto que contiene todos los elementos de una categoría
+// async function newSubsetOfType(category) {
+//     const ids = await getAll(category);
+//     return Loader.ifcManager.createSubset({
+//       modelID: 0,
+//       scene,
+//       ids,
+//       removePrevious: true,
+//       customID: category.toString(),
+//     });
+// }
 
   //******************************************************************************************************************* */
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
+ //-------------extrae todos los tipos de elementos del modelo y los agrupa en un objeto llamado categories.
 function setIfcPropertiesContent(ifcProject, viewer, model) {
     const ifcClass = getIfcClass(ifcProject); //obtiene todos los Tipos de ifc de cada elemento que carga en el visor, ej: si hay 80 elemen obtiene 80 tipos 
     let uniqueClasses = [...new Set(ifcClass)];  // agrupa los tipos de elementos 
@@ -148,12 +148,13 @@ function setIfcPropertiesContent(ifcProject, viewer, model) {
      }
 }
 
- //extrae todos los tipos de elementos del modelo y los almacena en un obj categories
+ //recorre el modelo y almacena el tipo de cada elemento en un array typeArray.
 function getIfcClass(ifcProject) {
     let typeArray = [];
     return getIfcClass_base(ifcProject, typeArray);
 }
 
+//recursivamente  se llama a sí misma para procesar los hijos de cada elemento y agregar su tipo al array.
 function getIfcClass_base(ifcProject, typeArray) {
     const children = ifcProject.children;
     if (children.length === 0) {
@@ -173,8 +174,81 @@ function generateCheckboxes(uniqueClasses) {
     uniqueClasses.forEach(function(uniqueClasses) {
       html += `<input type="checkbox" checked>${uniqueClasses}<br>`;
     });
+
+    // Agrega el evento click a todos los checkbox
+    const checkboxes = document.querySelectorAll('.checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('click', function() {
+            const category = this.dataset.category;
+            const isChecked = this.checked;
+            const ids = getIdsForCategory(category, viewer, model);
+            if (isChecked) {
+                showElements(ids, viewer);
+            } else {
+                hideElements(ids, viewer);
+            }
+        });
+    });
     return html;
 }
+
+function toggleVisibility(category) {
+    // Obtener todos los ids de los elementos de la categoría específica
+    const ids = getIdsByCategory(category);
+
+    // Obtener el estado actual del checkbox
+    const checkbox = document.querySelector(`input[type='checkbox'][value='${category}']`);
+    const isChecked = checkbox.checked;
+
+    // Mostrar u ocultar los elementos correspondientes
+    if (isChecked) {
+        viewer.IFC.loader.ifcManager.addToSubset(0, ids, 'full-model-subset');
+    } else {
+        viewer.IFC.loader.ifcManager.removeFromSubset(0, ids, 'full-model-subset');
+    }
+}
+
+function getIdsByCategory(categoryName, ifcProject) {
+    let ids = [];
+    return getIdsByCategory_base(categoryName, ifcProject, ids);
+}
+
+function getIdsByCategory_base(categoryName, ifcProject, ids) {
+    const children = ifcProject.children;
+    if (children.length === 0) {
+        if (ifcProject.type === categoryName) {
+            ids.push(ifcProject.object.id);
+        }
+    } else {
+        for (const obj of children) {
+            getIdsByCategory_base(categoryName, obj, ids);
+        }
+    }
+    return ids;
+}
+function hideCategory(categoryName, viewer) {
+    const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
+    const ids = getIdsByCategory(categoryName, ifcProject);
+    viewer.IFC.loader.ifcManager.removeFromSubset(0, ids, 'full-model-subset');
+}
+
+function showCategory(categoryName, viewer) {
+    const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
+    const ids = getIdsByCategory(categoryName, ifcProject);
+    viewer.IFC.loader.ifcManager.addToSubset(0, ids, 'full-model-subset');
+}
+
+function getIdsForCategory(category, model, allIDs) {
+    let categoryIDs = [];
+    for (let i = 0; i < allIDs.length; i++) {
+      let element = model.getObjectById(allIDs[i]);
+      if (element.type === category) {
+        categoryIDs.push(allIDs[i]);
+      }
+    }
+    return categoryIDs;
+  }
+  
  ////-----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -197,8 +271,7 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 	items.ifcModels = items.ifcModels.filter(model => model !== model);
 	model.removeFromParent();  //Elimina el modelo original de su contenedor principal
 	items.ifcModels.push(subset);
-	items.pickableIfcModels.push(subset);
-   
+	items.pickableIfcModels.push(subset); 
 }
 
 
@@ -229,7 +302,6 @@ nuevoCamionBtn.addEventListener("click", function() {
 });
 
 function hideClickedItem(viewer) {
-
   const divCargas = document.querySelector('.divCargas');
   divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
     const result = viewer.context.castRayIfc();
@@ -259,9 +331,8 @@ function hideClickedItem(viewer) {
         allIDs.splice(indexToRemove, 1);
     }   
 }
-
+//---------------------Elimina por completo un elemneto pulsado con boton derecho
 function hideClickedItemBtnDrch(viewer) {
-    console.log("BOTONNNN DERECHO");
     const result = viewer.context.castRayIfc();
         if (!result) return;
         const manager = viewer.IFC.loader.ifcManager;
@@ -273,6 +344,8 @@ function hideClickedItemBtnDrch(viewer) {
         );
         viewer.IFC.selector.unpickIfcItems();
 }
+
+
 //Lógica para eliminar de la tabla HTML los elementos cargados, volver a visualizarlos
 //los elementos que borra de la tabla HTML los devuelve al array allIDs
 // los elimina de la lista elementosOcultos
@@ -568,7 +641,7 @@ function createSimpleChild(parent, node){
      }
      childNode.onclick = async () => {
         viewer.IFC.selector.pickIfcItemsByID(0,[node.expressID],true);   
-        const props = await viewer.IFC.getProperties (0, node.expressID, true);
+        const props = await viewer.IFC.getProperties (0, node.expressID, true, true);
         updatePropertyMenu(props);
      }
 }
@@ -576,4 +649,48 @@ function createSimpleChild(parent, node){
 //+++++++++convertir los nodos en inf-texto que vemos en pantalla
 function nodeToString(node){
     return `${node.type} - ${node.expressID}`;
+}
+
+
+
+const exportCSV = document.getElementById("exportButton");
+exportCSV.addEventListener('click', exportCSVmethod, false);
+
+function exportCSVmethod(){
+    let header = [];
+    precastElements.forEach(precastElement => {
+        Object.keys(precastElement).forEach(mKey => {
+            const exists = header.includes(mKey);
+            if (!exists){header.push(mKey)};
+        });
+    });
+
+    let csvContent = '';
+
+    csvContent = header.join(',') + '\n'
+    
+    precastElements.forEach(precast => {
+        header.forEach(ekey => {
+
+            csvContent += precast[ekey]==undefined ? ',' : precast[ekey] + ',';
+
+            // if (precast[ekey]==undefined){
+            //     csvContent += ','
+            // } else {
+            //     csvContent += precast[ekey] + ','; 
+            // }
+        });
+
+        csvContent += '\n';
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8,'});
+    const objUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.setAttribute('href', objUrl);
+    link.setAttribute('download', 'File.csv');
+    link.textContent = 'Click to Download';
+    document.querySelector(".toolbar").append(link);
+    
 }
