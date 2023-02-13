@@ -55,7 +55,7 @@ async function loadModel(url){
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
     idsTotal=getAllIds(model); 
- 
+ console.log("IDS TOTAL "+idsTotal.length);
     const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     setIfcPropertiesContent(ifcProject, viewer, model);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
@@ -203,13 +203,11 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 
 
 window.ondblclick = () => hideClickedItem(viewer);
+window.oncontextmenu=()=> hideClickedItemBtnDrch(viewer);
 
-window.onkeydown = (event) => {  //cuando se presiona esc, incluye todos los elementos d nuevo al visor, ademas de limpiar arrays donde se almacenan los datos expressId y elemnrosOcultos 
-    if (event.code === 'Y') {
-        showAllItems(viewer, idsTotal);
-        document.querySelector(".item-list-elementos-cargados").innerHTML = "";
-        elementosOcultos = [];
-        globalIds = [];
+window.onkeydown = (event) => {  //cuando se presiona esc, incluye todos los elementos ocultos con el BtnDrch de nuevo al visor, ademas de limpiar arrays donde se almacenan los datos expressId y elemnrosOcultos 
+    if (event.code === 'Escape') {
+        showAllItems(viewer, allIDs);
     }
 };
 
@@ -222,11 +220,14 @@ function showAllItems(viewer, ids) {
 		customID: 'full-model-subset',
 	});
 }
+
+
 let numCamion=1;
 const nuevoCamionBtn = document.getElementById("nuevoCamion");
 nuevoCamionBtn.addEventListener("click", function() {
   numCamion += 1;
 });
+
 function hideClickedItem(viewer) {
 
   const divCargas = document.querySelector('.divCargas');
@@ -243,9 +244,6 @@ function hideClickedItem(viewer) {
     viewer.IFC.selector.unpickIfcItems();
     elementosOcultos.push(id);
     globalIds.push(globalId);// cuando oculto un elemnto su globalId se añade al array globalIds
-   
-    
-  
     // busca el elemento con el identificador expressID en el array precastElements y modifica su valor en la prop Camion
     const actValorCamion = precastElements.find(element => element.expressID === id);
       if (actValorCamion) {
@@ -259,11 +257,22 @@ function hideClickedItem(viewer) {
     let indexToRemove = allIDs.indexOf(id);
     if (indexToRemove !== -1) {
         allIDs.splice(indexToRemove, 1);
-    }
-
-    
+    }   
 }
 
+function hideClickedItemBtnDrch(viewer) {
+    console.log("BOTONNNN DERECHO");
+    const result = viewer.context.castRayIfc();
+        if (!result) return;
+        const manager = viewer.IFC.loader.ifcManager;
+        const id = manager.getExpressId(result.object.geometry, result.faceIndex);
+        viewer.IFC.loader.ifcManager.removeFromSubset(
+            0,
+            [id],
+            'full-model-subset',
+        );
+        viewer.IFC.selector.unpickIfcItems();
+}
 //Lógica para eliminar de la tabla HTML los elementos cargados, volver a visualizarlos
 //los elementos que borra de la tabla HTML los devuelve al array allIDs
 // los elimina de la lista elementosOcultos
