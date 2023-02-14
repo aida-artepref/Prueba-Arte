@@ -6,6 +6,7 @@ import { IfcElementQuantity } from 'web-ifc';
  
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color(255,255,255)});
+
 viewer.clipper.active = true;
 viewer.grid.setGrid();
 viewer.axes.setAxes();
@@ -55,13 +56,15 @@ async function loadModel(url){
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
     idsTotal=getAllIds(model); 
-
+    console.log("Total de elementos en el Modelo: " +idsTotal.length);
+    //model.removeFromParent();
     const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     setIfcPropertiesContent(ifcProject, viewer, model);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
 
     const subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
+   
 
     //Carga las propiedades/psets al array
      precastElements.forEach(precast => {
@@ -72,71 +75,11 @@ async function loadModel(url){
      
  }
 
-//*********************************************************************************** */
-//---------------------Funciones para extraer categorias-------------------------------//
-// function getName(category) {
-//       const names = Object.keys(categories);
-//       console.log(names);
-//       return names.find((name) => categories[name] === category);
-// }
-//   // toma una categoría como entrada y devuelve todos los elementos de esa categoría
-// async function getAll(category) {
-//     const manager = Loader.ifcManager;
-//     return manager.getAllItemsOfType(0, category, false);
-// }
 
-// //crear un nuevo subconjunto para cada categoría de elementos en el objeto categories
-// async function setupAllCategories() {
-//     const allCategories = Object.values(categories);
-//     for (let i = 0; i < allCategories.length; i++) {
-//       const category = allCategories[i];
-//       await setupCategory(category);
-//     }
-// }
-
-// // // Crea un nuevo subconjunto y configura el checkbox
-// async function setupCategory(category) {
-//     subsets[category] = await newSubsetOfType(category);
-//     setupCheckBox(category);
-// }
-  
-// // // Configura el evento checkbox para ocultar/mostrar elementos
-// function setupCheckBox(category) {
-//     const name = getName(category);
-//     const checkbox = document.getElementById(name);
-//     checkbox.addEventListener("change", () => {
-//     const subset = subsets[category];
-//         if (checkbox.checked) {
-//             scene.add(subset);
-//             togglePickable(subset, true);
-//         } else {
-//             subset.removeFromParent();
-//             togglePickable(subset, false);
-//         }
-//         updatePostproduction();
-//     });
-
-//     function updatePostproduction() {
-//       viewer.context.renderer.postProduction.update();
-//   }
-
-// }
-
-// //   // Crea un nuevo subconjunto que contiene todos los elementos de una categoría
-// async function newSubsetOfType(category) {
-//     const ids = await getAll(category);
-//     return Loader.ifcManager.createSubset({
-//       modelID: 0,
-//       scene,
-//       ids,
-//       removePrevious: true,
-//       customID: category.toString(),
-//     });
-// }
 
   //******************************************************************************************************************* */
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
- //-------------extrae todos los tipos de elementos del modelo y los agrupa en un objeto llamado categories.
+ //-------------extrae todos los tipos de elementos del modelo y los agrupa en un objeto llamado categorias.
 function setIfcPropertiesContent(ifcProject, viewer, model) {
     const ifcClass = getIfcClass(ifcProject); //obtiene todos los Tipos de ifc de cada elemento que carga en el visor, ej: si hay 80 elemen obtiene 80 tipos 
     let uniqueClasses = [...new Set(ifcClass)];  // agrupa los tipos de elementos 
@@ -177,128 +120,17 @@ function generateCheckboxes(uniqueClasses) {
    
     return html;
 }
-const checktiposIfcContainer = document.getElementById('checktiposIfc');
-
-checktiposIfcContainer.addEventListener('change', function(event) {
-  if (event.target.tagName === 'INPUT' && event.target.type === 'checkbox') {
-    toggleVisibility(event);
-  }
-});
-
-
-function toggleVisibility(event) {
-    const checkbox = event.target;
-    const ifcType = checkbox.value;
-  
-    if (checkbox.checked) {
-        console.log("check activado");
-      // Mostrar los elementos de tipo ifcType en el visor
-      const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
-      const ids = getIdsByCategory(categoryName, ifcProject);
-      viewer.IFC.loader.ifcManager.addToSubset(0, ids, 'full-model-subset');
-    } else {
-        console.log("check DESactivado");
-      // Ocultar los elementos de tipo ifcType en el visor
-        const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
-        const ids = getIdsByCategory(categoryName, ifcProject);
-        viewer.IFC.loader.ifcManager.removeFromSubset(0, ids, 'full-model-subset');
-    }
-  }
-  
- function getIdsByCategory_base(categoryName, ifcProject, ids) {
-    const children = ifcProject.children;
-    if (children.length === 0) {
-        if (ifcProject.type === categoryName) {
-            ids.push(ifcProject.object.id);
-        }
-    } else {
-        for (const obj of children) {
-            getIdsByCategory_base(categoryName, obj, ids);
-        }
-    }
-    return ids;
-}
-
-
-  
-  function getIdsByCategory(categoryName, ifcProject) {
-    let ids = [];
-    return getIdsByCategory_base(categoryName, ifcProject, ids);
-}
-// Agrega el evento click a todos los checkbox
-// const checkboxes = document.querySelectorAll('.checkbox');
-// checkboxes.forEach(checkbox => {
-//     checkbox.addEventListener('change', function() {
-//         const category = this.dataset.category;
-//         const isChecked = this.checked;
-//         const ids = getIdsForCategory(category, viewer, model);
-
-//         if (isChecked) {
-//             showElements(ids, viewer);
-//         } else {
-//             hideElements(ids, viewer);
-//         }
-//     });
-// });
-
-// document.querySelectorAll(".checkbox").forEach(checkbox => {
-//   checkbox.addEventListener("change", () => {
-//     toggleVisibility(checkbox.value);
-//   });
-// });
-
-// //obtiene los ids de todos los elementos en una categoría específica,
-// // obtiene el estado de la casilla de verificación para esa categoría, y oculta o muestra los elementos en consecuencia
-// function toggleVisibility(category) {
-
-//     let categoryIDs = getIdsForCategory(category, model, allIDs);
-//     // Obtener todos los ids de los elementos de la categoría específica
-    
-
-//     // Obtener el estado actual del checkbox
-//     const checkbox = document.querySelector(`input[type='checkbox'][value='${category}']`);
-//     const isChecked = checkbox.checked;
-
-//     // Mostrar u ocultar los elementos correspondientes
-//     if (isChecked) {
-//         viewer.IFC.loader.ifcManager.addToSubset(0, ids, 'full-model-subset');
-//     } else {
-//         viewer.IFC.loader.ifcManager.removeFromSubset(0, ids, 'full-model-subset');
-//     }
-// }
 
 
 
 
-// // itera a través de todos los ids almacenados en allIDs,
-// // obtiene el elemento correspondiente a cada id utilizando model.getObjectById(id) 
-// //y verifica si su tipo es igual a la categoría dada.
-// // Si es así, agrega el id a la lista categoryIDs. Finalmente, devuelve la lista de ids.
-// function getIdsForCategory(category, model, allIDs) {
-//     let categoryIDs = [];
-//     for (let i = 0; i < allIDs.length; i++) {
-//       let element = model.getObjectById(allIDs[i]);
-//       if (element.type === category) {
-//         categoryIDs.push(allIDs[i]);
-//       }
-//     }
-//     return categoryIDs;
-//   }
-  // function hideCategory(categoryName, viewer) {
-//     const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
-//     const ids = getIdsByCategory(categoryName, ifcProject);
-//     viewer.IFC.loader.ifcManager.removeFromSubset(0, ids, 'full-model-subset');
-// }
 
-// function showCategory(categoryName, viewer) {
-//     const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
-//     const ids = getIdsByCategory(categoryName, ifcProject);
-//     viewer.IFC.loader.ifcManager.addToSubset(0, ids, 'full-model-subset');
-// }
  ////-----------------------------------------------------------------------------------------------------------------------------------
-
-
  // reemplaza cualquier subconjunto anterior con el mismo ID personalizado ('full-model-subset').
+ //crear un subconjunto de elementos del modelo especificado por allIDs. 
+ //El subconjunto se crea en la misma escena que el modelo original model,
+ // y cualquier modelo previamente existente en la escena con el mismo identificador personalizado 'full-model-subset' se elimina antes de agregar el nuevo subconjunto.
+ // El subconjunto devuelto es un objeto Three.js que contiene solo los elementos especificados por allIDs.
  function getWholeSubset(viewer, model, allIDs) {
 	return viewer.IFC.loader.ifcManager.createSubset({
 		modelID: model.modelID,
@@ -340,15 +172,21 @@ function showAllItems(viewer, ids) {
 	});
 }
 
-
+//boton de HTML que pulsandolo crea un nuevo camion
 let numCamion=1;
 document.getElementById("numCamion").innerHTML = numCamion;
 const nuevoCamionBtn = document.getElementById("nuevoCamion");
 nuevoCamionBtn.addEventListener("click", function() {
-    
     numCamion += 1;
     document.getElementById("numCamion").innerHTML = numCamion;
 });
+document.addEventListener("keydown", function(event) {
+    if (event.key === "c" || event.key === "C") {
+        numCamion += 1;
+        document.getElementById("numCamion").innerHTML = numCamion;
+    }
+});
+
 
 function hideClickedItem(viewer) {
   const divCargas = document.querySelector('.divCargas');
@@ -379,7 +217,7 @@ function hideClickedItem(viewer) {
         allIDs.splice(indexToRemove, 1);
     }   
 }
-//---------------------Elimina por completo un elemneto pulsado con boton derecho
+//---------------------Elimina por completo un elemento pulsado con boton derecho
 function hideClickedItemBtnDrch(viewer) {
     const result = viewer.context.castRayIfc();
         if (!result) return;
@@ -746,3 +584,19 @@ function exportCSVmethod(){
     document.querySelector(".toolbar").append(link);
     
 }
+
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//---------------Boton Planos
+
+// const floorplansButton = document.getElementById("floorplans-button");
+// const buttonContainerPlans = document.getElementById("button-container-plans");
+
+// floorplansButton.addEventListener("click", () => {
+//   const newButton = document.createElement("div");
+//   newButton.classList.add("button-container");
+//   if (buttonContainerPlans) {
+//     buttonContainerPlans.appendChild(newButton);
+//   }
+// });

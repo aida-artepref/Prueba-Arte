@@ -252,7 +252,6 @@ ul, #myUL {
 
   #nuevoCamion:active{
      background-color: #e20a17;
-     
   }
 
   #numCamion{
@@ -263,5 +262,15 @@ ul, #myUL {
     max-height: 500px;
     overflow-y: auto;
     font-size: 0.95rem;
-
   }
+
+  .button-container-plans {
+    z-index: 2;
+    position: relative;
+    left: .5rem;
+    top: .5rem;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    background-color: chartreuse;
+}
