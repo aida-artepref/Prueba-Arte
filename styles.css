@@ -181,36 +181,34 @@ ul, #myUL {
   display: inline-block;
 }
 .divCargas {
- 
     position: fixed;
-    top:10px;
+    top:30px;
     left:10px;
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.267);
     border: 1px solid gray;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 20px;
+    padding: 10px;
     width: auto;
     height: auto;
     text-align: center;
   }
 
   .divCheck {
-  
     position: fixed;
     bottom: 10px;
     left:10px;
     background-color: white;
     border: 1px solid gray;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 20px;
+    padding: 10px;
     width: auto;
-    height: auto;
-    
+    height: auto;  
   }
 
   .titleCargas {
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    
   }
 
   #file-name {
@@ -242,4 +240,28 @@ ul, #myUL {
   
   table.table th {
     background-color: #ddd;
+  }
+
+
+  #nuevoCamion{
+    float:left;
+    margin-left: 20px;
+    text-align: center;
+    width: 30px; 
+  }
+
+  #nuevoCamion:active{
+     background-color: #e20a17;
+     
+  }
+
+  #numCamion{
+    color:#e20a17;
+  }
+
+  ul {
+    max-height: 500px;
+    overflow-y: auto;
+    font-size: 0.95rem;
+
   }

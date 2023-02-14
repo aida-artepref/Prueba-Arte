@@ -172,48 +172,40 @@ function generateCheckboxes(uniqueClasses) {
     let html = '';
   
     uniqueClasses.forEach(function(uniqueClasses) {
-      html += `<input type="checkbox" checked>${uniqueClasses}<br>`;
+      html += `<input type="checkbox" checked>${uniqueClasses} <br>`;
     });
-
-    // Agrega el evento click a todos los checkbox
-    const checkboxes = document.querySelectorAll('.checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('click', function() {
-            const category = this.dataset.category;
-            const isChecked = this.checked;
-            const ids = getIdsForCategory(category, viewer, model);
-            if (isChecked) {
-                showElements(ids, viewer);
-            } else {
-                hideElements(ids, viewer);
-            }
-        });
-    });
+   
     return html;
 }
+const checktiposIfcContainer = document.getElementById('checktiposIfc');
 
-function toggleVisibility(category) {
-    // Obtener todos los ids de los elementos de la categoría específica
-    const ids = getIdsByCategory(category);
+checktiposIfcContainer.addEventListener('change', function(event) {
+  if (event.target.tagName === 'INPUT' && event.target.type === 'checkbox') {
+    toggleVisibility(event);
+  }
+});
 
-    // Obtener el estado actual del checkbox
-    const checkbox = document.querySelector(`input[type='checkbox'][value='${category}']`);
-    const isChecked = checkbox.checked;
 
-    // Mostrar u ocultar los elementos correspondientes
-    if (isChecked) {
-        viewer.IFC.loader.ifcManager.addToSubset(0, ids, 'full-model-subset');
+function toggleVisibility(event) {
+    const checkbox = event.target;
+    const ifcType = checkbox.value;
+  
+    if (checkbox.checked) {
+        console.log("check activado");
+      // Mostrar los elementos de tipo ifcType en el visor
+      const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
+      const ids = getIdsByCategory(categoryName, ifcProject);
+      viewer.IFC.loader.ifcManager.addToSubset(0, ids, 'full-model-subset');
     } else {
+        console.log("check DESactivado");
+      // Ocultar los elementos de tipo ifcType en el visor
+        const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
+        const ids = getIdsByCategory(categoryName, ifcProject);
         viewer.IFC.loader.ifcManager.removeFromSubset(0, ids, 'full-model-subset');
     }
-}
-
-function getIdsByCategory(categoryName, ifcProject) {
-    let ids = [];
-    return getIdsByCategory_base(categoryName, ifcProject, ids);
-}
-
-function getIdsByCategory_base(categoryName, ifcProject, ids) {
+  }
+  
+ function getIdsByCategory_base(categoryName, ifcProject, ids) {
     const children = ifcProject.children;
     if (children.length === 0) {
         if (ifcProject.type === categoryName) {
@@ -226,29 +218,83 @@ function getIdsByCategory_base(categoryName, ifcProject, ids) {
     }
     return ids;
 }
-function hideCategory(categoryName, viewer) {
-    const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
-    const ids = getIdsByCategory(categoryName, ifcProject);
-    viewer.IFC.loader.ifcManager.removeFromSubset(0, ids, 'full-model-subset');
-}
 
-function showCategory(categoryName, viewer) {
-    const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
-    const ids = getIdsByCategory(categoryName, ifcProject);
-    viewer.IFC.loader.ifcManager.addToSubset(0, ids, 'full-model-subset');
-}
 
-function getIdsForCategory(category, model, allIDs) {
-    let categoryIDs = [];
-    for (let i = 0; i < allIDs.length; i++) {
-      let element = model.getObjectById(allIDs[i]);
-      if (element.type === category) {
-        categoryIDs.push(allIDs[i]);
-      }
-    }
-    return categoryIDs;
-  }
   
+  function getIdsByCategory(categoryName, ifcProject) {
+    let ids = [];
+    return getIdsByCategory_base(categoryName, ifcProject, ids);
+}
+// Agrega el evento click a todos los checkbox
+// const checkboxes = document.querySelectorAll('.checkbox');
+// checkboxes.forEach(checkbox => {
+//     checkbox.addEventListener('change', function() {
+//         const category = this.dataset.category;
+//         const isChecked = this.checked;
+//         const ids = getIdsForCategory(category, viewer, model);
+
+//         if (isChecked) {
+//             showElements(ids, viewer);
+//         } else {
+//             hideElements(ids, viewer);
+//         }
+//     });
+// });
+
+// document.querySelectorAll(".checkbox").forEach(checkbox => {
+//   checkbox.addEventListener("change", () => {
+//     toggleVisibility(checkbox.value);
+//   });
+// });
+
+// //obtiene los ids de todos los elementos en una categoría específica,
+// // obtiene el estado de la casilla de verificación para esa categoría, y oculta o muestra los elementos en consecuencia
+// function toggleVisibility(category) {
+
+//     let categoryIDs = getIdsForCategory(category, model, allIDs);
+//     // Obtener todos los ids de los elementos de la categoría específica
+    
+
+//     // Obtener el estado actual del checkbox
+//     const checkbox = document.querySelector(`input[type='checkbox'][value='${category}']`);
+//     const isChecked = checkbox.checked;
+
+//     // Mostrar u ocultar los elementos correspondientes
+//     if (isChecked) {
+//         viewer.IFC.loader.ifcManager.addToSubset(0, ids, 'full-model-subset');
+//     } else {
+//         viewer.IFC.loader.ifcManager.removeFromSubset(0, ids, 'full-model-subset');
+//     }
+// }
+
+
+
+
+// // itera a través de todos los ids almacenados en allIDs,
+// // obtiene el elemento correspondiente a cada id utilizando model.getObjectById(id) 
+// //y verifica si su tipo es igual a la categoría dada.
+// // Si es así, agrega el id a la lista categoryIDs. Finalmente, devuelve la lista de ids.
+// function getIdsForCategory(category, model, allIDs) {
+//     let categoryIDs = [];
+//     for (let i = 0; i < allIDs.length; i++) {
+//       let element = model.getObjectById(allIDs[i]);
+//       if (element.type === category) {
+//         categoryIDs.push(allIDs[i]);
+//       }
+//     }
+//     return categoryIDs;
+//   }
+  // function hideCategory(categoryName, viewer) {
+//     const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
+//     const ids = getIdsByCategory(categoryName, ifcProject);
+//     viewer.IFC.loader.ifcManager.removeFromSubset(0, ids, 'full-model-subset');
+// }
+
+// function showCategory(categoryName, viewer) {
+//     const ifcProject = viewer.IFC.getSpatialStructure(model.modelID);
+//     const ids = getIdsByCategory(categoryName, ifcProject);
+//     viewer.IFC.loader.ifcManager.addToSubset(0, ids, 'full-model-subset');
+// }
  ////-----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -296,9 +342,12 @@ function showAllItems(viewer, ids) {
 
 
 let numCamion=1;
+document.getElementById("numCamion").innerHTML = numCamion;
 const nuevoCamionBtn = document.getElementById("nuevoCamion");
 nuevoCamionBtn.addEventListener("click", function() {
-  numCamion += 1;
+    
+    numCamion += 1;
+    document.getElementById("numCamion").innerHTML = numCamion;
 });
 
 function hideClickedItem(viewer) {
@@ -321,7 +370,6 @@ function hideClickedItem(viewer) {
       if (actValorCamion) {
           actValorCamion.Camion = numCamion;
       }
-    
     listarOcultos(elementosOcultos);
 
     //indexOf se utiliza para encontrar el índice del elemento que quieres eliminar.
@@ -379,7 +427,7 @@ listaElementos.addEventListener('dblclick', function(event) {
 async function listarOcultos(elementosOcultos) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
     itemList.innerHTML = "";
-    
+
     const table = document.createElement("table");
     table.classList.add("table");
     
@@ -388,18 +436,21 @@ async function listarOcultos(elementosOcultos) {
     table.appendChild(thead);
     
     const tbody = document.createElement("tbody");
-    for (const id of elementosOcultos) {
+    
+    for (let i = elementosOcultos.length - 1; i >= 0; i--) {  //Muestra los eleemntos en orden inverso
+        const id = elementosOcultos[i];
         const elemento = precastElements.find(elemento => elemento.expressID === id);
         if (!elemento) {
             throw new Error(`No se encontró el elemento con expressID = ${id}`);
         }
       
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td>`;
-      tbody.appendChild(tr);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td>`;
+        tbody.appendChild(tr);
     }
     table.appendChild(tbody);
     itemList.appendChild(table);
+   
 }
 
 //devuelve todos los elementos del modelo
@@ -652,7 +703,8 @@ function nodeToString(node){
 }
 
 
-
+////********************************************************************************************** */
+// ----    crea archivo csv y lo exporta
 const exportCSV = document.getElementById("exportButton");
 exportCSV.addEventListener('click', exportCSVmethod, false);
 
