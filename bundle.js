@@ -122464,7 +122464,7 @@ GUI.importer.addEventListener("change", function(e) {
 
 
 function mostrarElementosRestantes(){
-
+    model.removeFromParent();
     allIDs.splice(0, allIDs.length);
     for (let i = 0; i < precastElements.length; i++) {
         // Verificamos si la propiedad Camion del objeto actual está vacía
@@ -122476,24 +122476,6 @@ function mostrarElementosRestantes(){
           allIDs.push(expressID);
         }
       }
- 
-//     for (let i = 0; i < precastElements.length; i++) {
-//         // Si el valor de la propiedad camion es distinto de '', incluimos el objeto en precastElementCamion
-//         if (precastElements[i].Camion === '') {
-//             precastElementCamion.push(precastElements[i]);
-//         } else {
-//             precastElementRestantes.push(precastElements[i]);
-//         }
-//     }
-//   console.log(precastElementRestantes.length +" longitud de restantes" );
-//     allIDs.splice(0, allIDs.length);
+        showAllItems(viewer, allIDs);
 
-//     for (let i = 0; i < precastElementRestantes.length; i++) {
-//         // Obtenemos el valor de la propiedad expressID de cada objeto y lo convertimos a número
-//         const expressID = Number(precastElementRestantes[i].expressID);
-//         // Agregamos el valor al array allsIDs
-//         allIDs.push(expressID);
-//       }
-//       console.log(allIDs.length);
-    showAllItems(viewer, allIDs);
 }
