@@ -122467,15 +122467,20 @@ function mostrarElementosRestantes(){
     model.removeFromParent();
     allIDs.splice(0, allIDs.length);
     for (let i = 0; i < precastElements.length; i++) {
-        // Verificamos si la propiedad Camion del objeto actual está vacía
+        //  si la propiedad Camion del objeto actual está vacía
         if (precastElements[i].Camion === undefined || precastElements[i].Camion ==='' ) {
           // Obtenemos el valor de la propiedad expressID de ese objeto y lo convertimos a número
           const expressID = Number(precastElements[i].expressID);
-          console.log(expressID);
+          console.log(expressID +" AÑADIDO DE NUEVO");
           // Agregamos el valor al array allIDs
           allIDs.push(expressID);
         }
       }
+
+      const index = allIDs.indexOf(1807); // Busca el índice del elemento con valor 1807
+        if (index > -1) { // Verifica si el elemento fue encontrado
+            allIDs.splice(index, 1); // Elimina el elemento en el índice encontrado
+        }
         showAllItems(viewer, allIDs);
 
 }
