@@ -122057,6 +122057,7 @@ function hideClickedItem(viewer) {
   const divCargas = document.querySelector('.divCargas');
   divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
     const result = viewer.context.castRayIfc();
+    console.log(result);
     if (!result) return;
     const manager = viewer.IFC.loader.ifcManager;
     const id = manager.getExpressId(result.object.geometry, result.faceIndex);
@@ -122485,16 +122486,19 @@ function mostrarElementosRestantes(){
         }
     }
 
-    subset= viewer.IFC.loader.ifcManager.createSubset({
-                modelID: model.modelID,
-                ids: allIDs,
-                applyBVH: true,
-                scene: model.parent,
-                removePrevious: true,
-                customID: 'full-model-subset',
-            });
+
+    subset = getWholeSubset(viewer, model, allIDs);
+    replaceOriginalModelBySubset(viewer, model, subset);
+    // subset= viewer.IFC.loader.ifcManager.createSubset({
+    //             modelID: model.modelID,
+    //             ids: allIDs,
+    //             applyBVH: true,
+    //             scene: model.parent,
+    //             removePrevious: true,
+    //             customID: 'full-model-subset',
+    //         });
      
-     replaceOriginalModelBySubset(viewer, model, subset); 
+    //  replaceOriginalModelBySubset(viewer, model, subset) 
   //es necesario sustituir subconjunto en pickableIFCmodels
        
           
