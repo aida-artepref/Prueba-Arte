@@ -121871,7 +121871,6 @@ GUI.loader.onclick = () => GUI.input.click();  //al hacer clic al boton abre cua
 GUI.importloader.onclick = () => GUI.importer.click();
 
 let allIDs;
-let idsTotal;
 let elementosOcultos=[];
 let uniqueTypes=[];
 let precastElements=[];
@@ -121897,14 +121896,12 @@ async function loadModel(url){
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
-    idsTotal=getAllIds(model); 
-    console.log("Total de elementos en el Modelo: " +idsTotal.length);
-    //model.removeFromParent();
+    getAllIds(model); 
     const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     setIfcPropertiesContent(ifcProject);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
 
-    const subset = getWholeSubset(viewer, model, allIDs);
+    let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
    
     crearBotonPrecas();
@@ -121932,6 +121929,7 @@ function crearBotonPrecas(){
         cargaProp();
         btnCreaPrecast.remove();
   });
+  
 }
 
 function cargaProp(){
@@ -121941,6 +121939,7 @@ function cargaProp(){
              precastProperties(precast, 0, precast.expressID);
         }
      }); 
+    // mostrarElementosRestantes();
 }
   //******************************************************************************************************************* */
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
@@ -122195,7 +122194,6 @@ async function precastProperties(precast,modelID, precastID){
     delete props.type;
     
     precast['GlobalId'] = props['GlobalId'].value; //establece propiedad GlobalId en obj precast y le asigna un valor
-    
     for (let pset in psets){
         psetName = psets[pset].Name.value;
         let properties = psets[pset].HasProperties;
@@ -122423,64 +122421,81 @@ function exportCSVmethod(){
     
 }
 
+
 GUI.importer.addEventListener("change", function(e) {
     e.preventDefault();
     const input = e.target.files[0];
     const reader = new FileReader();
     let headers = [];
-    
-    reader.onload = function (e) {
-        const text = e.target.result;
-        let lines = text.split(/[\r\n]+/g);
-        lines.forEach(line => {
-            if (headers.length===0){
-                headers = line.split(',');
-            } else {
-                let mline = line.split(',');
-                if(!mline[0]==''){
-                    // data.push({"expressID" : parseInt(mline[0])});
-                    let dato = precastElements.find(dato => dato[headers[0]] === parseInt(mline[0]));
-                    // console.log(headers[0] + " " + mline[0]);
-                    // console.log(dato);
 
-                    for(let i=1; i<headers.length; i++){
-                        if(mline[i]===undefined){
-                            dato[headers[i]]='';
-                        } else {
-                            // console.log(headers[i] + " " + mline[i]);
-                            dato[headers[i]] = mline[i];
+    const readCsvFile = new Promise((resolve, reject) => {
+        reader.onload = function (e) {
+            const text = e.target.result;
+            let lines = text.split(/[\r\n]+/g);
+            lines.forEach(line => {
+                if (headers.length===0){
+                    headers = line.split(',');
+                } else {
+                    let mline = line.split(',');
+                    if(!mline[0]==''){
+                        let dato = precastElements.find(dato => dato[headers[0]] === parseInt(mline[0]));
+                        for(let i=1; i<headers.length; i++){
+                            if(mline[i]===undefined){
+                                dato[headers[i]]='';
+                            } else {
+                                dato[headers[i]] = mline[i];
+                            }
                         }
                     }
                 }
-            }
-        });
-        // console.log(data);
-    };
-    reader.readAsText(input);
-    
- mostrarElementosRestantes();
+            });
+            resolve();
+        };
+        reader.readAsText(input);
+    });
 
-});
+    readCsvFile.then(() => {
+        // Aquí se ejecuta el código que utiliza los datos actualizados
+        console.log(precastElements);
+        mostrarElementosRestantes();
+    })
+    .catch(error => console.error(error));
+    
+}
+);
 
 
 function mostrarElementosRestantes(){
-    model.removeFromParent();
+    
     allIDs.splice(0, allIDs.length);
+ 
+
     for (let i = 0; i < precastElements.length; i++) {
-        //  si la propiedad Camion del objeto actual está vacía
+    
+        let valorCamion = precastElements[i].Camion;
+        // console.log(precastElements[i]['Camion']);
+        console.log(precastElements[i].expressID + " tiene en Camion: "+ valorCamion +" de tipo "+ parseInt(precastElements[i].Camion));
+        // si la propiedad Camion del objeto actual está vacía
         if (precastElements[i].Camion === undefined || precastElements[i].Camion ==='' ) {
-          // Obtenemos el valor de la propiedad expressID de ese objeto y lo convertimos a número
-          const expressID = Number(precastElements[i].expressID);
+          // variable expressID = el valor de la propiedad expressID de ese objeto y lo convertimos a número
+          const expressID = parseInt(precastElements[i].expressID);
           console.log(expressID +" AÑADIDO DE NUEVO");
           // Agregamos el valor al array allIDs
           allIDs.push(expressID);
         }
-      }
+    }
 
-      const index = allIDs.indexOf(1807); // Busca el índice del elemento con valor 1807
-        if (index > -1) { // Verifica si el elemento fue encontrado
-            allIDs.splice(index, 1); // Elimina el elemento en el índice encontrado
-        }
-        showAllItems(viewer, allIDs);
-
+    subset= viewer.IFC.loader.ifcManager.createSubset({
+                modelID: model.modelID,
+                ids: allIDs,
+                applyBVH: true,
+                scene: model.parent,
+                removePrevious: true,
+                customID: 'full-model-subset',
+            });
+     
+     replaceOriginalModelBySubset(viewer, model, subset); 
+  //es necesario sustituir subconjunto en pickableIFCmodels
+       
+          
 }
