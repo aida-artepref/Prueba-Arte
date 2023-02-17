@@ -55,6 +55,8 @@ let model;
 //si el Ifc ya esta cargado por defecto y no selecciona atraves del input
 async function loadModel(url){
     model= await viewer.IFC.loadIfcUrl(url); 
+    // let modelID= model.modelID;
+    // console.log(typeof(modelID));
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
@@ -66,9 +68,9 @@ async function loadModel(url){
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
    
-    crearBotonPrecas();
-     
- }
+    crearBotonPrecas();   
+}
+
 function crearBotonPrecas(){
     // Crea un nuevo botón
     var btnCreaPrecast = document.createElement("button");
@@ -101,7 +103,7 @@ function cargaProp(){
              precastProperties(precast, 0, precast.expressID);
         }
      }); 
-    // mostrarElementosRestantes();
+   
 }
   //******************************************************************************************************************* */
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
@@ -146,8 +148,6 @@ function generateCheckboxes(uniqueClasses) {
    
     return html;
 }
-
-
 
 
 
@@ -196,7 +196,7 @@ function showAllItems(viewer, ids) {
 		applyBVH: true,
 		customID: 'full-model-subset',
 	});
-}
+}hideClickedItem
 
 //boton de HTML que pulsandolo crea un nuevo camion
 let numCamion=1;
@@ -298,7 +298,7 @@ async function listarOcultos(elementosOcultos) {
     table.classList.add("table");
     
     const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>expressID</th><th>GlobalId</th><th>Camion</th></tr>";
+    thead.innerHTML = "<tr><th>expressID</th><th>GlobalId</th><th>Camion</th><th>Volumen</th></tr>";
     table.appendChild(thead);
     
     const tbody = document.createElement("tbody");
@@ -311,12 +311,13 @@ async function listarOcultos(elementosOcultos) {
         }
       
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td>`;
+        //tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${(elemento.Volumen_real)*2.5}</td>`;
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.Volumen_real.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 9 })}</td>`;
+
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
     itemList.appendChild(table);
-   
 }
 
 //devuelve todos los ID de los elementos del modelo
@@ -369,7 +370,11 @@ async function precastProperties(precast,modelID, precastID){
                 } else if (properties[property].Name.value.includes('Produc')){
                     precast['Produccion']=properties[property].NominalValue.value;
                 } else if (properties[property].Name.value.includes('Volum')){   
-                    precast[properties[property].Name.value] = parseFloat(properties[property].NominalValue.value).toFixed(3);
+                   // precast[properties[property].Name.value] = parseFloat(properties[property].NominalValue.value).toFixed(3);
+                   const volumenCadena = String(properties[property].NominalValue.value);
+                   const volumen = parseFloat(volumenCadena.replace(",", "."));
+                   precast[properties[property].Name.value] = volumen;
+
                 } else {
                     precast[properties[property].Name.value] = properties[property].NominalValue.value;
                 }
@@ -623,54 +628,98 @@ GUI.importer.addEventListener("change", function(e) {
     readCsvFile.then(() => {
         // Aquí se ejecuta el código que utiliza los datos actualizados
         console.log(precastElements);
-        mostrarElementosRestantes()
+        mostrarElementosRestantes();
     })
     .catch(error => console.error(error));
     
 }
 );
 
+// document.addEventListener('DOMContentLoaded', () => {
+//     mostrarElementosRestantes();
+// });
 
-function mostrarElementosRestantes(){
+async function mostrarElementosRestantes(){
     
     allIDs.splice(0, allIDs.length);
  
-
     for (let i = 0; i < precastElements.length; i++) {
-    
         let valorCamion = precastElements[i].Camion;
-        // console.log(precastElements[i]['Camion']);
-        console.log(precastElements[i].expressID + " tiene en Camion: "+ valorCamion +" de tipo "+ parseInt(precastElements[i].Camion));
+    
         // si la propiedad Camion del objeto actual está vacía
         if (precastElements[i].Camion === undefined || precastElements[i].Camion ==='' ) {
           // variable expressID = el valor de la propiedad expressID de ese objeto y lo convertimos a número
           const expressID = parseInt(precastElements[i].expressID);
-          console.log(expressID +" AÑADIDO DE NUEVO");
+          console.log(expressID +" elemento VISIBLE, no está en transporte");
           // Agregamos el valor al array allIDs
           allIDs.push(expressID);
+        }else{
+            const expressIDoculto = parseInt(precastElements[i].expressID);
+             // Agregamos el valor al array elemenOcultos
+             elementosOcultos.push(expressIDoculto);
+             //console.log(expressIDoculto+ "esta en camion "+precastElements[i].Camion);
+
         }
     }
+    
+    //camionesUnicos es un array numerico con el valor de los diferentes camiones agrupados
+    const camionesUnicos = obtenerValorCamion(precastElements);
+
+    //genera los botones en HTML con los diferentes camiones cargados
+    generaBotonesNumCamion(camionesUnicos);
+
+    console.log(camionesUnicos);
+    console.log(camionesUnicos.length);
 
 
+    viewer.IFC.loader.ifcManager.clearSubset(0,"full-model-subset");
     subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset);
-    // subset= viewer.IFC.loader.ifcManager.createSubset({
-    //             modelID: model.modelID,
-    //             ids: allIDs,
-    //             applyBVH: true,
-    //             scene: model.parent,
-    //             removePrevious: true,
-    //             customID: 'full-model-subset',
-    //         });
-     
-    //  replaceOriginalModelBySubset(viewer, model, subset) 
-  //es necesario sustituir subconjunto en pickableIFCmodels
-       
+    
+    await listarOcultos(elementosOcultos);
           
 }
 
+//devuelve los valores de camion agrupados
+function obtenerValorCamion(precastElements) {
+    const valoresCamion = new Set();
+    precastElements.forEach(function(elemento) {
+      const camion = parseInt(elemento.Camion);
+      valoresCamion.add(camion);
+    });
+  
+    return Array.from(valoresCamion);
+  }
+  
+
+function generaBotonesNumCamion(camionesUnicos) {
+
+    camionesUnicos.sort((a, b) => a - b); // ordena los elementos de menor a mayor
+    const btnNumCamiones = document.getElementById("btnNumCamiones");
+   
+    camionesUnicos.forEach(function(camion) {
+        const btn = document.createElement("button");
+        btn.textContent = camion;
+        btnNumCamiones.appendChild(btn);
 
 
+        btn.addEventListener("click", function() {
+            let expressIDs = [];
+            precastElements.forEach(function(precastElement) {
+                if (parseInt(precastElement.Camion) === camion) {
+                    expressIDs.push(precastElement.expressID);
+                }
+            });
+            // Aquí puedes colocar la acción que deseas realizar cuando se haga clic en el botón
+            console.log("Hiciste clic en el camión " + camion +" con los elementos: "+expressIDs);
+            showAllItems(viewer, expressIDs);
+        });
+        btnNumCamiones.appendChild(btn);
+    });
+
+    btnNumCamiones.style.height = "auto";
+
+}
 
 
 
