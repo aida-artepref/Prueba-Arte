@@ -3,7 +3,6 @@ import { Color, Loader,MeshBasicMaterial,
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IfcElementQuantity } from 'web-ifc';
 
- 
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color(255,255,255)});
 
@@ -23,8 +22,8 @@ const GUI={
 }
 //Muestra el nombre del archivo abierto
 document.getElementById("file-input").addEventListener("change", function() {
-  const file = this.files[0];
-  document.getElementById("file-name").innerHTML = file.name;
+    const file = this.files[0];
+    document.getElementById("file-name").innerHTML = file.name;
 });
 
 GUI.loader.onclick = () => GUI.input.click();  //al hacer clic al boton abre cuadro de dialogo para cargar archivo
@@ -67,7 +66,6 @@ async function loadModel(url){
 
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
-   
     crearBotonPrecas();   
 }
 
@@ -92,18 +90,16 @@ function crearBotonPrecas(){
     btnCreaPrecast.addEventListener("click", function() {
         cargaProp();
         btnCreaPrecast.remove();
-  });
-  
+    });
 }
 
 function cargaProp(){
 //Carga las propiedades/psets al array
-     precastElements.forEach(precast => {
+    precastElements.forEach(precast => {
         if (precast.ifcType !='IFCBUILDING'){
-             precastProperties(precast, 0, precast.expressID);
+            precastProperties(precast, 0, precast.expressID);
         }
-     }); 
-   
+    }); 
 }
   //******************************************************************************************************************* */
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
@@ -114,9 +110,9 @@ function setIfcPropertiesContent(ifcProject, viewer, model) {
     generateCheckboxes(uniqueClasses)
     document.getElementById('checktiposIfc').innerHTML = generateCheckboxes(uniqueClasses);
 
-    for (let i = 0; i < uniqueClasses.length; i++) {   //genero el obj categories 
-        categories[uniqueClasses[i]] = {};
-     }
+    // for (let i = 0; i < uniqueClasses.length; i++) {   //genero el obj categories 
+    //     categories[uniqueClasses[i]] = {};
+    // }
 }
 
  //recorre el modelo y almacena el tipo de cada elemento en un array typeArray.
@@ -129,11 +125,11 @@ function getIfcClass(ifcProject) {
 function getIfcClass_base(ifcProject, typeArray) {
     const children = ifcProject.children;
     if (children.length === 0) {
-      typeArray.push(ifcProject.type);
+        typeArray.push(ifcProject.type);
     } else {
-      for (const obj of children) {
-        getIfcClass_base(obj, typeArray);
-      }
+        for (const obj of children) {
+            getIfcClass_base(obj, typeArray);
+        }
     }
     return typeArray;
 }
@@ -141,14 +137,33 @@ function getIfcClass_base(ifcProject, typeArray) {
 // Crea automaticamente los check con las categorias del IFC cargado
 function generateCheckboxes(uniqueClasses) {
     let html = '';
-  
     uniqueClasses.forEach(function(uniqueClasses) {
-      html += `<input type="checkbox" checked>${uniqueClasses} <br>`;
+        html += `<input type="checkbox" checked>${uniqueClasses} <br>`;
     });
-   
     return html;
+    // let html = '';
+    // uniqueClasses.forEach(function(uniqueClass) {
+    //     let checkboxId = `checkbox-${uniqueClass}`; // generar un id único para el checkbox
+    //     html += `<input type="checkbox" checked id="${checkboxId}">${uniqueClass} <br>`;
+    //     let checkbox = document.getElementById(checkboxId);
+    
+    //     checkbox.addEventListener('change', async function() {
+    //         let checked = checkbox.checked;
+            
+    //         if (checked) {
+    //             let ids=[];
+    //             precastElements.forEach(function(precastElement) {
+    //                 if(precastElement.ifcType === uniqueClass);
+    //                 ids.push(precastElement.expressID);
+    //             });
+    //         }
+    //         else {
+    //             hideAllItems(viewer, ids);
+    //         }
+    //     });
+    // });
+    // return html;
 }
-
 
 
  ////-----------------------------------------------------------------------------------------------------------------------------------
@@ -157,7 +172,7 @@ function generateCheckboxes(uniqueClasses) {
  //El subconjunto se crea en la misma escena que el modelo original model,
  // y cualquier modelo previamente existente en la escena con el mismo identificador personalizado 'full-model-subset' se elimina antes de agregar el nuevo subconjunto.
  // El subconjunto devuelto es un objeto Three.js que contiene solo los elementos especificados por allIDs.
- function getWholeSubset(viewer, model, allIDs) {
+function getWholeSubset(viewer, model, allIDs) {
 	return viewer.IFC.loader.ifcManager.createSubset({
 		modelID: model.modelID,
 		ids: allIDs,
@@ -196,7 +211,18 @@ function showAllItems(viewer, ids) {
 		applyBVH: true,
 		customID: 'full-model-subset',
 	});
-}hideClickedItem
+}
+
+//oculta los elementos del visor pasandole un arry con los ids que deseamos ocultar
+function hideAllItems(viewer, ids) {
+	ids.forEach(function(id) {
+        viewer.IFC.loader.ifcManager.removeFromSubset(
+            0,
+            [id],
+            'full-model-subset',
+        );
+    }); 
+}
 
 //boton de HTML que pulsandolo crea un nuevo camion
 let numCamion=1;
@@ -216,10 +242,9 @@ document.addEventListener("keydown", function(event) {
 
 
 function hideClickedItem(viewer) {
-  const divCargas = document.querySelector('.divCargas');
+const divCargas = document.querySelector('.divCargas');
   divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
     const result = viewer.context.castRayIfc();
-    console.log(result);
     if (!result) return;
     const manager = viewer.IFC.loader.ifcManager;
     const id = manager.getExpressId(result.object.geometry, result.faceIndex);
@@ -233,9 +258,9 @@ function hideClickedItem(viewer) {
     globalIds.push(globalId);// cuando oculto un elemnto su globalId se añade al array globalIds
     // busca el elemento con el identificador expressID en el array precastElements y modifica su valor en la prop Camion
     const actValorCamion = precastElements.find(element => element.expressID === id);
-      if (actValorCamion) {
-          actValorCamion.Camion = numCamion;
-      }
+    if (actValorCamion) {
+        actValorCamion.Camion = numCamion;
+    }
     listarOcultos(elementosOcultos);
 
     //indexOf se utiliza para encontrar el índice del elemento que quieres eliminar.
@@ -268,24 +293,23 @@ const divCargas = document.querySelector('.divCargas');
 let listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
 
 listaElementos.addEventListener('dblclick', function(event) {
-  const target = event.target;
-  let elementoEliminadoTabla;
-  if (target.tagName === 'TD') {
+const target = event.target;
+let elementoEliminadoTabla;
+if (target.tagName === 'TD') {
     elementoEliminadoTabla = target.parentNode.firstChild.textContent;
     target.parentNode.remove();
     let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
     if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
-              elementosOcultos.splice(indexToRemove, 1);
-              globalIds.splice(indexToRemove, 1);
-        }
+        elementosOcultos.splice(indexToRemove, 1);
+        globalIds.splice(indexToRemove, 1);
+    }
     allIDs.push(parseInt(elementoEliminadoTabla));
-  }
-  showAllItems(viewer, allIDs);
-  const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
-      if (actValorCamion) {
-          actValorCamion.Camion = "";
-      }
-      
+}
+showAllItems(viewer, allIDs);
+const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
+    if (actValorCamion) {
+        actValorCamion.Camion = "";
+    }
 });
 
 
@@ -309,7 +333,6 @@ async function listarOcultos(elementosOcultos) {
         if (!elemento) {
             throw new Error(`No se encontró el elemento con expressID = ${id}`);
         }
-      
         const tr = document.createElement("tr");
         //tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${(elemento.Volumen_real)*2.5}</td>`;
         tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.Volumen_real.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 9 })}</td>`;
@@ -318,12 +341,15 @@ async function listarOcultos(elementosOcultos) {
     }
     table.appendChild(tbody);
     itemList.appendChild(table);
+
+    $(table).tablesorter();//para ordenar la tabla si pulsamos en sus encabezados
+
 }
 
 //devuelve todos los ID de los elementos del modelo
 function getAllIds(ifcModel) {
     return Array.from(
-      new Set(ifcModel.geometry.attributes.expressID.array),
+        new Set(ifcModel.geometry.attributes.expressID.array),
     );
 }
 
@@ -331,8 +357,9 @@ function getAllIds(ifcModel) {
 
 // ACCEDER A PROPIEDADES
 //al mover el raton por el 3D, va preseleccionando los elemnetos que lo componen,
-                                      
+
 container.onmousemove = () => viewer.IFC.selector.prePickIfcItem();
+viewer.IFC.selector.unpickIfcItems();
 //para darle otro aspecto en **const viewer = new IfcViewerAPI({container, backgroundColor: new Color(255,255,255)}); se puede modificar su aspecto     
 let globalIds=[];
 let globalId;
@@ -344,6 +371,7 @@ container.onclick = async()=>{
     const props = await viewer.IFC.getProperties (found.modelID, found.id, true,true);
     globalId=props['GlobalId'].value;
     updatePropertyMenu(props);  
+    viewer.IFC.selector.unpickIfcItems();
 }
 
 async function precastProperties(precast,modelID, precastID){
@@ -371,10 +399,9 @@ async function precastProperties(precast,modelID, precastID){
                     precast['Produccion']=properties[property].NominalValue.value;
                 } else if (properties[property].Name.value.includes('Volum')){   
                    // precast[properties[property].Name.value] = parseFloat(properties[property].NominalValue.value).toFixed(3);
-                   const volumenCadena = String(properties[property].NominalValue.value);
-                   const volumen = parseFloat(volumenCadena.replace(",", "."));
-                   precast[properties[property].Name.value] = volumen;
-
+                    const volumenCadena = String(properties[property].NominalValue.value);
+                    const volumen = parseFloat(volumenCadena.replace(",", "."));
+                    precast[properties[property].Name.value] = volumen;
                 } else {
                     precast[properties[property].Name.value] = properties[property].NominalValue.value;
                 }
@@ -440,13 +467,12 @@ function createPropertyEntry(key,propertyValue){
 
      //valor de la propiedad e introducido dentro de property-root
      const valueElement=document.createElement ('div');  //crea elemento div
-     valueElement.classList.add("property-value");
-     valueElement.textContent=propertyValue;
-   
-     root.appendChild(valueElement);
+    valueElement.classList.add("property-value");
+    valueElement.textContent=propertyValue;
 
-     GUI.props.appendChild(root);
- 
+    root.appendChild(valueElement);
+
+    GUI.props.appendChild(root);
 }
 
 //Limpia el árbol de propiedades
@@ -459,12 +485,12 @@ function removeAllChildren(element){
 
 //MENU THREE w3scholl
 var toggler = document.getElementsByClassName("caret");  //enlaca con elemento html
-  for (let i = 0; i < toggler.length; i++) {
+for (let i = 0; i < toggler.length; i++) {
     const current =toggler[i];
     current.onclick=()=>{
         current.parentElement.querySelector(".nested").classList.toggle("active");
         current.classList.toggle("caret-down");
-  }
+    }
 }
 
 //++++++++++++++++++++++++
@@ -475,7 +501,7 @@ async function createTreeMenu(modelID){
     const ifcProjectNode = createNestedChildren(GUI.tree, ifcProject);
     ifcProject.children.forEach(child => {
         constructTreeMenuNode(ifcProjectNode, child)
-  })
+})
 }
 //+++++++++++++++++++++
 function constructTreeMenuNode(parent, node){
@@ -533,12 +559,12 @@ function createSimpleChild(parent, node){
     //al pasar el raton por los nodos hijos se visualiza en viewer
     childNode.onmousemove=() => {
         viewer.IFC.selector.prepickIfcItemsByID(0,[node.expressID]);   
-     }
-     childNode.onclick = async () => {
+    }
+    childNode.onclick = async () => {
         viewer.IFC.selector.pickIfcItemsByID(0,[node.expressID],true);   
         const props = await viewer.IFC.getProperties (0, node.expressID, true, true);
         updatePropertyMenu(props);
-     }
+    }
 }
 
 //+++++++++convertir los nodos en inf-texto que vemos en pantalla
@@ -588,7 +614,7 @@ function exportCSVmethod(){
     //una vez descargado el archivo CSV elimina de HTML el enlace
     link.addEventListener("click", function(e) {
         this.parentNode.removeChild(this); // Eliminar el enlace del DOM
-      });
+    });
     
 }
 
@@ -642,84 +668,103 @@ GUI.importer.addEventListener("change", function(e) {
 async function mostrarElementosRestantes(){
     
     allIDs.splice(0, allIDs.length);
- 
+
     for (let i = 0; i < precastElements.length; i++) {
         let valorCamion = precastElements[i].Camion;
     
         // si la propiedad Camion del objeto actual está vacía
         if (precastElements[i].Camion === undefined || precastElements[i].Camion ==='' ) {
-          // variable expressID = el valor de la propiedad expressID de ese objeto y lo convertimos a número
-          const expressID = parseInt(precastElements[i].expressID);
-          console.log(expressID +" elemento VISIBLE, no está en transporte");
-          // Agregamos el valor al array allIDs
-          allIDs.push(expressID);
+            // variable expressID = el valor de la propiedad expressID de ese objeto y lo convertimos a número
+            const expressID = parseInt(precastElements[i].expressID);
+            console.log(expressID +" elemento VISIBLE, no está en transporte");
+            // Agregamos el valor al array allIDs
+            allIDs.push(expressID);
         }else{
             const expressIDoculto = parseInt(precastElements[i].expressID);
-             // Agregamos el valor al array elemenOcultos
-             elementosOcultos.push(expressIDoculto);
-             //console.log(expressIDoculto+ "esta en camion "+precastElements[i].Camion);
-
+            // Agregamos el valor al array elemenOcultos
+            elementosOcultos.push(expressIDoculto);
         }
     }
     
     //camionesUnicos es un array numerico con el valor de los diferentes camiones agrupados
     const camionesUnicos = obtenerValorCamion(precastElements);
-
+console.log(camionesUnicos);
     //genera los botones en HTML con los diferentes camiones cargados
     generaBotonesNumCamion(camionesUnicos);
-
-    console.log(camionesUnicos);
-    console.log(camionesUnicos.length);
-
 
     viewer.IFC.loader.ifcManager.clearSubset(0,"full-model-subset");
     subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset);
     
     await listarOcultos(elementosOcultos);
-          
+
 }
 
 //devuelve los valores de camion agrupados
 function obtenerValorCamion(precastElements) {
     const valoresCamion = new Set();
     precastElements.forEach(function(elemento) {
-      const camion = parseInt(elemento.Camion);
-      valoresCamion.add(camion);
+        const camion = parseInt(elemento.Camion);
+        valoresCamion.add(camion);
     });
-  
     return Array.from(valoresCamion);
-  }
-  
+}
 
 function generaBotonesNumCamion(camionesUnicos) {
-
-    camionesUnicos.sort((a, b) => a - b); // ordena los elementos de menor a mayor
     const btnNumCamiones = document.getElementById("btnNumCamiones");
-   
+
+    let maximo = Math.max(...camionesUnicos.filter(num => !isNaN(num))); // filtramos los valores que no son NaN
+document.getElementById("numCamion").innerText = maximo +1;
+
+
+    btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
+    camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
+    
     camionesUnicos.forEach(function(camion) {
+    
         const btn = document.createElement("button");
         btn.textContent = camion;
+        btn.style.width = "80px";
+        btn.style.height = "30px";
+        btn.style.padding = "5px"; // agrega un relleno fijo al botón
         btnNumCamiones.appendChild(btn);
 
+        btn.addEventListener("mouseenter", function() {
+            btn.style.backgroundColor = "#cccccc"; // cambia el color de fondo cuando el cursor se coloca sobre el botón
+        });
+
+        btn.addEventListener("mouseleave", function() {
+            btn.style.backgroundColor = ""; // restablece el color de fondo cuando el cursor sale del botón
+        });
 
         btn.addEventListener("click", function() {
-            let expressIDs = [];
+            const expressIDs = [];
             precastElements.forEach(function(precastElement) {
                 if (parseInt(precastElement.Camion) === camion) {
                     expressIDs.push(precastElement.expressID);
                 }
             });
-            // Aquí puedes colocar la acción que deseas realizar cuando se haga clic en el botón
-            console.log("Hiciste clic en el camión " + camion +" con los elementos: "+expressIDs);
-            showAllItems(viewer, expressIDs);
+            
+            const isActive = btn.classList.contains("active");
+            if (isActive) {
+            //botón activo, elimina los elementos del visor y desactiva el botón
+                hideAllItems(viewer, expressIDs);
+                btn.classList.remove("active");
+                btn.style.justifyContent = "center";
+                btn.style.color = "";
+
+            } else {
+                // botón no activo, muestra los elementos en el visor y activa el botón
+                showAllItems(viewer, expressIDs);
+                btn.classList.add("active");
+                btn.style.color = "red";
+            }
         });
-        btnNumCamiones.appendChild(btn);
     });
-
-    btnNumCamiones.style.height = "auto";
-
+btnNumCamiones.style.height = "auto";
 }
+
+
 
 
 

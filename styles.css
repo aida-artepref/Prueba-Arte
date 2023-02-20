@@ -301,11 +301,22 @@ button {
 #btnNumCamiones{
   position: fixed;
   bottom: 0;
-  left: 300px;;
+  left: 300px;
+  height: 32px;
 }
 
+
+
 #btnNumCamiones:hover{
-background-color: #dadada;
+    background-color: white;
     border-style: solid;
     border-width: thin;
+}
+
+
+.active {
+  color: red;
+  display: flex;
+  
+  /* font-weight: bold; */
 }
