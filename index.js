@@ -1,5 +1,4 @@
-import { Color, Loader,MeshBasicMaterial,
-    LineBasicMaterial } from 'three';
+import { Color, Loader, MeshBasicMaterial, LineBasicMaterial } from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IfcElementQuantity } from 'web-ifc';
 
@@ -54,19 +53,21 @@ let model;
 //si el Ifc ya esta cargado por defecto y no selecciona atraves del input
 async function loadModel(url){
     model= await viewer.IFC.loadIfcUrl(url); 
-    // let modelID= model.modelID;
-    // console.log(typeof(modelID));
+    
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
     idsTotal=getAllIds(model); 
+    console.log(idsTotal.length+" total de elementos en modelo inicial");
     const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     setIfcPropertiesContent(ifcProject, viewer, model);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
 
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
-    crearBotonPrecas();   
+    crearBotonPrecas();  
+    
+    addCheckboxListeners() ;
 }
 
 function crearBotonPrecas(){
@@ -75,10 +76,8 @@ function crearBotonPrecas(){
     btnCreaPrecast.classList.add("button");
     // Agrega un ID y una clase al nuevo botón
     btnCreaPrecast.id = "btnCreaPrecast";
-    btnCreaPrecast.className
-
-    // Agrega el texto que deseas que aparezca en el botón
-    btnCreaPrecast.textContent = "Pulsa";
+    btnCreaPrecast.className;
+    btnCreaPrecast.textContent = "Pulsa";// Agrega el texto que deseas que aparezca en el botón
 
     // Obtiene una referencia al último botón existente
     var ultimoBoton = document.querySelector(".button-container .button:last-of-type");
@@ -100,7 +99,9 @@ function cargaProp(){
             precastProperties(precast, 0, precast.expressID);
         }
     }); 
+    
 }
+
   //******************************************************************************************************************* */
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
  //-------------extrae todos los tipos de elementos del modelo y los agrupa en un objeto llamado categorias.
@@ -110,9 +111,6 @@ function setIfcPropertiesContent(ifcProject, viewer, model) {
     generateCheckboxes(uniqueClasses)
     document.getElementById('checktiposIfc').innerHTML = generateCheckboxes(uniqueClasses);
 
-    // for (let i = 0; i < uniqueClasses.length; i++) {   //genero el obj categories 
-    //     categories[uniqueClasses[i]] = {};
-    // }
 }
 
  //recorre el modelo y almacena el tipo de cada elemento en un array typeArray.
@@ -134,35 +132,37 @@ function getIfcClass_base(ifcProject, typeArray) {
     return typeArray;
 }
 
-// Crea automaticamente los check con las categorias del IFC cargado
+// Crea automaticamente los check con las categorias del IFC cargado y  asocia un numero a cada check(dataclass)
 function generateCheckboxes(uniqueClasses) {
     let html = '';
-    uniqueClasses.forEach(function(uniqueClasses) {
-        html += `<input type="checkbox" checked>${uniqueClasses} <br>`;
+    uniqueClasses.forEach(function(uniqueClass) {
+        html += `<input type="checkbox" checked data-class="${uniqueClass}">${uniqueClass} <br>`;
     });
+
     return html;
-    // let html = '';
-    // uniqueClasses.forEach(function(uniqueClass) {
-    //     let checkboxId = `checkbox-${uniqueClass}`; // generar un id único para el checkbox
-    //     html += `<input type="checkbox" checked id="${checkboxId}">${uniqueClass} <br>`;
-    //     let checkbox = document.getElementById(checkboxId);
-    
-    //     checkbox.addEventListener('change', async function() {
-    //         let checked = checkbox.checked;
-            
-    //         if (checked) {
-    //             let ids=[];
-    //             precastElements.forEach(function(precastElement) {
-    //                 if(precastElement.ifcType === uniqueClass);
-    //                 ids.push(precastElement.expressID);
-    //             });
-    //         }
-    //         else {
-    //             hideAllItems(viewer, ids);
-    //         }
-    //     });
-    // });
-    // return html;
+}
+
+//evento cambio en los checK tipos de elementos
+function addCheckboxListeners() {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const isChecked = this.checked;
+            const tipo = this.getAttribute('data-class');
+            const matchingIds = [];
+            for (let i = 0; i < precastElements.length; i++) {
+                const element = precastElements[i];
+                if (element.ifcType === tipo) {
+                    matchingIds.push(element.expressID);
+                }
+            }
+            if (isChecked) {
+                showAllItems(viewer, matchingIds);
+            } else {
+                hideAllItems(viewer, matchingIds);
+            }
+        });
+    });
 }
 
 
@@ -229,7 +229,7 @@ let numCamion=1;
 document.getElementById("numCamion").innerHTML = numCamion;
 const nuevoCamionBtn = document.getElementById("nuevoCamion");
 nuevoCamionBtn.addEventListener("click", function() {
-    numCamion += 1;
+    numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  //------------------------------------------------------
     document.getElementById("numCamion").innerHTML = numCamion;
 });
 //evento teclaC añade un nuevo camion
@@ -242,34 +242,48 @@ document.addEventListener("keydown", function(event) {
 
 
 function hideClickedItem(viewer) {
-const divCargas = document.querySelector('.divCargas');
-  divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
+    const divCargas = document.querySelector('.divCargas');
+    divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
     const result = viewer.context.castRayIfc();
     if (!result) return;
     const manager = viewer.IFC.loader.ifcManager;
     const id = manager.getExpressId(result.object.geometry, result.faceIndex);
-    viewer.IFC.loader.ifcManager.removeFromSubset(
-        0,
-        [id],
-        'full-model-subset',
-    );
-    viewer.IFC.selector.unpickIfcItems();
-    elementosOcultos.push(id);
-    globalIds.push(globalId);// cuando oculto un elemnto su globalId se añade al array globalIds
-    // busca el elemento con el identificador expressID en el array precastElements y modifica su valor en la prop Camion
-    const actValorCamion = precastElements.find(element => element.expressID === id);
-    if (actValorCamion) {
-        actValorCamion.Camion = numCamion;
-    }
-    listarOcultos(elementosOcultos);
+    
 
-    //indexOf se utiliza para encontrar el índice del elemento que quieres eliminar.
-    // Si el elemento no se encuentra en el array, indexOf devuelve -1. Por lo tanto, antes de llamar a splice, debes verificar que el elemento exista en el array.
-    let indexToRemove = allIDs.indexOf(id);
-    if (indexToRemove !== -1) {
-        allIDs.splice(indexToRemove, 1);
-    }   
+    for (let i = 0; i < precastElements.length; i++) {
+        if (precastElements[i].expressID === id) {
+            if (precastElements[i].Camion === '' || precastElements[i].Camion === undefined) {
+                viewer.IFC.loader.ifcManager.removeFromSubset(
+                0,
+                [id],
+                'full-model-subset',
+                );
+                viewer.IFC.selector.unpickIfcItems();
+
+                elementosOcultos.push(id);
+                globalIds.push(globalId);// cuando oculto un elemnto su globalId se añade al array globalIds
+                // busca el elemento con el identificador expressID en el array precastElements y modifica su valor en la prop Camion
+                const actValorCamion = precastElements.find(element => element.expressID === id);
+                if (actValorCamion) {
+                    actValorCamion.Camion = numCamion;
+                }
+                listarOcultos(elementosOcultos);
+
+                //indexOf se utiliza para encontrar el índice del elemento que quieres eliminar.
+                // Si el elemento no se encuentra en el array, indexOf devuelve -1. Por lo tanto, antes de llamar a splice, debes verificar que el elemento exista en el array.
+                let indexToRemove = allIDs.indexOf(id);
+                if (indexToRemove !== -1) {
+                    allIDs.splice(indexToRemove, 1);
+                } 
+            } else {
+                alert("El elemento "+precastElements[i].expressID+"  "+ precastElements[i].ifcType +" ya está cargado en el camion: "+precastElements[i].Camion);
+            }
+             break; // Terminar el bucle una vez que se encuentra el primer objeto con el expressID correspondiente
+        }
+    
+    }
 }
+
 //Elimina de visor un elemento pulsado con boton derecho
 function hideClickedItemBtnDrch(viewer) {
     const result = viewer.context.castRayIfc();
@@ -333,11 +347,11 @@ async function listarOcultos(elementosOcultos) {
         if (!elemento) {
             throw new Error(`No se encontró el elemento con expressID = ${id}`);
         }
-        const tr = document.createElement("tr");
+        // const tr = document.createElement("tr");
         //tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${(elemento.Volumen_real)*2.5}</td>`;
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.Volumen_real.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 9 })}</td>`;
+        // tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.Volumen_real.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 9 })}</td>`;
 
-        tbody.appendChild(tr);
+        // tbody.appendChild(tr);
     }
     table.appendChild(tbody);
     itemList.appendChild(table);
@@ -521,8 +535,6 @@ function constructTreeMenuNode(parent, node){
     children.forEach(child => {
         constructTreeMenuNode(nodeElement, child);
     }); 
-
-
 }
 
 //++++++++++si elemento tiene hijos, construye nodos rama
@@ -655,15 +667,13 @@ GUI.importer.addEventListener("change", function(e) {
         // Aquí se ejecuta el código que utiliza los datos actualizados
         console.log(precastElements);
         mostrarElementosRestantes();
+        document.getElementById("checktiposIfc").style.display = "none";
     })
     .catch(error => console.error(error));
     
 }
 );
 
-// document.addEventListener('DOMContentLoaded', () => {
-//     mostrarElementosRestantes();
-// });
 
 async function mostrarElementosRestantes(){
     
@@ -676,7 +686,7 @@ async function mostrarElementosRestantes(){
         if (precastElements[i].Camion === undefined || precastElements[i].Camion ==='' ) {
             // variable expressID = el valor de la propiedad expressID de ese objeto y lo convertimos a número
             const expressID = parseInt(precastElements[i].expressID);
-            console.log(expressID +" elemento VISIBLE, no está en transporte");
+            console.log(expressID,precastElements[i].ifcType +"  no está en transporte");
             // Agregamos el valor al array allIDs
             allIDs.push(expressID);
         }else{
@@ -688,7 +698,6 @@ async function mostrarElementosRestantes(){
     
     //camionesUnicos es un array numerico con el valor de los diferentes camiones agrupados
     const camionesUnicos = obtenerValorCamion(precastElements);
-console.log(camionesUnicos);
     //genera los botones en HTML con los diferentes camiones cargados
     generaBotonesNumCamion(camionesUnicos);
 
@@ -705,7 +714,9 @@ function obtenerValorCamion(precastElements) {
     const valoresCamion = new Set();
     precastElements.forEach(function(elemento) {
         const camion = parseInt(elemento.Camion);
-        valoresCamion.add(camion);
+        if (!isNaN(camion)) { // Agregar solo valores numéricos al Set
+            valoresCamion.add(camion);
+        }
     });
     return Array.from(valoresCamion);
 }
@@ -714,8 +725,8 @@ function generaBotonesNumCamion(camionesUnicos) {
     const btnNumCamiones = document.getElementById("btnNumCamiones");
 
     let maximo = Math.max(...camionesUnicos.filter(num => !isNaN(num))); // filtramos los valores que no son NaN
-document.getElementById("numCamion").innerText = maximo +1;
-
+    document.getElementById("numCamion").innerText = maximo +1;
+    numCamion=maximo+1;
 
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
@@ -763,13 +774,6 @@ document.getElementById("numCamion").innerText = maximo +1;
     });
 btnNumCamiones.style.height = "auto";
 }
-
-
-
-
-
-
-
 
 
 
