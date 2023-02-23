@@ -121855,11 +121855,14 @@ viewer.context.renderer.usePostproduction = true;
 const GUI={
     input: document.getElementById("file-input"),
     loader: document.getElementById("loader-button"),
-    props: document.getElementById("property-menu"),
+    props: document.getElementById("main-container"),
     tree: document.getElementById("tree-root"),
     importer: document.getElementById("importCSV"),
     importloader: document.getElementById("importButton"),
 };
+
+
+
 //Muestra el nombre del archivo abierto
 document.getElementById("file-input").addEventListener("change", function() {
     const file = this.files[0];
@@ -122135,6 +122138,9 @@ function hideClickedItem(viewer) {
         }
     
     }
+
+
+
 }
 
 //Elimina de visor un elemento pulsado con boton derecho
@@ -122236,6 +122242,7 @@ container.onclick = async()=>{
     //y para acceder a propiedades de ese elemento, con doble true es recursivo y arrastra todas las props->psets incluidas
     const props = await viewer.IFC.getProperties (found.modelID, found.id, true,true);
     globalId=props['GlobalId'].value;
+    console.log("ACTUALIZA PROPIEDADES");
     updatePropertyMenu(props);  
     viewer.IFC.selector.unpickIfcItems();
 };
@@ -122292,10 +122299,10 @@ function updatePropertyMenu (props){
     delete props.psets;
     delete props.type;
     
-    for(let propertyName in props){
-        const propValue=props[propertyName];
-        createPropertyEntry(propertyName, propValue);
-    }
+    // for(let propertyName in props){
+    //     const propValue=props[propertyName];
+    //     createPropertyEntry(propertyName, propValue);
+    // }
 
     for (let pset in psets){
         //console.log(pset);
@@ -122340,9 +122347,11 @@ function createPropertyEntry(key,propertyValue){
     GUI.props.appendChild(root);
 }
 
+
+
 //Limpia el árbol de propiedades
 function removeAllChildren(element){
-    document.getElementById("property-menu").innerHTML = "";
+    document.getElementById("main-container").innerHTML = "";
     for(const child of element.children){
         element.removeChild(child);
     }   

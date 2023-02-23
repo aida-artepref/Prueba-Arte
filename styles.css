@@ -12,20 +12,21 @@
 }
 
 .app-container{
-   display: flex;
-   flex-direction: row;
-   position: absolute;    
-   width: 100vw;
-   height: 100vh;
-   top: 0;
+  display: flex;
+  flex-direction: row;
+  position: absolute;    
+  width: 100vw;
+  height: 100vh;
+  top: 0;
 }
 
 .slidebar{
-    min-width: 25rem;
+  display: none;
+    /* width: 0 rem;
     height: 100%;
     background-color: whitepink;
-    border:var(--border);
- }
+    border:var(--border); */
+}
 
 .button-container{
     display: flex;
@@ -74,13 +75,22 @@
   display: flex;
   flex-direction: row;
   justify-content: right;
-
+  border-bottom: var(--border);
+  height: 3rem;
 }
 
 .toolbar a {
   margin: 0.5rem;
-  margin-bottom: 2rem;
   
+  
+}
+
+.simple-card-container.bottom {
+  display: flex;
+}
+
+.toolbar, .button-container {
+  flex: 1;
 }
 
 .disable{
@@ -94,9 +104,33 @@
     overflow-y: auto;
 }
 
-.property-menu{
-    overflow-y:auto;
-    height: calc(50%);
+#main-container {
+  position: relative;
+  height: 100vh;
+  position:fixed;
+  top:55px;
+  right:5px;
+  width:auto;
+  height:auto;
+  background-color:rgb(255, 255, 255);  
+  padding: 10px;
+  font-size: 12px;
+  border: 1px solid gray;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.property-menu {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  height: calc(50%);
 }
 
 .property-root{
@@ -115,7 +149,6 @@
     width: 70%;
     text-align: right;
 }
-
 #elementosOcultosDiv{
   position:fixed;
   top:10px;
@@ -127,8 +160,10 @@
 }
 
 #viewer-container{
-    height: 100vh;
-    width: 100%;
+  width: 100%;
+  height: 100%;
+  background-color: whitepink;
+  border: var(--border);
 }
 
 #file-input{
@@ -183,26 +218,15 @@ ul, #myUL {
 .item-list-elementos-cargados{
   display: inline-block;
 }
-/* .divCargas {
-    position: fixed;
-    top:30px;
-    left:10px;
-    background-color: rgba(255, 255, 255, 0.267);
-    border: 1px solid gray;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 10px;
-    width: auto;
-    height: auto;
-    text-align: center;
-  } */
+
   .divCargas {
     position: fixed;
-    top:30px;
-    left:10px;
+    top:55px;
+    left:5px;
     background-color: rgba(255, 255, 255, 0.267);
     border: 1px solid gray;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 10px;
+    padding: 5px;
     width: auto;
     height: auto;
     text-align: center;
@@ -212,18 +236,14 @@ ul, #myUL {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
   }
-  
-  /* .titleCargas strong {
-    color: #e20a17;
-  }
-   */
+
   .titleCargas span {
     color: #e20a17;
     font-weight: bold;
-  }
-  
+    padding-right: 20px;
+}
   
   .titleCargas button {
     margin-right: 10px;
@@ -285,7 +305,7 @@ ul, #myUL {
     position: fixed;
     bottom: 10px;
     left:10px;
-    background-color: white;
+    background-color:rgba(255, 255, 255, 0.267);
     border: 1px solid gray;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     padding: 10px;
@@ -387,3 +407,10 @@ button {
   padding: 10px;
   border-bottom: 1px solid #ccc;
 }
+
+
+#datosCamiones{
+  height: 20px;
+  background-color: red;
+}
+
