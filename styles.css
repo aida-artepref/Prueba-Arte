@@ -183,7 +183,19 @@ ul, #myUL {
 .item-list-elementos-cargados{
   display: inline-block;
 }
-.divCargas {
+/* .divCargas {
+    position: fixed;
+    top:30px;
+    left:10px;
+    background-color: rgba(255, 255, 255, 0.267);
+    border: 1px solid gray;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    width: auto;
+    height: auto;
+    text-align: center;
+  } */
+  .divCargas {
     position: fixed;
     top:30px;
     left:10px;
@@ -195,7 +207,80 @@ ul, #myUL {
     height: auto;
     text-align: center;
   }
+  
+  .titleCargas {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  /* .titleCargas strong {
+    color: #e20a17;
+  }
+   */
+  .titleCargas span {
+    color: #e20a17;
+    font-weight: bold;
+  }
+  
+  
+  .titleCargas button {
+    margin-right: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+    background-color: #f7f7f7;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  #nuevoCamion{
+    float: left;
+    margin-left: 20px;
+    text-align: center;
+    width: 30px;
+    padding: 10px;
+    padding-left: 10px;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+    color:black;
+    background-color: #f7f7f7;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  #nuevoCamion:hover{
+    background-color: #afafaf;
+    color: #f7f7f7;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.5);
+  }
 
+
+  
+  .titleCargas button:active {
+    background-color: #e20a17;
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .item-list-elementos-cargados {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .item-list-elementos-cargados li {
+    margin-bottom: 5px;
+    padding: 5px;
+    border: 1px solid #d4d4d4;
+    border-radius: 5px;
+    background-color: #f7f7f7;
+    color: #333;
+  }
   .divCheck {
     position: fixed;
     bottom: 10px;
@@ -208,11 +293,7 @@ ul, #myUL {
     height: auto;  
   }
 
-  .titleCargas {
-    font-weight: bold;
-    margin-bottom: 10px;
-    
-  }
+
 
   #file-name {
     padding-top: 15px;
@@ -243,22 +324,6 @@ ul, #myUL {
   
   table.table th {
     background-color: #ddd;
-  }
-
-
-  #nuevoCamion{
-    float:left;
-    margin-left: 20px;
-    text-align: center;
-    width: 30px; 
-  }
-
-  #nuevoCamion:active{
-     background-color: #e20a17;
-  }
-
-  #numCamion{
-    color:#e20a17;
   }
 
   ul {
@@ -294,9 +359,6 @@ button {
   font-size: 15px;
 }
 
-/* button:hover {
-  background-color: #3e8e41;
-} */
 
 #btnNumCamiones{
   position: fixed;
@@ -304,8 +366,6 @@ button {
   left: 300px;
   height: 32px;
 }
-
-
 
 #btnNumCamiones:hover{
     background-color: white;
@@ -319,4 +379,11 @@ button {
   display: flex;
   
   /* font-weight: bold; */
+}
+
+
+.item-list-elemento {
+  font-size: 12px;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
 }

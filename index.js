@@ -156,7 +156,16 @@ function addCheckboxListeners() {
                     matchingIds.push(element.expressID);
                 }
             }
-            if (isChecked) {
+            if (isChecked) {  // si esta checkeado comprueba que no est eya en el transporte, si es asi lo elimina para no volver a mostrarlo
+                for(let i=0; i< matchingIds.length; i++){
+                    const matchingId = matchingIds[i];
+                    const matchingElement = precastElements.find(el => el.expressID === matchingId);
+                    
+                    if (matchingElement && matchingElement.Camion !== '' && matchingElement.Camion !== undefined) {
+                    matchingIds.splice(i, 1);
+                    i--;
+                    }
+                }
                 showAllItems(viewer, matchingIds);
             } else {
                 hideAllItems(viewer, matchingIds);
@@ -200,6 +209,11 @@ window.oncontextmenu=()=> hideClickedItemBtnDrch(viewer); //evento btnDrch ocult
 window.onkeydown = (event) => {  //evento esc, incluye todos los elementos ocultos con el BtnDrch de nuevo al visor
     if (event.code === 'Escape') {
         showAllItems(viewer, allIDs);
+        // Buscar los checkbox en elemento con id="checktiposIfc" y los activa
+        const checkboxes = document.querySelectorAll('#checktiposIfc input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
     }
 };
 
@@ -229,7 +243,7 @@ let numCamion=1;
 document.getElementById("numCamion").innerHTML = numCamion;
 const nuevoCamionBtn = document.getElementById("nuevoCamion");
 nuevoCamionBtn.addEventListener("click", function() {
-    numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  //------------------------------------------------------
+    numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
     document.getElementById("numCamion").innerHTML = numCamion;
 });
 //evento teclaC añade un nuevo camion
@@ -331,7 +345,6 @@ const actValorCamion = precastElements.find(element => element.expressID === (pa
 async function listarOcultos(elementosOcultos) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
     itemList.innerHTML = "";
-
     const table = document.createElement("table");
     table.classList.add("table");
     
@@ -347,11 +360,11 @@ async function listarOcultos(elementosOcultos) {
         if (!elemento) {
             throw new Error(`No se encontró el elemento con expressID = ${id}`);
         }
-        // const tr = document.createElement("tr");
-        //tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${(elemento.Volumen_real)*2.5}</td>`;
-        // tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.Volumen_real.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 9 })}</td>`;
-
-        // tbody.appendChild(tr);
+        const tr = document.createElement("tr");
+        tr.classList.add("item-list-elemento");
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${(elemento.Volumen_real)}</td>`;
+        //tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.Volumen_real.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 9 })}</td>`;
+        tbody.appendChild(tr);
     }
     table.appendChild(tbody);
     itemList.appendChild(table);
@@ -667,7 +680,7 @@ GUI.importer.addEventListener("change", function(e) {
         // Aquí se ejecuta el código que utiliza los datos actualizados
         console.log(precastElements);
         mostrarElementosRestantes();
-        document.getElementById("checktiposIfc").style.display = "none";
+        //document.getElementById("checktiposIfc").style.display = "none";
     })
     .catch(error => console.error(error));
     
