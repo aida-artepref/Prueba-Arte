@@ -109,11 +109,21 @@ function cargaProp(){
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
  //-------------extrae todos los tipos de elementos del modelo y los agrupa en un objeto llamado categorias.
 function setIfcPropertiesContent(ifcProject, viewer, model) {
-    const ifcClass = getIfcClass(ifcProject); //obtiene todos los Tipos de ifc de cada elemento que carga en el visor, ej: si hay 80 elemen obtiene 80 tipos 
-    let uniqueClasses = [...new Set(ifcClass)];  // agrupa los tipos de elementos 
-    generateCheckboxes(uniqueClasses)
-    document.getElementById('checktiposIfc').innerHTML = generateCheckboxes(uniqueClasses);
+    const ifcClass = getIfcClass(ifcProject);
+    let uniqueClasses = [...new Set(ifcClass)];
+    const checkboxesHTML = generateCheckboxes(uniqueClasses);
+    document.getElementById('checktiposIfc').innerHTML = checkboxesHTML;
 
+    const btnNota = document.querySelectorAll('.btn-notacion');
+    btnNota.forEach(function(button) {
+    button.addEventListener('click', function(event) {
+        const checkbox = event.target.parentElement.querySelector('input[type="checkbox"]');
+        if (checkbox !== null) {
+            const classValue = checkbox.getAttribute('data-class');
+            console.log("Has pulsado el botón para la clase: " + classValue);
+        }
+    });
+    });
 }
 
  //recorre el modelo y almacena el tipo de cada elemento en un array typeArray.
@@ -139,9 +149,11 @@ function getIfcClass_base(ifcProject, typeArray) {
 function generateCheckboxes(uniqueClasses) {
     let html = '';
     uniqueClasses.forEach(function(uniqueClass) {
-        html += `<input type="checkbox" checked data-class="${uniqueClass}">${uniqueClass} <br>`;
+        html += `<div class="checkbox-container">`;
+        html += `<button class="btn-notacion" data-id="${uniqueClass}"> </button>`;
+        html += `<input type="checkbox" checked data-class="${uniqueClass}">${uniqueClass}`;
+        html += `</div>`;
     });
-
     return html;
 }
 
@@ -796,21 +808,7 @@ function generaBotonesNumCamion(camionesUnicos) {
         });
     });
 btnNumCamiones.style.height = "auto";
-}
 
-
-function showAllItemsCamion(viewer, ids) {
-    const subsetMaterial = new  MeshStandardMaterial({
-        color: new Color("rgb(255, 128, 0)"),     
-    });
-	viewer.IFC.loader.ifcManager.createSubset({
-		modelID: 0,
-		ids,
-		removePrevious: false,
-		applyBVH: true,
-		customID: 'full-model-subset',
-        material: subsetMaterial,
-	});
 }
 
 
