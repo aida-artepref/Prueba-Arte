@@ -1,4 +1,4 @@
-import { Color, Loader, MeshBasicMaterial, LineBasicMaterial } from 'three';
+import { Color, Loader, MeshBasicMaterial, LineBasicMaterial, MeshStandardMaterial } from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IfcElementQuantity } from 'web-ifc';
 
@@ -403,7 +403,6 @@ container.onclick = async()=>{
     //y para acceder a propiedades de ese elemento, con doble true es recursivo y arrastra todas las props->psets incluidas
     const props = await viewer.IFC.getProperties (found.modelID, found.id, true,true);
     globalId=props['GlobalId'].value;
-    console.log("ACTUALIZA PROPIEDADES");
     updatePropertyMenu(props);  
     viewer.IFC.selector.unpickIfcItems();
 }
@@ -686,10 +685,8 @@ GUI.importer.addEventListener("change", function(e) {
     });
 
     readCsvFile.then(() => {
-        // Aquí se ejecuta el código que utiliza los datos actualizados
-        console.log(precastElements);
+        // ejecuta el código con los datos actualizados
         mostrarElementosRestantes();
-        //document.getElementById("checktiposIfc").style.display = "none";
     })
     .catch(error => console.error(error));
     
@@ -708,7 +705,6 @@ async function mostrarElementosRestantes(){
         if (precastElements[i].Camion === undefined || precastElements[i].Camion ==='' ) {
             // variable expressID = el valor de la propiedad expressID de ese objeto y lo convertimos a número
             const expressID = parseInt(precastElements[i].expressID);
-            console.log(expressID,precastElements[i].ifcType +"  no está en transporte");
             // Agregamos el valor al array allIDs
             allIDs.push(expressID);
         }else{
@@ -743,6 +739,7 @@ function obtenerValorCamion(precastElements) {
     return Array.from(valoresCamion);
 }
 
+//crea los botones con la numeracion de los camiones, 
 function generaBotonesNumCamion(camionesUnicos) {
     const btnNumCamiones = document.getElementById("btnNumCamiones");
 
@@ -785,12 +782,16 @@ function generaBotonesNumCamion(camionesUnicos) {
                 btn.classList.remove("active");
                 btn.style.justifyContent = "center";
                 btn.style.color = "";
+                eliminarTabla(camion);
+                
 
             } else {
-                // botón no activo, muestra los elementos en el visor y activa el botón
+                // botón no activo, muestra los elementos en tabla en el visor y activa el botón
+                
                 showAllItems(viewer, expressIDs);
                 btn.classList.add("active");
                 btn.style.color = "red";
+                generarTabla(expressIDs, camion)
             }
         });
     });
@@ -798,6 +799,73 @@ btnNumCamiones.style.height = "auto";
 }
 
 
+function showAllItemsCamion(viewer, ids) {
+    const subsetMaterial = new  MeshStandardMaterial({
+        color: new Color("rgb(255, 128, 0)"),     
+    });
+	viewer.IFC.loader.ifcManager.createSubset({
+		modelID: 0,
+		ids,
+		removePrevious: false,
+		applyBVH: true,
+		customID: 'full-model-subset',
+        material: subsetMaterial,
+	});
+}
 
+
+function generarTabla(expressIDs, camion) {
+    var divTabla = document.getElementById("datosCamiones");
+    const tabla = document.createElement('table');
+
+    //cabecera de la tabla
+    const cabecera = document.createElement('thead');
+    const filaCabecera = document.createElement('tr');
+    const thElemento = document.createElement('th');
+    thElemento.textContent = camion;
+    filaCabecera.appendChild(thElemento);
+    cabecera.appendChild(filaCabecera);
+    tabla.appendChild(cabecera);
+
+    //cuerpo de la tabla
+    const cuerpo = document.createElement('tbody');
+    expressIDs.forEach(id => {
+        const fila = document.createElement('tr');
+        const tdElemento = document.createElement('td');
+        tdElemento.textContent = id;
+        fila.appendChild(tdElemento);
+        cuerpo.appendChild(fila);
+    });
+    tabla.appendChild(cuerpo);
+
+    // contenedor para la tabla y agregar estilos CSS
+    var contenedorTabla = document.createElement("div");
+    contenedorTabla.style.margin="20px";
+    contenedorTabla.style.display = "inline-block";
+    contenedorTabla.style.maxWidth = "50%";
+    contenedorTabla.appendChild(tabla);
+// Establecer los estilos de la tabla y agregarla al div
+tabla.style.border = "1px solid black";
+
+tabla.style.verticalAlign = "top";
+divTabla.style.display = "flex";
+divTabla.style.flexDirection = "row";
+divTabla.appendChild(tabla);
+
+    divTabla.appendChild(contenedorTabla);
+}
+
+function eliminarTabla(camion) {
+    var divTabla = document.getElementById("datosCamiones");
+    var thElements = divTabla.getElementsByTagName("th");
+    
+    for (var i = 0; i < thElements.length; i++) {
+        if (thElements[i].textContent === camion.toString()) {
+            var tablaAEliminar = thElements[i].parentNode.parentNode.parentNode;
+            tablaAEliminar.parentNode.removeChild(tablaAEliminar);
+        break;
+        }
+    }
+}
 
 
