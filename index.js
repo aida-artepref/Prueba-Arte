@@ -390,7 +390,30 @@ async function listarOcultos(elementosOcultos) {
     $(table).tablesorter();//para ordenar la tabla si pulsamos en sus encabezados
 
 }
+// **************************************************
+//evento que crea boton reduceDiv cuando se genera la tabla
+//y evento para expandir la tabla de cargas
+const reduceDivBtn = document.createElement("button");
+reduceDivBtn.id = "reduceDivBtn";
+reduceDivBtn.classList.add("cargas-btn");
+divCargas.insertBefore(reduceDivBtn, divCargas.childNodes[0]);
 
+reduceDivBtn.addEventListener("click", () => {
+    divCargas.style.width = "30px";
+    reduceDivBtn.style.display = "none";
+    const expandDivBtn = document.createElement("button");
+    expandDivBtn.textContent = "+";
+    expandDivBtn.id = "expandDivBtn";
+    divCargas.appendChild(expandDivBtn);
+
+    expandDivBtn.addEventListener("click", () => {
+        divCargas.style.width = "";
+        expandDivBtn.style.display = "none";
+        reduceDivBtn.style.display = "";
+        expandDivBtn.classList.add("cargas-btn");
+    });
+});
+//************************************************************************ */
 //devuelve todos los ID de los elementos del modelo
 function getAllIds(ifcModel) {
     return Array.from(
@@ -410,14 +433,20 @@ let globalIds=[];
 let globalId;
 //onclick y selecciona elemento
 container.onclick = async()=>{
+
+    const divProp = document.querySelector('#main-container');
+    divProp.style.display = 'block'; //hace visible el div de la tabla en HTML
     const found=await viewer.IFC.selector.pickIfcItem(false);
     if(found === null || found === undefined) return; //elemento no seleccionado no hace nada
     //y para acceder a propiedades de ese elemento, con doble true es recursivo y arrastra todas las props->psets incluidas
     const props = await viewer.IFC.getProperties (found.modelID, found.id, true,true);
     globalId=props['GlobalId'].value;
     updatePropertyMenu(props);  
-    viewer.IFC.selector.unpickIfcItems();
+    //viewer.IFC.selector.unpickIfcItems();
 }
+// **************************************************
+
+
 
 async function precastProperties(precast,modelID, precastID){
     const props = await viewer.IFC.getProperties(modelID, precastID, true, true);
@@ -461,13 +490,10 @@ async function precastProperties(precast,modelID, precastID){
 let tree;
 //menu con propiedades nativas 
 function updatePropertyMenu (props){
-
     removeAllChildren(GUI.props); //llama a funcion que borra propiedades
-
     const mats =props.mats;
     const psets =props.psets;
     const type= props.type;
-    
     delete props.mats;
     delete props.psets;
     delete props.type;
@@ -476,7 +502,6 @@ function updatePropertyMenu (props){
     //     const propValue=props[propertyName];
     //     createPropertyEntry(propertyName, propValue);
     // }
-
     for (let pset in psets){
         //console.log(pset);
         getName = psets[pset].Name.value;
@@ -489,11 +514,7 @@ function updatePropertyMenu (props){
             }
         }
     }
-    
     let properties2= psets[0].HasProperties
-    // console.log(properties2[0].Name.value);
-    // console.log(properties2[0].NominalValue.value);
-
 }
 
 //para construir un menu de propiedades 
@@ -761,7 +782,7 @@ function generaBotonesNumCamion(camionesUnicos) {
 
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
-    
+    agregarBotonCero();
     camionesUnicos.forEach(function(camion) {
     
         const btn = document.createElement("button");
@@ -799,7 +820,7 @@ function generaBotonesNumCamion(camionesUnicos) {
 
             } else {
                 // botón no activo, muestra los elementos en tabla en el visor y activa el botón
-                
+                hideAllItems(viewer, allIDs);
                 showAllItems(viewer, expressIDs);
                 btn.classList.add("active");
                 btn.style.color = "red";
@@ -810,7 +831,91 @@ function generaBotonesNumCamion(camionesUnicos) {
 btnNumCamiones.style.height = "auto";
 
 }
+function agregarBotonCero() {
+    viewer.IFC.selector.unpickIfcItems();
+    //const btnNumCamiones = document.getElementById("btnNumCamiones");
+    const btnCero = document.createElement("button");
+    btnCero.textContent = "0";
+    btnCero.style.width = "80px";
+    btnCero.style.height = "30px";
+    btnCero.style.padding = "5px"; 
+    btnNumCamiones.appendChild(btnCero);
 
+    btnCero.addEventListener("mouseenter", function() {
+        btnCero.style.backgroundColor = "#cccccc"; // cambia el color de fondo cuando el cursor se coloca sobre el botón
+    });
+
+    btnCero.addEventListener("mouseleave", function() {
+        btnCero.style.backgroundColor = ""; // restablece el color de fondo cuando el cursor sale del botón
+    });
+
+    btnCero.addEventListener("click", function() {
+        
+        const isActive = btnCero.classList.contains("active");
+        if (isActive) {
+           // limpiarDiv();
+            hideAllItems(viewer, idsTotal);
+            showAllItems(viewer, allIDs);
+            btnCero.classList.remove("active");
+            btnCero.style.justifyContent = "center";
+            btnCero.style.color = "";
+        } else {
+            console.log("EN BOTON 0");
+            hideAllItems(viewer, idsTotal);
+            btnCero.classList.add("active");
+            btnCero.style.justifyContent = "center";
+            btnCero.style.color = "";
+            showElementsByCamion(viewer, precastElements);
+        }
+    });
+
+}
+// function limpiarDiv() {
+//     // Obtener referencia al div que contiene la label
+//     var label = document.getElementById("label");
+  
+//     // Establecer el contenido del div en una cadena vacía
+//     label.innerHTML = "";
+//   }
+  
+function showElementsByCamion(viewer, precastElements) {
+    // Crear el div y el label
+    const label = document.createElement("label");
+    const div = document.createElement("div");
+    //document.getElementById("label").innerHTML = '';
+    div.style.position = 'absolute';
+    div.style.top = '50px';
+    div.style.left = '50%';
+    div.style.transform = 'translate(-50%, 0)';
+    div.appendChild(label);
+    document.body.appendChild(div);
+
+    // Filtrar los elementos cuyo valor en su propiedad sea distinto a 0 o a undefined
+    const filteredElements = precastElements.filter((element) => {
+        const { Camion } = element;
+        return Camion !== "" && Camion !== "undefined" && Camion !== "0";
+    });
+    // Agrupa los elementos por valor de su propiedad
+    const groupedElements = filteredElements.reduce((acc, element) => {
+        const { Camion } = element;
+        if (!acc[Camion]) {
+            acc[Camion] = [];
+        }
+        acc[Camion].push(element);
+        return acc;
+    }, {});
+    // muestra los elementos agrupados en el visor y su etiqueta de num Camion
+    let delay = 0;
+    Object.keys(groupedElements).forEach((key) => {
+        const elements = groupedElements[key];
+        setTimeout(() => {
+            // Mostrar el valor de Camion en el label
+            label.textContent = `Camion: ${key}`;
+            showAllItems(viewer, elements.map((element) => element.expressID));
+        }, delay);
+      delay += 1000; // Esperar un segundo antes de mostrar el siguiente grupo
+    });
+}
 
 function generarTabla(expressIDs, camion) {
     var divTabla = document.getElementById("datosCamiones");
