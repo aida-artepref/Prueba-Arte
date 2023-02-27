@@ -848,9 +848,8 @@ function agregarBotonCero() {
     btnCero.addEventListener("mouseleave", function() {
         btnCero.style.backgroundColor = ""; // restablece el color de fondo cuando el cursor sale del botón
     });
-
     btnCero.addEventListener("click", function() {
-        
+    
         const isActive = btnCero.classList.contains("active");
         if (isActive) {
            // limpiarDiv();
