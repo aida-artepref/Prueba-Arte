@@ -211,9 +211,9 @@ ul, #myUL {
   }
   
   /* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
-  .active {
+  /* .active {
     display: block;
-  }
+  } */
 
 /**/
 .item-list-elementos-cargados{
@@ -260,24 +260,26 @@ ul, #myUL {
   }
 
   #reduceDivBtn, #expandDivBtn {
-  position: absolute;
-  right: -15px; /* Posiciona los botones en el margen derecho */
-  top: 5px; /* Posiciona los botones en la mitad del margen superior */
-  transform: translateY(-50%); /* Centra verticalmente los botones */
-  width: 30px; /* Establece el ancho de los botones */
-  height: 30px; /* Establece la altura de los botones */
-  border-radius: 50%; /* Hace que los botones sean completamente redondos */
-  background-color: #007bff; /* Establece el color de fondo de los botones */
-  color: #fff; /* Establece el color de texto de los botones */
-  font-size: 20px; /* Establece el tamaño de fuente de los botones */
-  border: none; /* Elimina el borde de los botones */
-  cursor: pointer; /* Establece el cursor a una mano para indicar que los botones son clickeables */
-  z-index: 1;
-  box-shadow: 0px 2px 5px rgba(0,0,0,0.2);background-color: #f7f7f7;
-  color: #333;
-  transition: all 0.3s ease;
- /* // overflow: visible; */
+    position: absolute;
+    right: -20px;
+    top: calc(50% - 15px);
+    
+    width: 20px;
+    
+    border-radius: 50px;
+    border: 1px solid rgb(63, 63, 63);
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 1;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+    background-color: #bdbcbc;
+    line-height: 30px;
+    text-align: center;
 }
+
+
+
   
 
 #reduceDivBtn::before {
@@ -304,7 +306,7 @@ ul, #myUL {
   #reduceDivBtn:hover,
   #expandDivBtn:hover {
     cursor: pointer;
-    background-color: #a8a8a8;
+    background-color: #505050;
     color:white;
   }
   
@@ -432,27 +434,62 @@ button {
   font-size: 15px;
 }
 
+.btnNumCamion {
+  padding: 10px;
+  background-color: rgba(110, 109, 109, 0.5);
+  color: white;
+  border-radius: 5px;
+  font-size: 20px;
+  min-width: 40px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* centra el contenido vertical y horizontalmente */
+}
+.btnNumCamion.active {
+  border: 2px solid red; 
+  color:black;
+}
 
-#btnNumCamiones{
+.btnNumCamion:hover {
+  background-color: rgb(116, 116, 116);  
+  transition: background-color 0.3s ease;
+}
+.btnNumCamion i {
+  
+  font-size: 100%;
+}
+
+#divNumCamiones {
   position: fixed;
   bottom: 20%;
-  left: 15%;
-  height: 32px;
-}
-
-#btnNumCamiones:hover{
-    background-color: white;
-    border-style: solid;
-    border-width: thin;
-}
-
-
-.active {
-  color: red;
+  left: 20%;
+  height: auto;
+  width: 80%; 
+  padding: 5px;
   display: flex;
-  
-  /* font-weight: bold; */
+  justify-content: flex-start;
+  align-items: center;
+  box-sizing: border-box; /*incluye el ancho del borde y del relleno en el ancho y alto */
+  white-space: nowrap; /* Evita que los botones se muevan */
+  border: 1px solid transparent; /* Agregar borde transparente para que el div mantenga su tamaño cuando los botones cambian su apariencia */
+  overflow-x: auto;
 }
+
+/*etiqueta de info del boton play*/
+#divNumCamion{
+  position :absolute;
+  top : 70px;
+  left : 50%;
+  transform : translate(-50%, 0);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 20px;
+  justify-content: flex-start;
+}
+
 
 
 .item-list-elemento {
@@ -460,8 +497,6 @@ button {
   padding: 10px;
   border-bottom: 1px solid #ccc;
 }
-
-
 
 
 #datosCamiones {
@@ -518,3 +553,6 @@ input[type="checkbox"] {
   height: 20px;
   margin-right: 5px;
 }
+
+
+
