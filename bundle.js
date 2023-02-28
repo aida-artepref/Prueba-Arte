@@ -121955,15 +121955,89 @@ function setIfcPropertiesContent(ifcProject, viewer, model) {
 
     const btnNota = document.querySelectorAll('.btn-notacion');
     btnNota.forEach(function(button) {
-    button.addEventListener('click', function(event) {
-        const checkbox = event.target.parentElement.querySelector('input[type="checkbox"]');
-        if (checkbox !== null) {
-            const classValue = checkbox.getAttribute('data-class');
-            console.log("Has pulsado el botón para la clase: " + classValue);
-        }
-    });
+    
+        const icon = document.createElement('i');
+        icon.classList.add('fas', 'fa-sticky-note');
+        button.appendChild(icon);
+
+        button.addEventListener('click', function(event) {
+            const checkbox = event.currentTarget.parentElement.querySelector('input[type="checkbox"]');
+            if (checkbox !== null) {
+                const classValue = checkbox.getAttribute('data-class');
+                console.log("Has pulsado el botón : " + classValue);
+                //notaElementos(precastElements, viewer);
+            }
+        });
     });
 }
+
+// function notaElementos(precastElements, viewer) {
+//     precastElements.forEach((element) => {
+//       const ifcObject = getProperties(element.expressID, viewer);
+  
+//       if (ifcObject) {
+//         const noteEntity = viewer.entities.add({
+//           position: ifcObject.boundingBox.center,
+//           label: {
+//             text: element.expressID,
+//             font: "16px Helvetica",
+//             fillColor: Cesium.Color.WHITE,
+//             outlineColor: Cesium.Color.BLACK,
+//             outlineWidth: 2,
+//             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+//             pixelOffset: new Cesium.Cartesian2(0, -20),
+//           },
+//         });
+//       }
+//     });
+//   }
+  
+  
+
+
+// async function notaElementos() {
+ 
+//     const elementos = await model.getFilteredElements();
+  
+//     console.log(elementos.length);
+  
+//     // Iterar sobre cada elemento y mostrar su propiedad "Name"
+//     elementos.forEach(elemento => {
+//       const nombre = elemento.name;
+      
+//       const nota = document.createElement("div");
+//       nota.textContent = nombre;
+//       document.body.appendChild(nota);
+//     });
+//   }
+  
+
+// function notaElementos() {
+//     const elementos = document.querySelectorAll('IfcWall');
+//     console.log(elementos.length);
+//   
+//     elementos.forEach(elemento => {
+//         const nombre = elemento.getAttribute("IfcEntity");
+        
+//         const nota = document.createElement("div");
+//         nota.textContent = nombre;
+//         document.body.appendChild(nota);
+//     });
+// }
+// function notaElementos(classValue) {
+//     const elements = viewer.model.getFilteredElements(classValue);
+//     elements.forEach(element => {
+//       const props = element.getPropertySet();
+//       const nombreObjetoProp = props.find(prop => prop.name === 'Name');
+//       const nombreObjeto = nombreObjetoProp ? nombreObjetoProp.value : '';
+//       viewer.addMarkup(element, {
+//         type: 'text',
+//         text: nombreObjeto,
+//         offsetX: 10,
+//         offsetY: 10
+//       });
+//     });
+//   }
 
  //recorre el modelo y almacena el tipo de cada elemento en un array typeArray.
 function getIfcClass(ifcProject) {
@@ -122025,7 +122099,9 @@ function addCheckboxListeners() {
                 hideAllItems(viewer, matchingIds);
             }
         });
+        
     });
+    
 }
 
 
