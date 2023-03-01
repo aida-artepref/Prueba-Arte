@@ -68,9 +68,23 @@ async function loadModel(url){
 
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
+
+
+    cargaGlobalIdenPrecast();
     crearBotonPrecas();  
     
     addCheckboxListeners() ;
+
+    verNumPrecast();
+
+
+}
+
+function verNumPrecast(){
+    var divNumPrecast = document.createElement("div"); // se crea el div que va  a mostrar la info del num de elementos en precastElements
+    divNumPrecast.innerHTML =  precastElements.length; //muestra cantidad en HTML
+    divNumPrecast.classList.add("divNumPrecast"); //estilo al div
+    document.body.appendChild(divNumPrecast);
 }
 
 function crearBotonPrecas(){
@@ -104,7 +118,16 @@ function cargaProp(){
     }); 
     
 }
-
+function cargaGlobalIdenPrecast(){
+    //Carga la propiedade GlobalId al array precastElements
+        precastElements.forEach(precast => {
+            if (precast.ifcType !='IFCBUILDING'){
+                precastPropertiesGlobalId(precast, 0, precast.expressID);
+            }
+        }); 
+        
+    }
+    
   //******************************************************************************************************************* */
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
  //-------------extrae todos los tipos de elementos del modelo y los agrupa en un objeto llamado categorias.
@@ -131,74 +154,6 @@ function setIfcPropertiesContent(ifcProject, viewer, model) {
         });
     });
 }
-
-// function notaElementos(precastElements, viewer) {
-//     precastElements.forEach((element) => {
-//       const ifcObject = getProperties(element.expressID, viewer);
-  
-//       if (ifcObject) {
-//         const noteEntity = viewer.entities.add({
-//           position: ifcObject.boundingBox.center,
-//           label: {
-//             text: element.expressID,
-//             font: "16px Helvetica",
-//             fillColor: Cesium.Color.WHITE,
-//             outlineColor: Cesium.Color.BLACK,
-//             outlineWidth: 2,
-//             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-//             pixelOffset: new Cesium.Cartesian2(0, -20),
-//           },
-//         });
-//       }
-//     });
-//   }
-  
-  
-
-
-// async function notaElementos() {
- 
-//     const elementos = await model.getFilteredElements();
-  
-//     console.log(elementos.length);
-  
-//     // Iterar sobre cada elemento y mostrar su propiedad "Name"
-//     elementos.forEach(elemento => {
-//       const nombre = elemento.name;
-      
-//       const nota = document.createElement("div");
-//       nota.textContent = nombre;
-//       document.body.appendChild(nota);
-//     });
-//   }
-  
-
-// function notaElementos() {
-//     const elementos = document.querySelectorAll('IfcWall');
-//     console.log(elementos.length);
-//   
-//     elementos.forEach(elemento => {
-//         const nombre = elemento.getAttribute("IfcEntity");
-        
-//         const nota = document.createElement("div");
-//         nota.textContent = nombre;
-//         document.body.appendChild(nota);
-//     });
-// }
-// function notaElementos(classValue) {
-//     const elements = viewer.model.getFilteredElements(classValue);
-//     elements.forEach(element => {
-//       const props = element.getPropertySet();
-//       const nombreObjetoProp = props.find(prop => prop.name === 'Name');
-//       const nombreObjeto = nombreObjetoProp ? nombreObjetoProp.value : '';
-//       viewer.addMarkup(element, {
-//         type: 'text',
-//         text: nombreObjeto,
-//         offsetX: 10,
-//         offsetY: 10
-//       });
-//     });
-//   }
 
  //recorre el modelo y almacena el tipo de cada elemento en un array typeArray.
 function getIfcClass(ifcProject) {
@@ -236,6 +191,7 @@ function addCheckboxListeners() {
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach(function(checkbox) {
         checkbox.addEventListener('change', function() {
+            viewer.IFC.selector.unpickIfcItems();
             const isChecked = this.checked;
             const tipo = this.getAttribute('data-class');
             const matchingIds = [];
@@ -528,6 +484,10 @@ container.onclick = async()=>{
 // **************************************************
 
 
+async function precastPropertiesGlobalId(precast,modelID, precastID){
+    const props = await viewer.IFC.getProperties(modelID, precastID, true, false);
+    precast['GlobalId'] = props['GlobalId'].value; //establece propiedad GlobalId en obj precast y le asigna un valor
+}
 
 async function precastProperties(precast,modelID, precastID){
     const props = await viewer.IFC.getProperties(modelID, precastID, true, true);
@@ -540,8 +500,8 @@ async function precastProperties(precast,modelID, precastID){
     delete props.psets;
     delete props.type;
     
-    precast['GlobalId'] = props['GlobalId'].value; //establece propiedad GlobalId en obj precast y le asigna un valor
-    precast
+    // precast['GlobalId'] = props['GlobalId'].value; //establece propiedad GlobalId en obj precast y le asigna un valor
+    // precast
     for (let pset in psets){
         psetName = psets[pset].Name.value;
         let properties = psets[pset].HasProperties;
@@ -563,6 +523,7 @@ async function precastProperties(precast,modelID, precastID){
             }
         }
     }
+    
    // addPropEstructura();
 }
 
@@ -659,8 +620,10 @@ function constructTreeMenuNode(parent, node){
     const exists = uniqueTypes.includes(node.type);
     if (!exists) {uniqueTypes.push(node.type)};
     
-    precastElements.push({expressID: node.expressID, ifcType: node.type})
-    
+    //TODO: no puedo recoger  GlobalId
+    //precastElements.push({expressID: node.expressID, GlobalId: node.GlobalId, ifcType: node.type})
+    precastElements.push({expressID: node.expressID,  ifcType: node.type})
+
     //console.log(children);
     if(children.length === 0){
         createSimpleChild(parent, node);
@@ -760,52 +723,86 @@ function exportCSVmethod(){
 
     //una vez descargado el archivo CSV elimina de HTML el enlace
     link.addEventListener("click", function(e) {
-        this.parentNode.removeChild(this); // Eliminar el enlace del DOM
+        this.parentNode.removeChild(this); // Elimina el enlace del DOM
     });
     
 }
 
 
-GUI.importer.addEventListener("change", function(e) {
-    e.preventDefault();
-    const input = e.target.files[0];
-    const reader = new FileReader();
-    let headers = [];
 
-    const readCsvFile = new Promise((resolve, reject) => {
-        reader.onload = function (e) {
-            const text = e.target.result;
-            let lines = text.split(/[\r\n]+/g);
-            lines.forEach(line => {
-                if (headers.length===0){
-                    headers = line.split(',');
-                } else {
-                    let mline = line.split(',');
-                    if(!mline[0]==''){
-                        let dato = precastElements.find(dato => dato[headers[0]] === parseInt(mline[0]));
-                        for(let i=1; i<headers.length; i++){
-                            if(mline[i]===undefined){
-                                dato[headers[i]]='';
-                            } else {
-                                dato[headers[i]] = mline[i];
+// GUI.importer.addEventListener("change", function(e) { // Cuando el usuario selecciona un archivo en el campo de carga de archivos
+//     e.preventDefault(); // Prevenir la acción predeterminada del evento
+//     const input = e.target.files[0]; // Obtener el primer archivo seleccionado
+//     const reader = new FileReader(); // Crear un objeto FileReader para leer el contenido del archivo
+//     let headers = []; // Crear una matriz vacía para almacenar los encabezados de columna
+
+//     const readCsvFile = new Promise((resolve, reject) => { // Crear una promesa para leer el contenido del archivo
+//         reader.onload = function (e) { // Cuando se carga el contenido del archivo
+//             const text = e.target.result; // Obtener el texto del archivo
+//             let lines = text.split(/[\r\n]+/g); // Dividir el texto en líneas
+//             lines.forEach(line => { // Para cada línea en el archivo
+//                 if (headers.length===0){ // Si esta es la primera línea (encabezados de columna)
+//                     headers = line.split(','); // Dividir la línea en comas y almacenar los encabezados de columna en la matriz headers
+//                 } else { // (datos)
+//                     let mline = line.split(','); // Dividir la línea en comas y almacenar los datos en la matriz mline
+//                     if(!mline[0]==''){ // Si el primer valor en la línea no está vacío (esto evita problemas al leer líneas vacías al final del archivo)
+//                         //let dato = precastElements.find(dato => dato[headers[0]] === parseInt(mline[0])); // Buscar el elemento correspondiente en la matriz precastElements usando el primer valor de la línea como identificador
+//                         let dato = precastElements.find(dato => dato[headers[2]] === mline[2]); // Buscar el elemento correspondiente en la matriz precastElements usando el primer valor de la línea como identificador
+//                         for(let i=1; i<headers.length; i++){ // Para cada columna en la línea (excepto la primera columna, que se usa para identificar el elemento)
+//                             if(mline[i]===undefined){ // Si el valor es undefined (esto ocurre si la línea no tiene suficientes columnas)
+//                                 dato[headers[i]]=''; // Establecer el valor de la columna en una cadena vacía
+//                             } else { // Si el valor no es undefined
+//                                 dato[headers[i]] = mline[i]; // Establecer el valor de la columna en el valor de la línea correspondiente
+//                             }
+//                         }
+//                     }
+//                 }
+//             });
+//             resolve(); // Resolver la promesa (esto indica que se ha completado la lectura del archivo)
+//         };
+//         reader.readAsText(input); // Leer el archivo como texto
+//     });
+// });
+
+
+GUI.importer.addEventListener("change", function(e) { // Cuando el usuario selecciona un archivo en el campo de carga de archivos
+    e.preventDefault(); // Prevenir la acción predeterminada del evento
+    const input = e.target.files[0]; // Obtener el primer archivo seleccionado
+    const reader = new FileReader(); // Crear un objeto FileReader para leer el contenido del archivo
+    let headers = []; // Crear una matriz vacía para almacenar los encabezados de columna
+
+    const readCsvFile = new Promise((resolve, reject) => { // Crear una promesa para leer el contenido del archivo
+        reader.onload = function (e) { // Cuando se carga el contenido del archivo
+            const text = e.target.result; // Obtener el texto del archivo
+            let lines = text.split(/[\r\n]+/g); // Dividir el texto en líneas
+            const precastElements = model.getAll(PrecastElement); // Obtener todos los elementos PrecastElement existentes
+            lines.forEach(line => { // Para cada línea en el archivo
+                if (headers.length===0){ // Si esta es la primera línea (encabezados de columna)
+                    headers = line.split(','); // Dividir la línea en comas y almacenar los encabezados de columna en la matriz headers
+                } else { // (datos)
+                    let mline = line.split(','); // Dividir la línea en comas y almacenar los datos en la matriz mline
+                    if(mline.length > 2 && !mline[0]==''){ // Si la línea tiene al menos tres elementos y el primer valor no está vacío (esto evita problemas al leer líneas vacías al final del archivo)
+                        let dato = precastElements.find(dato => dato.GlobalId === mline[2]); // Buscar el elemento correspondiente en la matriz precastElements usando el valor de la propiedad GlobalId como identificador
+                        if (dato) { // Si se encontró un elemento correspondiente
+                            dato.expressID = mline[0]; // Actualizar el valor de la propiedad expressID con el valor del primer elemento de la línea
+                            for(let i=1; i<headers.length; i++){ // Para cada columna en la línea (excepto la primera columna, que se usa para identificar el elemento)
+                                if(mline[i]===undefined){ // Si el valor es undefined (esto ocurre si la línea no tiene suficientes columnas)
+                                    dato[headers[i]]=''; // Establecer el valor de la columna en una cadena vacía
+                                } else { // Si el valor no es undefined
+                                    dato[headers[i]] = mline[i]; // Establecer el valor de la columna en el valor de la línea correspondiente
+                                }
                             }
                         }
                     }
                 }
             });
-            resolve();
+            model.saveAll(precastElements); // Guardar todos los elementos PrecastElement actualizados
+            resolve(); // Resolver la promesa (esto indica que se ha completado la lectura del archivo)
         };
-        reader.readAsText(input);
+        reader
     });
+});
 
-    readCsvFile.then(() => {
-        // ejecuta el código con los datos actualizados
-        mostrarElementosRestantes();
-    })
-    .catch(error => console.error(error));
-    
-}
-);
 
 
 async function mostrarElementosRestantes(){
