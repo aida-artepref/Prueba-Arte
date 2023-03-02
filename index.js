@@ -618,11 +618,11 @@ function constructTreeMenuNode(parent, node){
     const children = node.children;
 
     const exists = uniqueTypes.includes(node.type);
-    if (!exists) {uniqueTypes.push(node.type)};
-    
-    //TODO: no puedo recoger  GlobalId
-    //precastElements.push({expressID: node.expressID, GlobalId: node.GlobalId, ifcType: node.type})
-    precastElements.push({expressID: node.expressID,  ifcType: node.type})
+
+   // TODO: elementos de IFC excluidos BUILDING y SITE
+    if (!exists && node.type !== "IFCBUILDING" && node.type !== "IFCSITE") {
+        precastElements.push({expressID: node.expressID,  ifcType: node.type});
+    }
 
     //console.log(children);
     if(children.length === 0){
@@ -730,78 +730,46 @@ function exportCSVmethod(){
 
 
 
-// GUI.importer.addEventListener("change", function(e) { // Cuando el usuario selecciona un archivo en el campo de carga de archivos
-//     e.preventDefault(); // Prevenir la acción predeterminada del evento
-//     const input = e.target.files[0]; // Obtener el primer archivo seleccionado
-//     const reader = new FileReader(); // Crear un objeto FileReader para leer el contenido del archivo
-//     let headers = []; // Crear una matriz vacía para almacenar los encabezados de columna
+GUI.importer.addEventListener("change", function(e) {
+    e.preventDefault();
+    const input = e.target.files[0];
+    const reader = new FileReader();
+    let headers = [];
 
-//     const readCsvFile = new Promise((resolve, reject) => { // Crear una promesa para leer el contenido del archivo
-//         reader.onload = function (e) { // Cuando se carga el contenido del archivo
-//             const text = e.target.result; // Obtener el texto del archivo
-//             let lines = text.split(/[\r\n]+/g); // Dividir el texto en líneas
-//             lines.forEach(line => { // Para cada línea en el archivo
-//                 if (headers.length===0){ // Si esta es la primera línea (encabezados de columna)
-//                     headers = line.split(','); // Dividir la línea en comas y almacenar los encabezados de columna en la matriz headers
-//                 } else { // (datos)
-//                     let mline = line.split(','); // Dividir la línea en comas y almacenar los datos en la matriz mline
-//                     if(!mline[0]==''){ // Si el primer valor en la línea no está vacío (esto evita problemas al leer líneas vacías al final del archivo)
-//                         //let dato = precastElements.find(dato => dato[headers[0]] === parseInt(mline[0])); // Buscar el elemento correspondiente en la matriz precastElements usando el primer valor de la línea como identificador
-//                         let dato = precastElements.find(dato => dato[headers[2]] === mline[2]); // Buscar el elemento correspondiente en la matriz precastElements usando el primer valor de la línea como identificador
-//                         for(let i=1; i<headers.length; i++){ // Para cada columna en la línea (excepto la primera columna, que se usa para identificar el elemento)
-//                             if(mline[i]===undefined){ // Si el valor es undefined (esto ocurre si la línea no tiene suficientes columnas)
-//                                 dato[headers[i]]=''; // Establecer el valor de la columna en una cadena vacía
-//                             } else { // Si el valor no es undefined
-//                                 dato[headers[i]] = mline[i]; // Establecer el valor de la columna en el valor de la línea correspondiente
-//                             }
-//                         }
-//                     }
-//                 }
-//             });
-//             resolve(); // Resolver la promesa (esto indica que se ha completado la lectura del archivo)
-//         };
-//         reader.readAsText(input); // Leer el archivo como texto
-//     });
-// });
+    const readCsvFile = new Promise((resolve, reject) => {
+        reader.onload = function (e) {
+            const text = e.target.result;
+            let lines = text.split(/[\r\n]+/g);
+            let numObjectosPre = precastElements.length;
+            let numLinesCsv = lines.length - 1;
+            console.log(numObjectosPre);
+            console.log(numLinesCsv);
 
-
-GUI.importer.addEventListener("change", function(e) { // Cuando el usuario selecciona un archivo en el campo de carga de archivos
-    e.preventDefault(); // Prevenir la acción predeterminada del evento
-    const input = e.target.files[0]; // Obtener el primer archivo seleccionado
-    const reader = new FileReader(); // Crear un objeto FileReader para leer el contenido del archivo
-    let headers = []; // Crear una matriz vacía para almacenar los encabezados de columna
-
-    const readCsvFile = new Promise((resolve, reject) => { // Crear una promesa para leer el contenido del archivo
-        reader.onload = function (e) { // Cuando se carga el contenido del archivo
-            const text = e.target.result; // Obtener el texto del archivo
-            let lines = text.split(/[\r\n]+/g); // Dividir el texto en líneas
-            const precastElements = model.getAll(PrecastElement); // Obtener todos los elementos PrecastElement existentes
-            lines.forEach(line => { // Para cada línea en el archivo
-                if (headers.length===0){ // Si esta es la primera línea (encabezados de columna)
-                    headers = line.split(','); // Dividir la línea en comas y almacenar los encabezados de columna en la matriz headers
-                } else { // (datos)
-                    let mline = line.split(','); // Dividir la línea en comas y almacenar los datos en la matriz mline
-                    if(mline.length > 2 && !mline[0]==''){ // Si la línea tiene al menos tres elementos y el primer valor no está vacío (esto evita problemas al leer líneas vacías al final del archivo)
-                        let dato = precastElements.find(dato => dato.GlobalId === mline[2]); // Buscar el elemento correspondiente en la matriz precastElements usando el valor de la propiedad GlobalId como identificador
-                        if (dato) { // Si se encontró un elemento correspondiente
-                            dato.expressID = mline[0]; // Actualizar el valor de la propiedad expressID con el valor del primer elemento de la línea
-                            for(let i=1; i<headers.length; i++){ // Para cada columna en la línea (excepto la primera columna, que se usa para identificar el elemento)
-                                if(mline[i]===undefined){ // Si el valor es undefined (esto ocurre si la línea no tiene suficientes columnas)
-                                    dato[headers[i]]=''; // Establecer el valor de la columna en una cadena vacía
-                                } else { // Si el valor no es undefined
-                                    dato[headers[i]] = mline[i]; // Establecer el valor de la columna en el valor de la línea correspondiente
-                                }
+            lines.forEach(line => {
+                if (headers.length===0){
+                    headers = line.split(',');
+                } else {
+                    let mline = line.split(',');
+                    if(!mline[0]==''){
+                        let dato = precastElements.find(dato => dato[headers[2]] === mline[2]);
+                        for(let i=3; i<headers.length; i++){
+                            if(dato && mline[i]!==undefined){ 
+                                dato[headers[i]] = mline[i]; 
                             }
                         }
                     }
                 }
             });
-            model.saveAll(precastElements); // Guardar todos los elementos PrecastElement actualizados
-            resolve(); // Resolver la promesa (esto indica que se ha completado la lectura del archivo)
+            resolve();
         };
-        reader
+        reader.readAsText(input); 
     });
+    readCsvFile.then(() => {
+        mostrarElementosRestantes();
+    })
+    .catch(error => console.error(error));
 });
+
 
 
 
