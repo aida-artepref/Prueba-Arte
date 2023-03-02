@@ -122579,9 +122579,18 @@ GUI.importer.addEventListener("change", function(e) {
             const text = e.target.result;
             let lines = text.split(/[\r\n]+/g);
             let numObjectosPre = precastElements.length;
-            let numLinesCsv = lines.length - 1;
+            let numLinesCsv = lines.length - 2;
             console.log(numObjectosPre);
             console.log(numLinesCsv);
+
+            if (numObjectosPre > numLinesCsv) {
+                const añadido = precastElements.find(dato => !lines.some(line => line.includes(dato.expressID)));
+                alert("Se ha añadido un elemento: " + JSON.stringify(añadido));
+            } else if (numObjectosPre < numLinesCsv) {
+                const eliminado = precastElements.find(dato => !lines.some(line => line.includes(dato.expressID)));
+                alert("Se ha eliminado un elemento al MODIFICAR el archivo IFC: " + JSON.stringify(eliminado));
+                
+            }
 
             lines.forEach(line => {
                 if (headers.length===0){

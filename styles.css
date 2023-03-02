@@ -569,4 +569,10 @@ input[type="checkbox"] {
   z-index: 9999;
 }
 
+.alert-eliminacion {
+  background-color: #f44336; /* rojo */
+  color: white;
+  padding: 12px;
+}
+
 
