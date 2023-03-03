@@ -38,8 +38,6 @@ let elementosOcultos=[];
 let uniqueTypes=[];
 let precastElements=[];
 
-const categories = {};//genera objeto con las categorias extraidas del IFC
-
 const toolbar = document.getElementById("toolbar");
 const hideButton= document.getElementById("hidebutton");
 
@@ -238,6 +236,23 @@ function getWholeSubset(viewer, model, allIDs) {
 		customID: 'full-model-subset',
 	});
 }
+// function getWholeSubsetRojo(viewer, model, expressID, subset_name, materialRojo) {
+// 	return viewer.IFC.loader.ifcManager.createSubset({
+//         modelID: model.modelID,
+//         ids: expressID,
+//         material: materialRojo,
+//         applyBVH: true,
+//         scene: viewer.context.getScene(),
+//         removePrevious: true,
+//         customID: subset_name,
+// 		// modelID: model.modelID,
+// 		// ids: allIDs,
+// 		// applyBVH: true,
+// 		// scene: model.parent,
+// 		// removePrevious: true,
+// 		// customID: subset_name,
+// 	});
+// }
 
 //Remplaza un modelo original (model) por un subconjunto previamente creado (subset).
 function replaceOriginalModelBySubset(viewer, model, subset) {
@@ -620,7 +635,7 @@ function constructTreeMenuNode(parent, node){
     const exists = uniqueTypes.includes(node.type);
 
    // TODO: elementos de IFC excluidos BUILDING y SITE
-    if (!exists && node.type !== "IFCBUILDING" && node.type !== "IFCSITE") {
+    if (!exists && node.type !== "IFCBUILDING" && node.type !== "IFCSITE" && node.type !== "IFCBUILDINGSTOREY") {
         precastElements.push({expressID: node.expressID,  ifcType: node.type});
     }
 
@@ -742,15 +757,45 @@ GUI.importer.addEventListener("change", function(e) {
             let lines = text.split(/[\r\n]+/g);
             let numObjectosPre = precastElements.length;
             let numLinesCsv = lines.length - 2;
-            console.log(numObjectosPre);
-            console.log(numLinesCsv);
+            console.log(numObjectosPre+" Num de objetos en Precast");
+            console.log(numLinesCsv+ " Num de objetos en CSV");
 
             if (numObjectosPre > numLinesCsv) {
-                const añadido = precastElements.find(dato => !lines.some(line => line.includes(dato.expressID)));
-                alert("Se ha añadido un elemento: " + JSON.stringify(añadido));
+                const nuevos = precastElements.filter(dato => !lines.some(line => line.includes(dato.expressID)));
+                //alert("Nuevo elemento detectado: " + JSON.stringify(nuevo));
+
+                const expressID = nuevos.map(nuevo => nuevo.expressID);
+                if (expressID.length>0){
+                    alert("Aparecen: "+expressID.length+" nuevos elementos. IFC MODIFICADO")
+                }
+                console.log(expressID);
+
+                
+                const subset_name='rojo';
+                
+                // Crear un nuevo material rojo
+                const materialRojo = new MeshBasicMaterial({ color: 0xff0000 });
+            
+                // let subset = getWholeSubsetRojo(viewer, model, expressID, subset_name, materialRojo);
+                // replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
+                const config = {
+                    modelID: model.modelID,
+                    ids: expressID,
+                    material: materialRojo,
+                    applyBVH: true,
+                    scene: viewer.context.getScene(),
+                    removePrevious: true,
+                    customID: subset_name,
+                };
+                viewer.IFC.loader.ifcManager.createSubset(config);
+            
+                
+
+
             } else if (numObjectosPre < numLinesCsv) {
                 const eliminado = precastElements.find(dato => !lines.some(line => line.includes(dato.expressID)));
                 alert("Se ha eliminado un elemento al MODIFICAR el archivo IFC: " + JSON.stringify(eliminado));
+                
                 
             }
 
@@ -899,7 +944,6 @@ function agregarBotonCero() {
     btnCero.addEventListener("click", function() {
         const isActive = btnCero.classList.contains("active");
         if (isActive) {
-           // limpiarDiv();
             hideAllItems(viewer, idsTotal);
             showAllItems(viewer, allIDs);
             btnCero.classList.remove("active");
@@ -927,10 +971,12 @@ function showElementsByCamion(viewer, precastElements) {
     document.body.appendChild(div);
 
     // Filtrar los elementos cuyo valor en su propiedad sea distinto a 0 o a undefined
+    //O los que no tengan propiedad asiganada en el objeto
     const filteredElements = precastElements.filter((element) => {
         const { Camion } = element;
-        return Camion !== "" && Camion !== "undefined" && Camion !== "0";
+        return Camion && Camion !== "" && Camion !== "undefined" && Camion !== "0" && "Camion" in element;
     });
+    
     // Agrupa los elementos por valor de su propiedad
     const groupedElements = filteredElements.reduce((acc, element) => {
         const { Camion } = element;
@@ -940,6 +986,8 @@ function showElementsByCamion(viewer, precastElements) {
         acc[Camion].push(element);
         return acc;
     }, {});
+
+    
     // muestra los elementos agrupados en el visor y su etiqueta de num Camion
     let delay = 0;
     Object.keys(groupedElements).forEach((key) => {
