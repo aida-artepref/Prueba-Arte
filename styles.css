@@ -108,7 +108,7 @@
   position: relative;
   height: 100vh;
   position:fixed;
-  top:55px;
+  top:170px;
   right:5px;
   width:auto;
   height:auto;
@@ -263,9 +263,7 @@ ul, #myUL {
     position: absolute;
     right: -20px;
     top: calc(50% - 15px);
-    
     width: 20px;
-    
     border-radius: 50px;
     border: 1px solid rgb(63, 63, 63);
     color: #fff;
@@ -327,20 +325,13 @@ ul, #myUL {
     cursor: pointer;
     transition: all 0.3s ease;
   }
-  
-  #nuevoCamion:hover{
-    background-color: #afafaf;
-    color: #f7f7f7;
-    box-shadow: 0px 2px 5px rgba(0,0,0,0.5);
-  }
-
 
   
   .titleCargas button:active {
     background-color: #e20a17;
     color: white;
     transition: all 0.3s ease;
-  }
+  } 
   
   .item-list-elementos-cargados {
     list-style: none;
@@ -530,8 +521,6 @@ th, td {
   margin-right: 5px;
   margin-bottom: 5px;
   height: 25px;
- 
-  
   background-color: #e6e6e6;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -576,3 +565,18 @@ input[type="checkbox"] {
 }
 
 
+.seleccionado {
+  background-color: rgb(135, 76, 143)!important;
+  color: white !important;
+} 
+
+#menosE, #menosA, #menosC {
+  height: 5px;
+  
+}
+
+#tipoCarga {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

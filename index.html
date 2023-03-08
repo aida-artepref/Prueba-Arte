@@ -26,10 +26,24 @@
       
         <div id="viewer-container">
             <div class="divCargas"  style="display: none;" >
-            <div class="titleCargas">
-              <button id="nuevoCamion"><strong>C+</strong> </button>
-              CARGAS:
-              <span id="numCamion">{{numCamion}} Camion</span> </div>
+            <div class="titleCargas" >
+              <div id="tipoCarga" style="display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr;">
+                <button id="nuevoCamionEstructura" ><strong>E</strong> </button>
+                <button id="nuevoCamionAlveolar"><strong>A</strong> </button>
+                <button id="nuevoCamionCerramiento"><strong>C</strong> </button>
+                <button id="menosE" class="botonesMenos">-</button>
+                <button id="menosA" class="botonesMenos">-</button>
+                <button id="menosC" class="botonesMenos">-</button>
+              </div>
+      
+              <!-- CARGAS:style="display: none;" -->
+              <span id="numCamion">{{numCamion}} </span> 
+              <span id="numT"> {{numT}} </span>
+              <!-- <span id="tipoTransporte"> {{tipoTransporte}} </span> -->
+
+            </div>
+            
+
               <ul class="item-list-elementos-cargados" ></ul>  
             </div>
 

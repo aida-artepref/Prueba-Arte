@@ -1,6 +1,8 @@
 import { Color, Loader, MeshBasicMaterial, LineBasicMaterial, MeshStandardMaterial } from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IfcElementQuantity } from 'web-ifc';
+import { NavCube } from './NavCube/NavCube.js';
+
 
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color(255,255,255)});
@@ -19,8 +21,6 @@ const GUI={
     importer: document.getElementById("importCSV"),
     importloader: document.getElementById("importButton"),
 }
-
-
 
 //Muestra el nombre del archivo abierto
 document.getElementById("file-input").addEventListener("change", function() {
@@ -75,8 +75,24 @@ async function loadModel(url){
 
     verNumPrecast();
 
-
 }
+
+//Nave cube
+viewer.container = container;
+const navCube = new NavCube(viewer);
+navCube.onPick(model);
+// window.ondblclick = () => viewer.IFC.selector.pickIfcItem(true);
+// window.onmousemove = () => viewer.IFC.selector.prePickIfcItem();
+// viewer.clipper.active = true;
+
+// window.onkeydown = (event) => {
+// 	if (event.code === "KeyP") {
+// 		viewer.clipper.createPlane();
+// 	} else if (event.code === "KeyO") {
+// 		viewer.clipper.deletePlane();
+// 	}
+// };
+
 
 function verNumPrecast(){
     var divNumPrecast = document.createElement("div"); // se crea el div que va  a mostrar la info del num de elementos en precastElements
@@ -301,82 +317,112 @@ function hideAllItems(viewer, ids) {
 }
 
 //boton de HTML que pulsandolo crea un nuevo camion
-let numCamion=1;
+let numCamion=1;// cuenta los camiones totales, todos E A C
+
+let letraTransporte = 'E';
+let numT=1;
+let numE = 1; 
+let numA = 0;
+let numC = 0;
+
 document.getElementById("numCamion").innerHTML = numCamion;
-const nuevoCamionBtn = document.getElementById("nuevoCamion");
-nuevoCamionBtn.addEventListener("click", function() {
+document.getElementById("numT").innerHTML = letraTransporte + numT;
+
+const nuevoCamionEstructuraBtn = document.getElementById("nuevoCamionEstructura");
+const nuevoCamionAlveolarBtn = document.getElementById("nuevoCamionAlveolar");
+const nuevoCamionCerramientoBtn = document.getElementById("nuevoCamionCerramiento");
+
+function btnTipoTransporte(){
+    if (nuevoCamionEstructuraBtn.classList.contains('active')) {
+        numE++; 
+    } else if (nuevoCamionAlveolarBtn.classList.contains('active')) {
+        numA++;
+    } else if (nuevoCamionCerramientoBtn.classList.contains('active')) {
+        numC++;
+    }
+}
+// Variable para mantener el botón seleccionado actualmente
+let botonSeleccionado = nuevoCamionEstructuraBtn;
+botonSeleccionado.classList.add("seleccionado");
+
+nuevoCamionEstructuraBtn.addEventListener("click", function() {
+    seleccionarBoton(nuevoCamionEstructuraBtn);
+    btnTipoTransporte();
     numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
     document.getElementById("numCamion").innerHTML = numCamion;
+    letraTransporte="E";
+    numE++;
+    numT=numE;
+    document.getElementById("numT").innerHTML = "E"+numT;
 });
-//evento teclaC añade un nuevo camion
-document.addEventListener("keydown", function(event) {
-    if (event.key === "c" || event.key === "C") {
-        numCamion += 1;
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'E' || event.key === 'e') {
+        seleccionarBoton(nuevoCamionEstructuraBtn);
+        btnTipoTransporte();
+        numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
         document.getElementById("numCamion").innerHTML = numCamion;
+        letraTransporte="E";
+        numE++;
+        numT=numE;
+        document.getElementById("numT").innerHTML = "E"+numT;
     }
 });
 
-
-function hideClickedItem(viewer) {
-    const divCargas = document.querySelector('.divCargas');
-    divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
-    const result = viewer.context.castRayIfc();
-    if (!result) return;
-    const manager = viewer.IFC.loader.ifcManager;
-    const id = manager.getExpressId(result.object.geometry, result.faceIndex);
-    
-
-    for (let i = 0; i < precastElements.length; i++) {
-        if (precastElements[i].expressID === id) {
-            if (precastElements[i].Camion === '' || precastElements[i].Camion === undefined) {
-                viewer.IFC.loader.ifcManager.removeFromSubset(
-                0,
-                [id],
-                'full-model-subset',
-                );
-                viewer.IFC.selector.unpickIfcItems();
-
-                elementosOcultos.push(id);
-                globalIds.push(globalId);// cuando oculto un elemnto su globalId se añade al array globalIds
-                // busca el elemento con el identificador expressID en el array precastElements y modifica su valor en la prop Camion
-                const actValorCamion = precastElements.find(element => element.expressID === id);
-                if (actValorCamion) {
-                    actValorCamion.Camion = numCamion;
-                }
-                listarOcultos(elementosOcultos);
-
-                //indexOf se utiliza para encontrar el índice del elemento que quieres eliminar.
-                // Si el elemento no se encuentra en el array, indexOf devuelve -1. Por lo tanto, antes de llamar a splice, debes verificar que el elemento exista en el array.
-                let indexToRemove = allIDs.indexOf(id);
-                if (indexToRemove !== -1) {
-                    allIDs.splice(indexToRemove, 1);
-                } 
-            } else {
-                alert("El elemento "+precastElements[i].expressID+"  "+ precastElements[i].ifcType +" ya está cargado en el camion: "+precastElements[i].Camion);
-            }
-             break; // Terminar el bucle una vez que se encuentra el primer objeto con el expressID correspondiente
-        }
-    
+nuevoCamionAlveolarBtn.addEventListener("click", function() {
+    seleccionarBoton(nuevoCamionAlveolarBtn);
+    btnTipoTransporte();
+    numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
+    document.getElementById("numCamion").innerHTML = numCamion;
+    letraTransporte="A";
+    numA++;
+    numT=numA;
+    console.log(numT+"T en alveolar");
+    document.getElementById("numT").innerHTML = "A"+numT;
+});
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'a' || event.key === 'A') {
+        seleccionarBoton(nuevoCamionAlveolarBtn);
+        btnTipoTransporte();
+        numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
+        document.getElementById("numCamion").innerHTML = numCamion;
+        letraTransporte="A";
+        numA++;
+        numT=numA;
+        document.getElementById("numT").innerHTML = "A"+numT;
     }
+});
 
+nuevoCamionCerramientoBtn.addEventListener("click", function() {
+    seleccionarBoton(nuevoCamionCerramientoBtn);
+    btnTipoTransporte();
+    numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
+    document.getElementById("numCamion").innerHTML = numCamion;
+    letraTransporte="C";
+    numC++;
+    numT=numC;
+    document.getElementById("numT").innerHTML = "C"+numT;
+});
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'c' || event.key === 'C') {
+        seleccionarBoton(nuevoCamionCerramientoBtn);
+        btnTipoTransporte();
+        numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
+        document.getElementById("numCamion").innerHTML = numCamion;
+        letraTransporte="C";
+        numC++;
+        numT=numC;
+        document.getElementById("numT").innerHTML = "C"+numT;
+    }
+});
 
-
+function seleccionarBoton(boton) {
+    if (boton === botonSeleccionado) {
+        return;
+    }
+    botonSeleccionado.classList.remove("seleccionado");
+    botonSeleccionado = boton;
+    botonSeleccionado.classList.add("seleccionado");
 }
-
-//Elimina de visor un elemento pulsado con boton derecho
-function hideClickedItemBtnDrch(viewer) {
-    const result = viewer.context.castRayIfc();
-        if (!result) return;
-        const manager = viewer.IFC.loader.ifcManager;
-        const id = manager.getExpressId(result.object.geometry, result.faceIndex);
-        viewer.IFC.loader.ifcManager.removeFromSubset(
-            0,
-            [id],
-            'full-model-subset',
-        );
-        viewer.IFC.selector.unpickIfcItems();
-}
-
 
 //Lógica para eliminar de la tabla HTML los elementos cargados, volver a visualizarlos
 //los elementos que borra de la tabla HTML los devuelve al array allIDs
@@ -384,7 +430,6 @@ function hideClickedItemBtnDrch(viewer) {
 //y vuelve a colocar el valor de la prop Camion ''
 const divCargas = document.querySelector('.divCargas');
 let listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
-
 listaElementos.addEventListener('dblclick', function(event) {
 const target = event.target;
 let elementoEliminadoTabla;
@@ -402,9 +447,10 @@ showAllItems(viewer, allIDs);
 const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
     if (actValorCamion) {
         actValorCamion.Camion = "";
+        actValorCamion.tipoTransporte = "";
+        
     }
 });
-
 
 //muestra en HTML a través de una tabla los elemntos no visibles en visor
 async function listarOcultos(elementosOcultos) {
@@ -414,7 +460,7 @@ async function listarOcultos(elementosOcultos) {
     table.classList.add("table");
     
     const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>expressID</th><th>GlobalId</th><th>Camion</th><th>Volumen</th></tr>";
+    thead.innerHTML = "<tr><th>expressID</th><th>GlobalId</th><th>Camion</th><th>Tipo</th><th>Volumen</th></tr>";
     table.appendChild(thead);
     
     const tbody = document.createElement("tbody");
@@ -427,7 +473,7 @@ async function listarOcultos(elementosOcultos) {
         }
         const tr = document.createElement("tr");
         tr.classList.add("item-list-elemento");
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${(elemento.Volumen_real)}</td>`;
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.tipoTransporte}</td><td>${(elemento.Volumen_real)}</td>`;
         //tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.Volumen_real.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 9 })}</td>`;
         tbody.appendChild(tr);
     }
@@ -437,6 +483,62 @@ async function listarOcultos(elementosOcultos) {
     $(table).tablesorter();//para ordenar la tabla si pulsamos en sus encabezados
 
 }
+
+function hideClickedItem(viewer) {
+    const divCargas = document.querySelector('.divCargas');
+    divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
+    const result = viewer.context.castRayIfc();
+    if (!result) return;
+    const manager = viewer.IFC.loader.ifcManager;
+    const id = manager.getExpressId(result.object.geometry, result.faceIndex);
+    
+    for (let i = 0; i < precastElements.length; i++) {
+        if (precastElements[i].expressID === id) {
+            if (precastElements[i].Camion === '' || precastElements[i].Camion === undefined) {
+                viewer.IFC.loader.ifcManager.removeFromSubset(
+                0,
+                [id],
+                'full-model-subset',
+                );
+                viewer.IFC.selector.unpickIfcItems();
+                elementosOcultos.push(id);
+                globalIds.push(globalId);// cuando oculto un elemnto su globalId se añade al array globalIds
+                // busca el elemento con el identificador expressID en el array precastElements y modifica su valor en la prop Camion
+                const actValorCamion = precastElements.find(element => element.expressID === id);
+                if (actValorCamion) {
+                    actValorCamion.Camion = numCamion;
+                    actValorCamion.tipoTransporte = numT + ' - ' + letraTransporte;
+                    actValorCamion.posicion="";
+                }
+                listarOcultos(elementosOcultos);
+                //indexOf se utiliza para encontrar el índice del elemento que quieres eliminar.
+                // Si el elemento no se encuentra en el array, indexOf devuelve -1. Por lo tanto, antes de llamar a splice, debes verificar que el elemento exista en el array.
+                let indexToRemove = allIDs.indexOf(id);
+                if (indexToRemove !== -1) {
+                    allIDs.splice(indexToRemove, 1);
+                } 
+            } else {
+                alert("El elemento "+precastElements[i].expressID+"  "+ precastElements[i].ifcType +" ya está cargado en el camion: "+precastElements[i].Camion);
+            }
+             break; // Terminar el bucle una vez que se encuentra el primer objeto con el expressID correspondiente
+        }
+    }
+}
+
+//Elimina de visor un elemento pulsado con boton derecho
+function hideClickedItemBtnDrch(viewer) {
+    const result = viewer.context.castRayIfc();
+        if (!result) return;
+        const manager = viewer.IFC.loader.ifcManager;
+        const id = manager.getExpressId(result.object.geometry, result.faceIndex);
+        viewer.IFC.loader.ifcManager.removeFromSubset(
+            0,
+            [id],
+            'full-model-subset',
+        );
+        viewer.IFC.selector.unpickIfcItems();
+}
+
 // **************************************************
 //evento que crea boton reduceDiv cuando se genera la tabla
 //y evento para expandir la tabla de cargas
@@ -473,11 +575,8 @@ function getAllIds(ifcModel) {
     );
 }
 
-
-
 // ACCEDER A PROPIEDADES
 //al mover el raton por el 3D, va preseleccionando los elemnetos que lo componen,
-
 container.onmousemove = () => viewer.IFC.selector.prePickIfcItem();
 viewer.IFC.selector.unpickIfcItems();
 //para darle otro aspecto en **const viewer = new IfcViewerAPI({container, backgroundColor: new Color(255,255,255)}); se puede modificar su aspecto     
@@ -485,7 +584,6 @@ let globalIds=[];
 let globalId;
 //onclick y selecciona elemento
 container.onclick = async()=>{
-
     const divProp = document.querySelector('#main-container');
     divProp.style.display = 'block'; //hace visible el div de la tabla en HTML
     const found=await viewer.IFC.selector.pickIfcItem(false);
@@ -494,10 +592,8 @@ container.onclick = async()=>{
     const props = await viewer.IFC.getProperties (found.modelID, found.id, true,true);
     globalId=props['GlobalId'].value;
     updatePropertyMenu(props);  
-    //viewer.IFC.selector.unpickIfcItems();
 }
 // **************************************************
-
 
 async function precastPropertiesGlobalId(precast,modelID, precastID){
     const props = await viewer.IFC.getProperties(modelID, precastID, true, false);
@@ -541,7 +637,6 @@ async function precastProperties(precast,modelID, precastID){
     
    // addPropEstructura();
 }
-
 
 //PAra crear arbol del proyecto cuando se selecciona ifc
 let tree;
@@ -597,8 +692,6 @@ function createPropertyEntry(key,propertyValue){
 
     GUI.props.appendChild(root);
 }
-
-
 
 //Limpia el árbol de propiedades
 function removeAllChildren(element){
@@ -697,7 +790,6 @@ function nodeToString(node){
     return `${node.type} - ${node.expressID}`;
 }
 
-
 ////********************************************************************************************** */
 // Exportar a CSV
 const exportCSV = document.getElementById("exportButton");
@@ -744,6 +836,10 @@ function exportCSVmethod(){
 }
 
 
+const subset_name='rojo';
+                
+// Crear un nuevo material rojo
+const materialRojo = new MeshBasicMaterial({ color: 0xff0000 });
 
 GUI.importer.addEventListener("change", function(e) {
     e.preventDefault();
@@ -757,46 +853,16 @@ GUI.importer.addEventListener("change", function(e) {
             let lines = text.split(/[\r\n]+/g);
             let numObjectosPre = precastElements.length;
             let numLinesCsv = lines.length - 2;
-            console.log(numObjectosPre+" Num de objetos en Precast");
-            console.log(numLinesCsv+ " Num de objetos en CSV");
 
             if (numObjectosPre > numLinesCsv) {
                 const nuevos = precastElements.filter(dato => !lines.some(line => line.includes(dato.expressID)));
-                //alert("Nuevo elemento detectado: " + JSON.stringify(nuevo));
-
                 const expressID = nuevos.map(nuevo => nuevo.expressID);
                 if (expressID.length>0){
                     alert("Aparecen: "+expressID.length+" nuevos elementos. IFC MODIFICADO")
                 }
-                console.log(expressID);
-
-                
-                const subset_name='rojo';
-                
-                // Crear un nuevo material rojo
-                const materialRojo = new MeshBasicMaterial({ color: 0xff0000 });
-            
-                // let subset = getWholeSubsetRojo(viewer, model, expressID, subset_name, materialRojo);
-                // replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
-                const config = {
-                    modelID: model.modelID,
-                    ids: expressID,
-                    material: materialRojo,
-                    applyBVH: true,
-                    scene: viewer.context.getScene(),
-                    removePrevious: true,
-                    customID: subset_name,
-                };
-                viewer.IFC.loader.ifcManager.createSubset(config);
-            
-                
-
-
             } else if (numObjectosPre < numLinesCsv) {
                 const eliminado = precastElements.find(dato => !lines.some(line => line.includes(dato.expressID)));
                 alert("Se ha eliminado un elemento al MODIFICAR el archivo IFC: " + JSON.stringify(eliminado));
-                
-                
             }
 
             lines.forEach(line => {
@@ -820,20 +886,64 @@ GUI.importer.addEventListener("change", function(e) {
     });
     readCsvFile.then(() => {
         mostrarElementosRestantes();
+
+        clasificarPorTipoTransporte();
+        // let subset = getWholeSubsetRojo(viewer, model, expressID, subset_name, materialRojo);
+                // replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
+               // viewer.IFC.loader.ifcManager.clearSubset(0,expressID);
+                // const config = {
+                //     modelID: model.modelID,
+                //     ids: expressID,
+                //     material: materialRojo,
+                //     applyBVH: true,
+                //     scene: viewer.context.getScene(),
+                //     removePrevious: true,
+                //     customID: subset_name,
+                // };
+                // viewer.IFC.loader.ifcManager.createSubset(config);
+            
+                
+
+
     })
     .catch(error => console.error(error));
 });
 
+let transporteA = [];
+let transporteC = [];
+let transporteE = [];
 
+function clasificarPorTipoTransporte() {
+    console.log("VAmos a clasificar tipos de transporte");
+    for (let i = 0; i < precastElements.length; i++) {
+        const tipoTransporte = precastElements[i].tipoTransporte;
+        const letra = tipoTransporte.charAt(tipoTransporte.length - 1);
+        switch (letra) {
+            case "A":
+            transporteA.push(precastElements[i]);
+            break;
+
+            case "C":
+            transporteC.push(precastElements[i]);
+            break;
+
+            case "E":
+            transporteE.push(precastElements[i]);
+            break;
+            default:
+            break;
+        }
+    }
+    console.log(transporteA.length + "de tipo A");
+    console.log(transporteC.length+ "de tipo C");
+    console.log(transporteE.length+ "de tipo E");
+}
 
 
 async function mostrarElementosRestantes(){
-    
     allIDs.splice(0, allIDs.length);
-
     for (let i = 0; i < precastElements.length; i++) {
         let valorCamion = precastElements[i].Camion;
-    
         // si la propiedad Camion del objeto actual está vacía
         if (precastElements[i].Camion === undefined || precastElements[i].Camion ==='' ) {
             // variable expressID = el valor de la propiedad expressID de ese objeto y lo convertimos a número
@@ -842,23 +952,19 @@ async function mostrarElementosRestantes(){
             allIDs.push(expressID);
         }else{
             const expressIDoculto = parseInt(precastElements[i].expressID);
-            // Agregamos el valor al array elemenOcultos
-            elementosOcultos.push(expressIDoculto);
+            elementosOcultos.push(expressIDoculto);// Agregamos el valor al array elemenOcultos
         }
     }
-    
     //camionesUnicos es un array numerico con el valor de los diferentes camiones agrupados
     const camionesUnicos = obtenerValorCamion(precastElements);
     //genera los botones en HTML con los diferentes camiones cargados
     generaBotonesNumCamion(camionesUnicos);
-
     viewer.IFC.loader.ifcManager.clearSubset(0,"full-model-subset");
     subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset);
-    
     await listarOcultos(elementosOcultos);
-
 }
+
 
 //devuelve los valores de camion agrupados
 function obtenerValorCamion(precastElements) {
@@ -877,11 +983,20 @@ function generaBotonesNumCamion(camionesUnicos) {
     viewer.IFC.selector.unpickIfcItems();
     const btnNumCamiones = document.getElementById("divNumCamiones");
     let botonesActivos = 0; // contador de botones activos
-
     let maximo = Math.max(...camionesUnicos.filter(num => !isNaN(num))); // filtramos los valores que no son NaN
-    document.getElementById("numCamion").innerText = maximo +1;
-    numCamion=maximo+1;
+    document.getElementById("numCamion").innerText = maximo;
+   
 
+    
+    for (let i = 0; i < precastElements.length; i++) {
+        if (precastElements[i].Camion === String(maximo)) {
+            // console.log("Encontrado");
+            tipoTransporteMaximo = precastElements[i].tipoTransporte;
+            break;
+        }
+    }
+  
+    numCamion=maximo+1;
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
     
@@ -891,7 +1006,6 @@ function generaBotonesNumCamion(camionesUnicos) {
         btn.textContent = camion;
         
         btnNumCamiones.appendChild(btn);
-
         btn.addEventListener("click", function() {
             const expressIDs = [];
             precastElements.forEach(function(precastElement) {
@@ -926,7 +1040,6 @@ function generaBotonesNumCamion(camionesUnicos) {
     });
 agregarBotonCero();
 }
-
 
 function agregarBotonCero() {
     viewer.IFC.selector.unpickIfcItems();
@@ -965,12 +1078,10 @@ function showElementsByCamion(viewer, precastElements) {
     const label = document.createElement("label");
     const div = document.createElement("div");
     div.setAttribute("id", "divNumCamion");
-
-    
     div.appendChild(label);
     document.body.appendChild(div);
 
-    // Filtrar los elementos cuyo valor en su propiedad sea distinto a 0 o a undefined
+    // Filtra los elementos cuyo valor en su propiedad sea distinto a 0 o a undefined
     //O los que no tengan propiedad asiganada en el objeto
     const filteredElements = precastElements.filter((element) => {
         const { Camion } = element;
@@ -986,7 +1097,6 @@ function showElementsByCamion(viewer, precastElements) {
         acc[Camion].push(element);
         return acc;
     }, {});
-
     
     // muestra los elementos agrupados en el visor y su etiqueta de num Camion
     let delay = 0;
@@ -1003,7 +1113,6 @@ function showElementsByCamion(viewer, precastElements) {
     setTimeout(() => {
         div.style.display = 'none';
     }, delay);
-    
 }
 
 function generarTabla(expressIDs, camion) {
@@ -1036,13 +1145,13 @@ function generarTabla(expressIDs, camion) {
     contenedorTabla.style.display = "inline-block";
     contenedorTabla.style.maxWidth = "50%";
     contenedorTabla.appendChild(tabla);
-// Establecer los estilos de la tabla y agregarla al div
-tabla.style.border = "1px solid black";
+    // Establecer los estilos de la tabla y agregarla al div
+    tabla.style.border = "1px solid black";
 
-tabla.style.verticalAlign = "top";
-divTabla.style.display = "flex";
-divTabla.style.flexDirection = "row";
-divTabla.appendChild(tabla);
+    tabla.style.verticalAlign = "top";
+    divTabla.style.display = "flex";
+    divTabla.style.flexDirection = "row";
+    divTabla.appendChild(tabla);
 
     divTabla.appendChild(contenedorTabla);
 }
