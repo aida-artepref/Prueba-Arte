@@ -126992,15 +126992,40 @@ document.getElementById("numCamion").innerHTML = numCamion;
 document.getElementById("numT").innerHTML = numT + " - " + letraTransporte  ;
 actualizaDesplegables();
 
-function crearMenuDesplegable(numElementos) {
+function activarBoton(target, numCamActual) {
+    const targetButton = document.getElementById(target);
+    const buttons = document.querySelectorAll('.botonesTransporte');
+    buttons.forEach(function(button) {
+        if (button.id !== target) {
+            button.classList.remove('seleccionado');
+        }
+    });
+    targetButton.classList.add('seleccionado');
+}
+
+function crearMenuDesplegable(numElementos, target) {
     const select = document.createElement('select');
-    for (let i = 1; i <= numElementos; i++) {
+    select.setAttribute('data-target', target);
+    select.addEventListener('change', function() {
+        numCamActual = parseInt(this.value);
+        numT=numCamActual;
+        console.log(numCamActual);
+        const targetButton = document.getElementById(this.getAttribute('data-target'));
+        targetButton.classList.add('active');
+        targetButton.classList.add('seleccionado');
+        activarBoton(this.getAttribute('data-target'), numCamActual);
+        const botonPadre = this.parentNode;
+        if (botonPadre.id === 'menosA') ; else if (botonPadre.id === 'menosC') ; else if (botonPadre.id === 'menosE') ;
+    });
+    for (let i = 0; i <= numElementos; i++) {
         const option = document.createElement('option');
         option.text = i;
         select.add(option);
     }
+
     return select;
 }
+
 //se añaden los menús desplegables a los botones correspondientes
 function actualizaDesplegables(){
     while (menosE.lastChild) {
@@ -127012,10 +127037,20 @@ function actualizaDesplegables(){
     while (menosC.lastChild) {
         menosC.removeChild(menosC.lastChild);
     }
-    menosE.appendChild(crearMenuDesplegable(numE));
-    menosA.appendChild(crearMenuDesplegable(numA));
-    menosC.appendChild(crearMenuDesplegable(numC));
+  
+    menosE.appendChild(crearMenuDesplegable(numE, 'nuevoCamionEstructura'));
+    menosA.appendChild(crearMenuDesplegable(numA, 'nuevoCamionAlveolar'));
+    menosC.appendChild(crearMenuDesplegable(numC, 'nuevoCamionCerramiento'));
 }
+
+
+// Agrega un listener para desactivar los botones al hacer click en algún lado del documento
+document.addEventListener('click', function(event) {
+    const buttons = document.querySelectorAll('.botonesMenos');
+    buttons.forEach(function(button) {
+        button.classList.remove('seleccionado');
+    });
+});
 
 const nuevoCamionEstructuraBtn = document.getElementById("nuevoCamionEstructura");
 const nuevoCamionAlveolarBtn = document.getElementById("nuevoCamionAlveolar");
