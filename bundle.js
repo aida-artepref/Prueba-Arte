@@ -126747,17 +126747,14 @@ async function loadModel(url){
 viewer.container = container;
 const navCube = new NavCube(viewer);
 navCube.onPick(model);
-// window.ondblclick = () => viewer.IFC.selector.pickIfcItem(true);
-// window.onmousemove = () => viewer.IFC.selector.prePickIfcItem();
-// viewer.clipper.active = true;
-
-// window.onkeydown = (event) => {
-// 	if (event.code === "KeyP") {
-// 		viewer.clipper.createPlane();
-// 	} else if (event.code === "KeyO") {
-// 		viewer.clipper.deletePlane();
-// 	}
-// };
+viewer.clipper.active = true;
+window.onkeydown = (event) => {
+	if (event.code === "KeyP") {
+		viewer.clipper.createPlane();
+	} else if (event.code === "KeyO") {
+		viewer.clipper.deletePlane();
+	}
+};
 
 
 function verNumPrecast(){
@@ -126992,7 +126989,33 @@ let numA = 0;
 let numC = 0;
 
 document.getElementById("numCamion").innerHTML = numCamion;
-document.getElementById("numT").innerHTML = letraTransporte + numT;
+document.getElementById("numT").innerHTML = numT + " - " + letraTransporte  ;
+actualizaDesplegables();
+
+function crearMenuDesplegable(numElementos) {
+    const select = document.createElement('select');
+    for (let i = 1; i <= numElementos; i++) {
+        const option = document.createElement('option');
+        option.text = i;
+        select.add(option);
+    }
+    return select;
+}
+//se añaden los menús desplegables a los botones correspondientes
+function actualizaDesplegables(){
+    while (menosE.lastChild) {
+        menosE.removeChild(menosE.lastChild);
+    }
+    while (menosA.lastChild) {
+        menosA.removeChild(menosA.lastChild);
+    }
+    while (menosC.lastChild) {
+        menosC.removeChild(menosC.lastChild);
+    }
+    menosE.appendChild(crearMenuDesplegable(numE));
+    menosA.appendChild(crearMenuDesplegable(numA));
+    menosC.appendChild(crearMenuDesplegable(numC));
+}
 
 const nuevoCamionEstructuraBtn = document.getElementById("nuevoCamionEstructura");
 const nuevoCamionAlveolarBtn = document.getElementById("nuevoCamionAlveolar");
@@ -127020,6 +127043,7 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
     numE++;
     numT=numE;
     document.getElementById("numT").innerHTML = "E"+numT;
+    actualizaDesplegables();
 });
 document.addEventListener('keydown', function(event) {
     if (event.key === 'E' || event.key === 'e') {
@@ -127031,6 +127055,7 @@ document.addEventListener('keydown', function(event) {
         numE++;
         numT=numE;
         document.getElementById("numT").innerHTML = "E"+numT;
+        actualizaDesplegables();
     }
 });
 
@@ -127044,6 +127069,7 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
     numT=numA;
     console.log(numT+"T en alveolar");
     document.getElementById("numT").innerHTML = "A"+numT;
+    actualizaDesplegables();
 });
 document.addEventListener('keydown', function(event) {
     if (event.key === 'a' || event.key === 'A') {
@@ -127055,6 +127081,7 @@ document.addEventListener('keydown', function(event) {
         numA++;
         numT=numA;
         document.getElementById("numT").innerHTML = "A"+numT;
+        actualizaDesplegables();
     }
 });
 
@@ -127067,6 +127094,7 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
     numC++;
     numT=numC;
     document.getElementById("numT").innerHTML = "C"+numT;
+    actualizaDesplegables();
 });
 document.addEventListener('keydown', function(event) {
     if (event.key === 'c' || event.key === 'C') {
@@ -127078,6 +127106,7 @@ document.addEventListener('keydown', function(event) {
         numC++;
         numT=numC;
         document.getElementById("numT").innerHTML = "C"+numT;
+        actualizaDesplegables();
     }
 });
 
@@ -127174,7 +127203,7 @@ function hideClickedItem(viewer) {
                 if (actValorCamion) {
                     actValorCamion.Camion = numCamion;
                     actValorCamion.tipoTransporte = numT + ' - ' + letraTransporte;
-                    actValorCamion.posicion="";
+                    actValorCamion.Posicion="";
                 }
                 listarOcultos(elementosOcultos);
                 //indexOf se utiliza para encontrar el índice del elemento que quieres eliminar.
@@ -127550,6 +127579,7 @@ GUI.importer.addEventListener("change", function(e) {
         mostrarElementosRestantes();
 
         clasificarPorTipoTransporte();
+        actualizaDesplegables();
         // let subset = getWholeSubsetRojo(viewer, model, expressID, subset_name, materialRojo);
                 // replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
                // viewer.IFC.loader.ifcManager.clearSubset(0,expressID);
@@ -127576,7 +127606,6 @@ let transporteC = [];
 let transporteE = [];
 
 function clasificarPorTipoTransporte() {
-    console.log("VAmos a clasificar tipos de transporte");
     for (let i = 0; i < precastElements.length; i++) {
         const tipoTransporte = precastElements[i].tipoTransporte;
         const letra = tipoTransporte.charAt(tipoTransporte.length - 1);
@@ -127594,9 +127623,50 @@ function clasificarPorTipoTransporte() {
             break;
         }
     }
-    console.log(transporteA.length + "de tipo A");
-    console.log(transporteC.length+ "de tipo C");
-    console.log(transporteE.length+ "de tipo E");
+    buscaMaxTransporte(transporteA);
+    buscaMaxTransporte(transporteC);
+    buscaMaxTransporte(transporteE);
+
+}
+
+function buscaMaxTransporte(transporteA){
+    let camionMaximo = null;
+    let camionMaximoValor = 0;
+    for (let i = 0; i < transporteA.length; i++) {
+        let objetoActual = transporteA[i];
+        let camionActualValor = parseInt(objetoActual.Camion);
+
+        if (camionActualValor > camionMaximoValor) {
+            camionMaximoValor = camionActualValor;
+            camionMaximo = objetoActual;
+        }
+    }
+    console.log(camionMaximo);
+    buscaValoresMax(camionMaximo);
+}
+
+//recore los array con objetos con transporte A, C o E para obtener los valores mayores (las ultimas cargas generadas)
+function buscaValoresMax(camionMaximo){
+    if (camionMaximo == null || camionMaximo.tipoTransporte == null) {
+        return; // Si la variable es null, no hace nada y sale de la función.
+    }
+        const tipoTransporte = camionMaximo.tipoTransporte;
+        const partesTipoTransporte = tipoTransporte.split("-");
+        const numCamMax = parseInt(partesTipoTransporte[0].trim());
+        const letraTrans = partesTipoTransporte[1].trim().charAt(0);
+        if (letraTrans=== 'A'){
+            numA=numCamMax;
+            numT=numA;
+        }
+        if (letraTrans=== 'C'){
+            numC=numCamMax;
+            numT=numC;
+        }
+        if (letraTrans==='E'){
+            numE=numCamMax;
+            numT=numE;
+            document.getElementById("numT").textContent = numT + " - " + letraTrans;
+    }
 }
 
 
@@ -127645,9 +127715,7 @@ function generaBotonesNumCamion(camionesUnicos) {
     let botonesActivos = 0; // contador de botones activos
     let maximo = Math.max(...camionesUnicos.filter(num => !isNaN(num))); // filtramos los valores que no son NaN
     document.getElementById("numCamion").innerText = maximo;
-   
 
-    
     for (let i = 0; i < precastElements.length; i++) {
         if (precastElements[i].Camion === String(maximo)) {
             // console.log("Encontrado");
@@ -127655,7 +127723,6 @@ function generaBotonesNumCamion(camionesUnicos) {
             break;
         }
     }
-  
     numCamion=maximo+1;
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
@@ -127723,7 +127790,6 @@ function agregarBotonCero() {
             btnCero.style.justifyContent = "center";
             btnCero.style.color = "";
         } else {
-            console.log("EN BOTON 0");
             hideAllItems(viewer, idsTotal);
             btnCero.classList.add("active");
             btnCero.style.justifyContent = "center";
