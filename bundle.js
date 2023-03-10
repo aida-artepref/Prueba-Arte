@@ -127003,26 +127003,55 @@ function activarBoton(target, numCamActual) {
     targetButton.classList.add('seleccionado');
 }
 
-function crearMenuDesplegable(numElementos, target) {
-    const select = document.createElement('select');
+function crearMenuDesplegable(numElementos, target) { // menú desplegable dinámico
+    const select = document.createElement('select'); // controlador de eventos en el elemento select.
     select.setAttribute('data-target', target);
     select.addEventListener('change', function() {
-        numCamActual = parseInt(this.value);
+        numCamActual = parseInt(this.value); //numCamActual  valor entero del elemento select
         numT=numCamActual;
-        console.log(numCamActual);
-        const targetButton = document.getElementById(this.getAttribute('data-target'));
+        
+        const targetButton = document.getElementById(this.getAttribute('data-target')); //activa el boton correspondiente al desplegable seleccionado
         targetButton.classList.add('active');
         targetButton.classList.add('seleccionado');
         activarBoton(this.getAttribute('data-target'), numCamActual);
+
+        letraTransporte = '';
         const botonPadre = this.parentNode;
-        if (botonPadre.id === 'menosA') ; else if (botonPadre.id === 'menosC') ; else if (botonPadre.id === 'menosE') ;
+        if (botonPadre.id === 'menosA') {
+            letraTransporte = 'A';
+        } else if (botonPadre.id === 'menosC') {
+            letraTransporte = 'C';
+        } else if (botonPadre.id === 'menosE') {
+            letraTransporte = 'E';
+        }
+        document.getElementById("numT").innerHTML = numT + " - " + letraTransporte  ;
+
+        //Busca a que numCamion corresponde  el tipo de transporet seleccionado
+        let tipoSeleccionado= numT + " - " + letraTransporte;    
+
+        let camSeleccionado = null;
+
+        for (let i = 0; i < precastElements.length; i++) {
+            if (precastElements[i].tipoTransporte === tipoSeleccionado) {
+                camSeleccionado = precastElements[i].Camion;
+                numCamion=camSeleccionado;
+                document.getElementById("numCamion").innerHTML = numCamion;
+            break;
+            }
+        } 
+        if (camSeleccionado === null) {
+            numCamion = buscaNumCamionMaximo() + 1;
+            document.getElementById("numCamion").innerHTML = numCamion;
+        }
+        
     });
     for (let i = 0; i <= numElementos; i++) {
         const option = document.createElement('option');
         option.text = i;
         select.add(option);
+        
     }
-
+    
     return select;
 }
 
@@ -127037,7 +127066,6 @@ function actualizaDesplegables(){
     while (menosC.lastChild) {
         menosC.removeChild(menosC.lastChild);
     }
-  
     menosE.appendChild(crearMenuDesplegable(numE, 'nuevoCamionEstructura'));
     menosA.appendChild(crearMenuDesplegable(numA, 'nuevoCamionAlveolar'));
     menosC.appendChild(crearMenuDesplegable(numC, 'nuevoCamionCerramiento'));
@@ -127056,91 +127084,102 @@ const nuevoCamionEstructuraBtn = document.getElementById("nuevoCamionEstructura"
 const nuevoCamionAlveolarBtn = document.getElementById("nuevoCamionAlveolar");
 const nuevoCamionCerramientoBtn = document.getElementById("nuevoCamionCerramiento");
 
-function btnTipoTransporte(){
-    if (nuevoCamionEstructuraBtn.classList.contains('active')) {
-        numE++; 
-    } else if (nuevoCamionAlveolarBtn.classList.contains('active')) {
-        numA++;
-    } else if (nuevoCamionCerramientoBtn.classList.contains('active')) {
-        numC++;
-    }
-}
+// function btnTipoTransporte(){
+//     if (nuevoCamionEstructuraBtn.classList.contains('active')) {
+//         numE++; 
+//     } else if (nuevoCamionAlveolarBtn.classList.contains('active')) {
+//         numA++;
+//     } else if (nuevoCamionCerramientoBtn.classList.contains('active')) {
+//         numC++;
+//     }
+// }
 // Variable para mantener el botón seleccionado actualmente
 let botonSeleccionado = nuevoCamionEstructuraBtn;
 botonSeleccionado.classList.add("seleccionado");
 
+function buscaNumCamionMaximo(){
+    for (let i = 0; i < precastElements.length; i++) {
+        if (precastElements[i].Camion > numCamion) {
+            numCamion = precastElements[i].Camion;
+        }
+    }
+    return(numCamion);
+}
+
+
+
 nuevoCamionEstructuraBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionEstructuraBtn);
-    btnTipoTransporte();
-    numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
+    buscaNumCamionMaximo();
+    numCamion =numCamion + 1;  
     document.getElementById("numCamion").innerHTML = numCamion;
     letraTransporte="E";
     numE++;
     numT=numE;
-    document.getElementById("numT").innerHTML = "E"+numT;
+    document.getElementById("numT").innerHTML =numT+" - E";
     actualizaDesplegables();
 });
 document.addEventListener('keydown', function(event) {
     if (event.key === 'E' || event.key === 'e') {
         seleccionarBoton(nuevoCamionEstructuraBtn);
-        btnTipoTransporte();
-        numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
+        buscaNumCamionMaximo();
+        numCamion =numCamion + 1;  
         document.getElementById("numCamion").innerHTML = numCamion;
         letraTransporte="E";
         numE++;
         numT=numE;
-        document.getElementById("numT").innerHTML = "E"+numT;
+        document.getElementById("numT").innerHTML = numT+" - E";
         actualizaDesplegables();
     }
 });
 
 nuevoCamionAlveolarBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionAlveolarBtn);
-    btnTipoTransporte();
-    numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
+    buscaNumCamionMaximo();
+    numCamion =numCamion + 1;
     document.getElementById("numCamion").innerHTML = numCamion;
     letraTransporte="A";
     numA++;
     numT=numA;
     console.log(numT+"T en alveolar");
-    document.getElementById("numT").innerHTML = "A"+numT;
+    document.getElementById("numT").innerHTML =numT+" - A";
     actualizaDesplegables();
 });
 document.addEventListener('keydown', function(event) {
     if (event.key === 'a' || event.key === 'A') {
         seleccionarBoton(nuevoCamionAlveolarBtn);
-        btnTipoTransporte();
-        numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
+        buscaNumCamionMaximo();
+        numCamion =numCamion + 1;  
         document.getElementById("numCamion").innerHTML = numCamion;
         letraTransporte="A";
         numA++;
         numT=numA;
-        document.getElementById("numT").innerHTML = "A"+numT;
+        document.getElementById("numT").innerHTML = numT+" - A";
         actualizaDesplegables();
     }
 });
 
 nuevoCamionCerramientoBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionCerramientoBtn);
-    btnTipoTransporte();
-    numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
+    buscaNumCamionMaximo();
+    numCamion =numCamion + 1; 
     document.getElementById("numCamion").innerHTML = numCamion;
     letraTransporte="C";
     numC++;
     numT=numC;
-    document.getElementById("numT").innerHTML = "C"+numT;
+    document.getElementById("numT").innerHTML =numT+" - C";
     actualizaDesplegables();
 });
 document.addEventListener('keydown', function(event) {
     if (event.key === 'c' || event.key === 'C') {
         seleccionarBoton(nuevoCamionCerramientoBtn);
-        btnTipoTransporte();
-        numCamion =parseInt(document.getElementById("numCamion").innerHTML) + 1;  
+        buscaNumCamionMaximo();
+        numCamion =numCamion + 1;  
         document.getElementById("numCamion").innerHTML = numCamion;
         letraTransporte="C";
         numC++;
         numT=numC;
-        document.getElementById("numT").innerHTML = "C"+numT;
+        document.getElementById("numT").innerHTML = numT+" - C";
         actualizaDesplegables();
     }
 });
