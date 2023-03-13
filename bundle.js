@@ -127034,8 +127034,8 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
         for (let i = 0; i < precastElements.length; i++) {
             if (precastElements[i].tipoTransporte === tipoSeleccionado) {
                 camSeleccionado = precastElements[i].Camion;
-                numCamion=camSeleccionado;
-                document.getElementById("numCamion").innerHTML = numCamion;
+                //numCamion=camSeleccionado;
+                document.getElementById("numCamion").innerHTML = camSeleccionado;
             break;
             }
         } 
@@ -127203,9 +127203,9 @@ document.addEventListener('keydown', function(event) {
 });
 
 function seleccionarBoton(boton) {
-    // if (boton === botonSeleccionado) {
-    //     return;
-    // }
+    if (boton === botonSeleccionado) {
+        return;
+    }
     botonSeleccionado.classList.remove("seleccionado");
     botonSeleccionado = boton;
     botonSeleccionado.classList.add("seleccionado");
@@ -127824,7 +127824,7 @@ function generaBotonesNumCamion(camionesUnicos) {
     nuevoCamionEstructuraBtn.classList.remove("seleccionado");
 
     for (let i = 0; i < precastElements.length; i++) {
-        if (precastElements[i].Camion === String(maximo)) {
+        if (parseInt(precastElements[i].Camion) === maximo) {
             tipoTransporteMaximo = precastElements[i].tipoTransporte;
             break;
         }
