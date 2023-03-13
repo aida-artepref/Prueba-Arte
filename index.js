@@ -374,7 +374,16 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
             }
         } 
         if (camSeleccionado === null) {
-            numCamion = buscaNumCamionMaximo() + 1;
+            // numCamion = buscaNumCamionMaximo() + 1;
+            // document.getElementById("numCamion").innerHTML = numCamion;
+            for (let objetoTransporte of tablaTransporte) {
+                // Si encontramos un objeto cuya propiedad tipoTransporte sea igual a tipoSeleccionado
+                if (objetoTransporte.tipoTransporte === tipoSeleccionado) {
+                  // Asignamos el valor de la propiedad Camion a la variable numCamion
+                    numCamion = objetoTransporte.Camion;
+                    break; // Salimos del ciclo for...of una vez que encontramos el objeto deseado
+                }
+            }
             document.getElementById("numCamion").innerHTML = numCamion;
         }
         
@@ -418,15 +427,6 @@ const nuevoCamionEstructuraBtn = document.getElementById("nuevoCamionEstructura"
 const nuevoCamionAlveolarBtn = document.getElementById("nuevoCamionAlveolar");
 const nuevoCamionCerramientoBtn = document.getElementById("nuevoCamionCerramiento");
 
-// function btnTipoTransporte(){
-//     if (nuevoCamionEstructuraBtn.classList.contains('active')) {
-//         numE++; 
-//     } else if (nuevoCamionAlveolarBtn.classList.contains('active')) {
-//         numA++;
-//     } else if (nuevoCamionCerramientoBtn.classList.contains('active')) {
-//         numC++;
-//     }
-// }
 // Variable para mantener el botón seleccionado actualmente
 let botonSeleccionado = nuevoCamionEstructuraBtn;
 botonSeleccionado.classList.add("seleccionado");
@@ -440,7 +440,13 @@ function buscaNumCamionMaximo(){
     return(numCamion);
 }
 
-
+let tablaTransporte = [{ Camion: 1, tipoTransporte: '1 - E' }];
+function funcTablaTransporte(numCamion, numLetra) {
+    //  objeto con las propiedades Camion y tipoTransporte
+    const objetoTransporte = { Camion: numCamion, tipoTransporte: numLetra };
+    tablaTransporte.push(objetoTransporte);
+    console.log(tablaTransporte);
+}
 
 nuevoCamionEstructuraBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionEstructuraBtn);
@@ -450,9 +456,12 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
     letraTransporte="E";
     numE++;
     numT=numE;
-    document.getElementById("numT").innerHTML =numT+" - E";
+    numLetra=numT+" - E";
+    document.getElementById("numT").innerHTML =numLetra;
+    funcTablaTransporte(numCamion, numLetra);
     actualizaDesplegables();
 });
+
 document.addEventListener('keydown', function(event) {
     if (event.key === 'E' || event.key === 'e') {
         seleccionarBoton(nuevoCamionEstructuraBtn);
@@ -462,7 +471,9 @@ document.addEventListener('keydown', function(event) {
         letraTransporte="E";
         numE++;
         numT=numE;
-        document.getElementById("numT").innerHTML = numT+" - E";
+        numLetra=numT+" - E";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
     }
 });
@@ -475,8 +486,9 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
     letraTransporte="A";
     numA++;
     numT=numA;
-    console.log(numT+"T en alveolar");
-    document.getElementById("numT").innerHTML =numT+" - A";
+    numLetra=numT+" - A";
+    document.getElementById("numT").innerHTML =numLetra;
+    funcTablaTransporte(numCamion, numLetra);
     actualizaDesplegables();
 });
 document.addEventListener('keydown', function(event) {
@@ -488,7 +500,9 @@ document.addEventListener('keydown', function(event) {
         letraTransporte="A";
         numA++;
         numT=numA;
-        document.getElementById("numT").innerHTML = numT+" - A";
+        numLetra=numT+" - A";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
     }
 });
@@ -501,7 +515,9 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
     letraTransporte="C";
     numC++;
     numT=numC;
-    document.getElementById("numT").innerHTML =numT+" - C";
+    numLetra=numT+" - C";
+    document.getElementById("numT").innerHTML =numLetra;
+    funcTablaTransporte(numCamion, numLetra);
     actualizaDesplegables();
 });
 document.addEventListener('keydown', function(event) {
@@ -513,18 +529,21 @@ document.addEventListener('keydown', function(event) {
         letraTransporte="C";
         numC++;
         numT=numC;
-        document.getElementById("numT").innerHTML = numT+" - C";
+        numLetra=numT+" - C";
+    document.getElementById("numT").innerHTML =numLetra;
+        funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
     }
 });
 
 function seleccionarBoton(boton) {
-    if (boton === botonSeleccionado) {
-        return;
-    }
+    // if (boton === botonSeleccionado) {
+    //     return;
+    // }
     botonSeleccionado.classList.remove("seleccionado");
     botonSeleccionado = boton;
     botonSeleccionado.classList.add("seleccionado");
+    console.log("Botón seleccionado:", botonSeleccionado);
 }
 
 //Lógica para eliminar de la tabla HTML los elementos cargados, volver a visualizarlos
@@ -588,6 +607,7 @@ async function listarOcultos(elementosOcultos) {
 }
 
 function hideClickedItem(viewer) {
+
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
     const result = viewer.context.castRayIfc();
@@ -595,6 +615,13 @@ function hideClickedItem(viewer) {
     const manager = viewer.IFC.loader.ifcManager;
     const id = manager.getExpressId(result.object.geometry, result.faceIndex);
     
+ // Comprobar si hay algún botón con la clase 'seleccionado' sino es asi npo deja ocultar elementos
+ const botonSeleccionado = document.querySelector('.seleccionado');
+ if (!botonSeleccionado) {
+     alert('Debe seleccionar boton tipo de carga E, A C');
+     return;
+ }
+
     for (let i = 0; i < precastElements.length; i++) {
         if (precastElements[i].expressID === id) {
             if (precastElements[i].Camion === '' || precastElements[i].Camion === undefined) {
@@ -609,7 +636,7 @@ function hideClickedItem(viewer) {
                 // busca el elemento con el identificador expressID en el array precastElements y modifica su valor en la prop Camion
                 const actValorCamion = precastElements.find(element => element.expressID === id);
                 if (actValorCamion) {
-                    actValorCamion.Camion = numCamion;
+                    actValorCamion.Camion = numCamion ;
                     actValorCamion.tipoTransporte = numT + ' - ' + letraTransporte;
                     actValorCamion.Posicion="";
                 }
@@ -989,29 +1016,31 @@ GUI.importer.addEventListener("change", function(e) {
     });
     readCsvFile.then(() => {
         mostrarElementosRestantes();
-
         clasificarPorTipoTransporte();
         actualizaDesplegables();
-        // let subset = getWholeSubsetRojo(viewer, model, expressID, subset_name, materialRojo);
-                // replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
-               // viewer.IFC.loader.ifcManager.clearSubset(0,expressID);
-                // const config = {
-                //     modelID: model.modelID,
-                //     ids: expressID,
-                //     material: materialRojo,
-                //     applyBVH: true,
-                //     scene: viewer.context.getScene(),
-                //     removePrevious: true,
-                //     customID: subset_name,
-                // };
-                // viewer.IFC.loader.ifcManager.createSubset(config);
-            
-                
-
+        creaTablaTransporte();
 
     })
     .catch(error => console.error(error));
 });
+
+function creaTablaTransporte() {
+    for (let objeto of precastElements) {
+        if (objeto.hasOwnProperty('Camion') && objeto.hasOwnProperty('tipoTransporte')) {
+            // si la propiedad tipoTransporte tiene algún valor y no existe en el array
+            if (objeto.tipoTransporte !== '' && !tablaTransporte.some(transporte => transporte.tipoTransporte === objeto.tipoTransporte)) {
+                const objetoTransporte = { Camion: objeto.Camion, tipoTransporte: objeto.tipoTransporte };
+                tablaTransporte.push(objetoTransporte);
+            }
+        }
+    }
+    const nuevoObjeto = {
+        Camion: numCamion,
+        tipoTransporte: numT
+    };
+      
+    tablaTransporte.push(nuevoObjeto);
+}
 
 let transporteA = [];
 let transporteC = [];
@@ -1078,8 +1107,10 @@ function buscaValoresMax(camionMaximo){
         }
         if (letraTrans==='E'){
             numE=numCamMax;
+            //numE++;
             numT=numE;
-            document.getElementById("numT").textContent = numT + " - " + letraTrans;
+            //document.getElementById("numT").textContent = numT + " - " + letraTrans;
+            document.getElementById("numT").textContent =  "" ;
     }
 }
 
@@ -1128,16 +1159,18 @@ function generaBotonesNumCamion(camionesUnicos) {
     const btnNumCamiones = document.getElementById("divNumCamiones");
     let botonesActivos = 0; // contador de botones activos
     let maximo = Math.max(...camionesUnicos.filter(num => !isNaN(num))); // filtramos los valores que no son NaN
-    document.getElementById("numCamion").innerText = maximo;
+
+    document.getElementById("numCamion").innerText = "";
+    nuevoCamionEstructuraBtn.classList.remove("seleccionado");
 
     for (let i = 0; i < precastElements.length; i++) {
         if (precastElements[i].Camion === String(maximo)) {
-            // console.log("Encontrado");
             tipoTransporteMaximo = precastElements[i].tipoTransporte;
             break;
         }
     }
-    numCamion=maximo+1;
+    numCamion=maximo;
+    console.log(maximo + " MAXIMO CAMION ")
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
     
