@@ -126985,8 +126985,8 @@ let numCamion=1;// cuenta los camiones totales, todos E A C
 let letraTransporte = 'E';
 let numT=1;
 let numE = 1; 
-let numA = 0;
-let numC = 0;
+let numA = 1;
+let numC = 1;
 
 document.getElementById("numCamion").innerHTML = numCamion;
 document.getElementById("numT").innerHTML = numT + " - " + letraTransporte  ;
@@ -127114,19 +127114,80 @@ function funcTablaTransporte(numCamion, numLetra) {
     console.log(tablaTransporte);
 }
 
+
+// nuevoCamionEstructuraBtn.addEventListener("click", function() {
+//     seleccionarBoton(nuevoCamionEstructuraBtn);
+//     var maxCamion = 0;
+
+//     document.getElementById("numCamion").innerHTML = numCamion;
+//     letraTransporte = "E";
+//     numT = numE;
+//     numLetra = numT + " - E";
+//     document.getElementById("numT").innerHTML = numLetra;
+
+//     for (var i = 0; i < precastElements.length; i++) {
+//         if (precastElements[i].Camion > maxCamion) {
+//             maxCamion = precastElements[i].Camion;
+//         }
+//     }
+
+//     var elementoExistente = precastElements.find(function(elemento) {
+//         return elemento.tipoTransporte === numLetra;
+//     });
+
+//     if (numCamion === maxCamion && elementoExistente !== undefined) {
+//         numCamion++;
+//         numE++;
+//         document.getElementById("numCamion").innerHTML = numCamion;
+//         letraTransporte = "E";
+//         numT = numE;
+//         numLetra = numT + " - E";
+//         document.getElementById("numT").innerHTML = numLetra;
+//         funcTablaTransporte(numCamion, numLetra);
+//         actualizaDesplegables();
+//     } else if (elementoExistente === undefined) {
+//         numE--;
+//         console.log("El valor de numLetra no existe en ningún objeto de precastElements");
+//     } 
+// });
 nuevoCamionEstructuraBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionEstructuraBtn);
-    buscaNumCamionMaximo();
-    numCamion =numCamion + 1;  
+    var maxCamion = 0;
+
     document.getElementById("numCamion").innerHTML = numCamion;
-    letraTransporte="E";
-    numE++;
-    numT=numE;
-    numLetra=numT+" - E";
-    document.getElementById("numT").innerHTML =numLetra;
-    funcTablaTransporte(numCamion, numLetra);
-    actualizaDesplegables();
+    letraTransporte = "E";
+    numT = numE;
+    numLetra = numT + " - E";
+    document.getElementById("numT").innerHTML = numLetra;
+
+    for (var i = 0; i < precastElements.length; i++) {
+        if (precastElements[i].Camion > maxCamion) {
+            maxCamion = precastElements[i].Camion;
+        }
+    }
+
+    var elementoExistente = precastElements.find(function(elemento) {
+        return elemento.tipoTransporte === numLetra;
+    });
+
+    if (numCamion === maxCamion && elementoExistente !== undefined ) {
+        numCamion++;
+        numE++;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        letraTransporte = "E";
+        numT = numE;
+        numLetra = numT + " - E";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    } else if (elementoExistente === undefined) {
+        numCamion++;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        numE--;
+        console.log("El valor de numLetra no existe en ninguna propiedad tipoTransporte de precastElements");
+    } 
 });
+
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'E' || event.key === 'e') {
@@ -127146,16 +127207,30 @@ document.addEventListener('keydown', function(event) {
 
 nuevoCamionAlveolarBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionAlveolarBtn);
-    buscaNumCamionMaximo();
-    numCamion =numCamion + 1;
+    var maxCamion = 0;
+
     document.getElementById("numCamion").innerHTML = numCamion;
-    letraTransporte="A";
-    numA++;
-    numT=numA;
-    numLetra=numT+" - A";
-    document.getElementById("numT").innerHTML =numLetra;
-    funcTablaTransporte(numCamion, numLetra);
-    actualizaDesplegables();
+    letraTransporte = "A";
+    numT = numA;
+    numLetra = numT + " - A";
+    document.getElementById("numT").innerHTML = numLetra;
+
+    for (var i = 0; i < precastElements.length; i++) {
+        if (precastElements[i].Camion > maxCamion) {
+            maxCamion = precastElements[i].Camion;
+        }
+    }
+    if (numCamion + 1 === maxCamion + 1) {
+        numCamion++;
+        numA++;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        letraTransporte = "A";
+        numT = numA;
+        numLetra = numT + " - A";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    }
 });
 document.addEventListener('keydown', function(event) {
     if (event.key === 'a' || event.key === 'A') {
@@ -127591,7 +127666,23 @@ function nodeToString(node){
 const exportCSV = document.getElementById("exportButton");
 exportCSV.addEventListener('click', exportCSVmethod, false);
 
+let numCamConElementos;
+function ordenPrecastCamion(){
+    numCamConElementos =obtenerValorCamion(precastElements);
+    numCamConElementos.sort(function(a, b) {
+        return a - b;
+    });
+    console.log(numCamConElementos);
+
+    for (let i = 0; i < numCamConElementos.length - 1; i++) {
+        if (numCamConElementos[i+1] - numCamConElementos[i] > 1) {
+          console.log("Falta el número:", numCamConElementos[i] + 1);
+        }
+}
+}
 function exportCSVmethod(){
+
+    ordenPrecastCamion();
     let header = [];
     precastElements.forEach(precastElement => {
         Object.keys(precastElement).forEach(mKey => {
@@ -127700,7 +127791,6 @@ function creaTablaTransporte() {
         Camion: numCamion,
         tipoTransporte: numT
     };
-      
     tablaTransporte.push(nuevoObjeto);
 }
 
@@ -127804,12 +127894,14 @@ async function mostrarElementosRestantes(){
 //devuelve los valores de camion agrupados
 function obtenerValorCamion(precastElements) {
     const valoresCamion = new Set();
+    
     precastElements.forEach(function(elemento) {
         const camion = parseInt(elemento.Camion);
         if (!isNaN(camion)) { // Agregar solo valores numéricos al Set
             valoresCamion.add(camion);
         }
     });
+    
     return Array.from(valoresCamion);
 }
 
