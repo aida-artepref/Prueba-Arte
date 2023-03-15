@@ -74,7 +74,6 @@ async function loadModel(url){
     addCheckboxListeners() ;
 
     verNumPrecast();
-
 }
 
 //Nave cube
@@ -82,13 +81,13 @@ viewer.container = container;
 const navCube = new NavCube(viewer);
 navCube.onPick(model);
 viewer.clipper.active = true;
-window.onkeydown = (event) => {
-	if (event.code === "KeyP") {
-		viewer.clipper.createPlane();
-	} else if (event.code === "KeyO") {
-		viewer.clipper.deletePlane();
-	}
-};
+// window.onkeydown = (event) => {
+// 	if (event.code === "KeyP") {
+// 		viewer.clipper.createPlane();
+// 	} else if (event.code === "KeyO") {
+// 		viewer.clipper.deletePlane();
+// 	}
+// };
 
 
 function verNumPrecast(){
@@ -129,6 +128,7 @@ function cargaProp(){
     }); 
     
 }
+
 function cargaGlobalIdenPrecast(){
     //Carga la propiedade GlobalId al array precastElements
         precastElements.forEach(precast => {
@@ -137,7 +137,7 @@ function cargaGlobalIdenPrecast(){
             }
         }); 
         
-    }
+}
     
   //******************************************************************************************************************* */
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
@@ -362,39 +362,30 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
 
         //Busca a que numCamion corresponde  el tipo de transporet seleccionado
         let tipoSeleccionado= numT + " - " + letraTransporte    
-
         let camSeleccionado = null;
 
         for (let i = 0; i < precastElements.length; i++) {
             if (precastElements[i].tipoTransporte === tipoSeleccionado) {
                 camSeleccionado = precastElements[i].Camion;
-                //numCamion=camSeleccionado;
                 document.getElementById("numCamion").innerHTML = camSeleccionado;
             break;
             }
         } 
         if (camSeleccionado === null) {
-            // numCamion = buscaNumCamionMaximo() + 1;
-            // document.getElementById("numCamion").innerHTML = numCamion;
             for (let objetoTransporte of tablaTransporte) {
-                // Si encontramos un objeto cuya propiedad tipoTransporte sea igual a tipoSeleccionado
                 if (objetoTransporte.tipoTransporte === tipoSeleccionado) {
-                  // Asignamos el valor de la propiedad Camion a la variable numCamion
-                    numCamion = objetoTransporte.Camion;
-                    break; // Salimos del ciclo for...of una vez que encontramos el objeto deseado
+                    numCamion = objetoTransporte.Camion;  // el valor de la propiedad Camion a la variable numCamion
+                    break; 
                 }
             }
             document.getElementById("numCamion").innerHTML = numCamion;
         }
-        
     });
     for (let i = 0; i <= numElementos; i++) {
         const option = document.createElement('option');
         option.text = i;
         select.add(option);
-        
     }
-    
     return select;
 }
 
@@ -414,8 +405,7 @@ function actualizaDesplegables(){
     menosC.appendChild(crearMenuDesplegable(numC, 'nuevoCamionCerramiento'));
 }
 
-
-// Agrega un listener para desactivar los botones al hacer click en algún lado del documento
+// evento para desactivar los botones al hacer click en algún lado del documento
 document.addEventListener('click', function(event) {
     const buttons = document.querySelectorAll('.botonesMenos');
     buttons.forEach(function(button) {
@@ -448,42 +438,6 @@ function funcTablaTransporte(numCamion, numLetra) {
     console.log(tablaTransporte);
 }
 
-
-// nuevoCamionEstructuraBtn.addEventListener("click", function() {
-//     seleccionarBoton(nuevoCamionEstructuraBtn);
-//     var maxCamion = 0;
-
-//     document.getElementById("numCamion").innerHTML = numCamion;
-//     letraTransporte = "E";
-//     numT = numE;
-//     numLetra = numT + " - E";
-//     document.getElementById("numT").innerHTML = numLetra;
-
-//     for (var i = 0; i < precastElements.length; i++) {
-//         if (precastElements[i].Camion > maxCamion) {
-//             maxCamion = precastElements[i].Camion;
-//         }
-//     }
-
-//     var elementoExistente = precastElements.find(function(elemento) {
-//         return elemento.tipoTransporte === numLetra;
-//     });
-
-//     if (numCamion === maxCamion && elementoExistente !== undefined) {
-//         numCamion++;
-//         numE++;
-//         document.getElementById("numCamion").innerHTML = numCamion;
-//         letraTransporte = "E";
-//         numT = numE;
-//         numLetra = numT + " - E";
-//         document.getElementById("numT").innerHTML = numLetra;
-//         funcTablaTransporte(numCamion, numLetra);
-//         actualizaDesplegables();
-//     } else if (elementoExistente === undefined) {
-//         numE--;
-//         console.log("El valor de numLetra no existe en ningún objeto de precastElements");
-//     } 
-// });
 nuevoCamionEstructuraBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionEstructuraBtn);
     var maxCamion = 0;
@@ -514,28 +468,77 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
         document.getElementById("numT").innerHTML = numLetra;
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
-    } else if (elementoExistente === undefined) {
-        numCamion++;
+    } else if (numCamion === maxCamion && elementoExistente === undefined) {
+        numCamion=maxCamion+1;
         document.getElementById("numCamion").innerHTML = numCamion;
-        numE--;
-        console.log("El valor de numLetra no existe en ninguna propiedad tipoTransporte de precastElements");
-    } 
+        //numE++;
+        numT = numE;
+        numLetra = numT + " - E";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
+        numCamion=maxCamion+1;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        numE++;
+        numT = numE;
+        numLetra = numT + " - E";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    }
 });
 
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'E' || event.key === 'e') {
         seleccionarBoton(nuevoCamionEstructuraBtn);
-        buscaNumCamionMaximo();
-        numCamion =numCamion + 1;  
+        var maxCamion = 0;
         document.getElementById("numCamion").innerHTML = numCamion;
-        letraTransporte="E";
-        numE++;
-        numT=numE;
-        numLetra=numT+" - E";
+        letraTransporte = "E";
+        numT = numE;
+        numLetra = numT + " - E";
         document.getElementById("numT").innerHTML = numLetra;
-        funcTablaTransporte(numCamion, numLetra);
-        actualizaDesplegables();
+    
+        for (var i = 0; i < precastElements.length; i++) {
+            if (precastElements[i].Camion > maxCamion) {
+                maxCamion = precastElements[i].Camion;
+            }
+        }
+    
+        var elementoExistente = precastElements.find(function(elemento) {
+            return elemento.tipoTransporte === numLetra;
+        });
+    
+        if (numCamion === maxCamion && elementoExistente !== undefined ) {
+            numCamion++;
+            numE++;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            letraTransporte = "E";
+            numT = numE;
+            numLetra = numT + " - E";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        } else if (numCamion === maxCamion && elementoExistente === undefined) {
+            numCamion=maxCamion+1;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            //numE++;
+            numT = numE;
+            numLetra = numT + " - E";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
+            numCamion=maxCamion+1;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            numE++;
+            numT = numE;
+            numLetra = numT + " - E";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        }
     }
 });
 
@@ -554,7 +557,12 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
             maxCamion = precastElements[i].Camion;
         }
     }
-    if (numCamion + 1 === maxCamion + 1) {
+
+    var elementoExistente = precastElements.find(function(elemento) {
+        return elemento.tipoTransporte === numLetra;
+    });
+
+    if (numCamion === maxCamion && elementoExistente !== undefined ) {
         numCamion++;
         numA++;
         document.getElementById("numCamion").innerHTML = numCamion;
@@ -564,39 +572,131 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
         document.getElementById("numT").innerHTML = numLetra;
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
-    }else{
-        
-    }
-});
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'a' || event.key === 'A') {
-        seleccionarBoton(nuevoCamionAlveolarBtn);
-        buscaNumCamionMaximo();
-        numCamion =numCamion + 1;  
+    } else if (numCamion === maxCamion && elementoExistente === undefined) {
+        numCamion=maxCamion+1;
         document.getElementById("numCamion").innerHTML = numCamion;
-        letraTransporte="A";
+        //numA++;
+        numT = numA;
+        numLetra = numT + " - A";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
+        numCamion=maxCamion+1;
+        document.getElementById("numCamion").innerHTML = numCamion;
         numA++;
-        numT=numA;
-        numLetra=numT+" - A";
+        numT = numA;
+        numLetra = numT + " - A";
         document.getElementById("numT").innerHTML = numLetra;
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
     }
 });
 
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'a' || event.key === 'A') {
+        seleccionarBoton(nuevoCamionAlveolarBtn);
+        var maxCamion = 0;
+
+        document.getElementById("numCamion").innerHTML = numCamion;
+        letraTransporte = "A";
+        numT = numA;
+        numLetra = numT + " - A";
+        document.getElementById("numT").innerHTML = numLetra;
+
+        for (var i = 0; i < precastElements.length; i++) {
+            if (precastElements[i].Camion > maxCamion) {
+                maxCamion = precastElements[i].Camion;
+            }
+        }
+
+        var elementoExistente = precastElements.find(function(elemento) {
+            return elemento.tipoTransporte === numLetra;
+        });
+
+        if (numCamion === maxCamion && elementoExistente !== undefined ) {
+            numCamion++;
+            numA++;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            letraTransporte = "A";
+            numT = numA;
+            numLetra = numT + " - A";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        } else if (numCamion === maxCamion && elementoExistente === undefined) {
+            numCamion=maxCamion+1;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            //numA++;
+            numT = numA;
+            numLetra = numT + " - A";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
+            numCamion=maxCamion+1;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            numA++;
+            numT = numA;
+            numLetra = numT + " - A";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        }
+    }
+});
+
 nuevoCamionCerramientoBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionCerramientoBtn);
-    buscaNumCamionMaximo();
-    numCamion =numCamion + 1; 
+    var maxCamion = 0;
+
     document.getElementById("numCamion").innerHTML = numCamion;
-    letraTransporte="C";
-    numC++;
-    numT=numC;
-    numLetra=numT+" - C";
-    document.getElementById("numT").innerHTML =numLetra;
-    funcTablaTransporte(numCamion, numLetra);
-    actualizaDesplegables();
+    letraTransporte = "C";
+    numT = numC;
+    numLetra = numT + " - C";
+    document.getElementById("numT").innerHTML = numLetra;
+
+    for (var i = 0; i < precastElements.length; i++) {
+        if (precastElements[i].Camion > maxCamion) {
+            maxCamion = precastElements[i].Camion;
+        }
+    }
+
+    var elementoExistente = precastElements.find(function(elemento) {
+        return elemento.tipoTransporte === numLetra;
+    });
+
+    if (numCamion === maxCamion && elementoExistente !== undefined ) {
+        numCamion++;
+        numC++;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        letraTransporte = "C";
+        numT = numC;
+        numLetra = numT + " - C";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    } else if (numCamion === maxCamion && elementoExistente === undefined) {
+        numCamion=maxCamion+1;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        //numE++;
+        numT = numC;
+        numLetra = numT + " - C";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
+        numCamion=maxCamion+1;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        numC++;
+        numT = numC;
+        numLetra = numT + " - C";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    }
 });
+
 document.addEventListener('keydown', function(event) {
     if (event.key === 'c' || event.key === 'C') {
         seleccionarBoton(nuevoCamionCerramientoBtn);
