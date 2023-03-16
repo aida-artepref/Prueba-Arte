@@ -223,7 +223,7 @@ ul, #myUL {
     position: fixed;
     top:55px;
     left:5px;
-    background-color: rgba(255, 255, 255, 0.267);
+    background-color: rgba(255, 255, 255, 0.767);
     border: 1px solid gray;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     padding: 5px;
@@ -486,15 +486,40 @@ button {
   border-bottom: 1px solid #ccc;
 }
 
+#contenedor {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 20%;
+  display: flex; /* para hacer que los divs hijos estén en línea */
+  justify-content: space-between; /* para separar los divs hijos */
+  align-items: center; /* para alinear verticalmente los divs hijos */
+  
+}
 
 #datosCamiones {
-  background-color: red, 0.2;
-  position: fixed; /* fija la posición del elemento */
-  bottom: 0; /* lo coloca en la parte inferior de la pantalla */
-  left: 0; /* lo alinea a la izquierda del documento */
-  width: 100%; /* ocupa toda la superficie horizontal */
-  height: 20%; /* tiene una altura de 100px */
+  width: 50%;
+  height: 100%;
+  overflow-x: auto;
+  border-right: 1px solid black; /* agregar un borde derecho de 1px */
+
 }
+
+#posicionCamion {
+  width: 50%; /* para que ocupe la otra mitad del ancho del contenedor */
+  height: 100%;
+  /* border-left: 1px solid black; agregar un borde izquierdo de 1px */
+}
+/* 
+#datosCamiones {
+  background-color: red, 0.2;
+  position: fixed; 
+  bottom: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 20%; 
+} /*
 
 table {
   border-collapse: collapse;
@@ -580,3 +605,5 @@ input[type="checkbox"] {
   align-items: center;
   justify-content: center;
 }
+
+

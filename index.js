@@ -375,11 +375,13 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
             for (let objetoTransporte of tablaTransporte) {
                 if (objetoTransporte.tipoTransporte === tipoSeleccionado) {
                     numCamion = objetoTransporte.Camion;  // el valor de la propiedad Camion a la variable numCamion
+                    // document.getElementById("numCamion").innerHTML = numCamion;
                     break; 
                 }
             }
             document.getElementById("numCamion").innerHTML = numCamion;
         }
+        numCamion = parseInt(document.getElementById("numCamion").innerHTML);
     });
     for (let i = 0; i <= numElementos; i++) {
         const option = document.createElement('option');
@@ -442,7 +444,7 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionEstructuraBtn);
     var maxCamion = 0;
 
-    document.getElementById("numCamion").innerHTML = numCamion;
+    
     letraTransporte = "E";
     numT = numE;
     numLetra = numT + " - E";
@@ -453,7 +455,7 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
             maxCamion = precastElements[i].Camion;
         }
     }
-
+    document.getElementById("numCamion").innerHTML = maxCamion+1;
     var elementoExistente = precastElements.find(function(elemento) {
         return elemento.tipoTransporte === numLetra;
     });
@@ -494,7 +496,7 @@ document.addEventListener('keydown', function(event) {
     if (event.key === 'E' || event.key === 'e') {
         seleccionarBoton(nuevoCamionEstructuraBtn);
         var maxCamion = 0;
-        document.getElementById("numCamion").innerHTML = numCamion;
+        
         letraTransporte = "E";
         numT = numE;
         numLetra = numT + " - E";
@@ -505,6 +507,7 @@ document.addEventListener('keydown', function(event) {
                 maxCamion = precastElements[i].Camion;
             }
         }
+        document.getElementById("numCamion").innerHTML = maxCamion+1;
     
         var elementoExistente = precastElements.find(function(elemento) {
             return elemento.tipoTransporte === numLetra;
@@ -557,6 +560,7 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
             maxCamion = precastElements[i].Camion;
         }
     }
+    document.getElementById("numCamion").innerHTML = maxCamion+1;
 
     var elementoExistente = precastElements.find(function(elemento) {
         return elemento.tipoTransporte === numLetra;
@@ -598,7 +602,7 @@ document.addEventListener('keydown', function(event) {
         seleccionarBoton(nuevoCamionAlveolarBtn);
         var maxCamion = 0;
 
-        document.getElementById("numCamion").innerHTML = numCamion;
+        
         letraTransporte = "A";
         numT = numA;
         numLetra = numT + " - A";
@@ -609,6 +613,7 @@ document.addEventListener('keydown', function(event) {
                 maxCamion = precastElements[i].Camion;
             }
         }
+        document.getElementById("numCamion").innerHTML = maxCamion+1;
 
         var elementoExistente = precastElements.find(function(elemento) {
             return elemento.tipoTransporte === numLetra;
@@ -650,7 +655,6 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionCerramientoBtn);
     var maxCamion = 0;
 
-    document.getElementById("numCamion").innerHTML = numCamion;
     letraTransporte = "C";
     numT = numC;
     numLetra = numT + " - C";
@@ -661,7 +665,7 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
             maxCamion = precastElements[i].Camion;
         }
     }
-
+    document.getElementById("numCamion").innerHTML = maxCamion+1;
     var elementoExistente = precastElements.find(function(elemento) {
         return elemento.tipoTransporte === numLetra;
     });
@@ -700,24 +704,60 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
 document.addEventListener('keydown', function(event) {
     if (event.key === 'c' || event.key === 'C') {
         seleccionarBoton(nuevoCamionCerramientoBtn);
-        buscaNumCamionMaximo();
-        numCamion =numCamion + 1;  
-        document.getElementById("numCamion").innerHTML = numCamion;
-        letraTransporte="C";
-        numC++;
-        numT=numC;
-        numLetra=numT+" - C";
-    document.getElementById("numT").innerHTML =numLetra;
-        funcTablaTransporte(numCamion, numLetra);
-        actualizaDesplegables();
+        var maxCamion = 0;
+
+        letraTransporte = "C";
+        numT = numC;
+        numLetra = numT + " - C";
+        document.getElementById("numT").innerHTML = numLetra;
+
+        for (var i = 0; i < precastElements.length; i++) {
+            if (precastElements[i].Camion > maxCamion) {
+                maxCamion = precastElements[i].Camion;
+            }
+        }
+        document.getElementById("numCamion").innerHTML = maxCamion+1;
+        var elementoExistente = precastElements.find(function(elemento) {
+            return elemento.tipoTransporte === numLetra;
+        });
+
+        if (numCamion === maxCamion && elementoExistente !== undefined ) {
+            numCamion++;
+            numC++;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            letraTransporte = "C";
+            numT = numC;
+            numLetra = numT + " - C";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        } else if (numCamion === maxCamion && elementoExistente === undefined) {
+            numCamion=maxCamion+1;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            //numE++;
+            numT = numC;
+            numLetra = numT + " - C";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
+            numCamion=maxCamion+1;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            numC++;
+            numT = numC;
+            numLetra = numT + " - C";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        }
     }
 });
 
 function seleccionarBoton(boton) {
-    if (boton === botonSeleccionado) {
-        return;
-    }
-    botonSeleccionado.classList.remove("seleccionado");
+    const botonesTipoCarga = document.querySelectorAll('#tipoCarga button');
+    botonesTipoCarga.forEach((boton) => {
+        boton.classList.remove('seleccionado');
+    });
     botonSeleccionado = boton;
     botonSeleccionado.classList.add("seleccionado");
     console.log("Botón seleccionado:", botonSeleccionado);
@@ -743,11 +783,13 @@ if (target.tagName === 'TD') {
     allIDs.push(parseInt(elementoEliminadoTabla));
 }
 showAllItems(viewer, allIDs);
+const divCheck = document.getElementById("checktiposIfc");
+const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");// Obtener todos los checkbox dentro del div
+checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
 const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
     if (actValorCamion) {
         actValorCamion.Camion = "";
         actValorCamion.tipoTransporte = "";
-        
     }
 });
 
@@ -1112,7 +1154,7 @@ function ordenPrecastCamion(){
 
     for (let i = 0; i < numCamConElementos.length - 1; i++) {
         if (numCamConElementos[i+1] - numCamConElementos[i] > 1) {
-          console.log("Falta el número:", numCamConElementos[i] + 1);
+           console.log("Falta el número:", numCamConElementos[i] + 1);
         }
 }
 }
@@ -1364,7 +1406,6 @@ function generaBotonesNumCamion(camionesUnicos) {
         }
     }
     numCamion=maximo;
-    console.log(maximo + " MAXIMO CAMION ")
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
     
@@ -1376,14 +1417,16 @@ function generaBotonesNumCamion(camionesUnicos) {
         btnNumCamiones.appendChild(btn);
         btn.addEventListener("click", function() {
             const expressIDs = [];
+            
             precastElements.forEach(function(precastElement) {
                 if (parseInt(precastElement.Camion) === camion) {
                     expressIDs.push(precastElement.expressID);
+                    
                 }
             });
             const isActive = btn.classList.contains("active");
             if (isActive) {
-            //botón activo, elimina los elementos del visor y desactiva el botón
+            //, elimina los elementos del visor y desactiva el botón
                 viewer.IFC.selector.unpickIfcItems();
                 hideAllItems(viewer, expressIDs);
                 btn.classList.remove("active");
@@ -1392,7 +1435,7 @@ function generaBotonesNumCamion(camionesUnicos) {
                 eliminarTabla(camion);
                 botonesActivos--;
             } else {
-                // botón no activo, muestra los elementos en tabla en el visor y activa el botón
+                //  muestra los elementos en tabla en el visor y activa el botón
                 viewer.IFC.selector.unpickIfcItems();
                 hideAllItems(viewer, allIDs);
                 showAllItems(viewer, expressIDs);
@@ -1485,12 +1528,15 @@ function showElementsByCamion(viewer, precastElements) {
 function generarTabla(expressIDs, camion) {
     var divTabla = document.getElementById("datosCamiones");
     const tabla = document.createElement('table');
+    var alturaDivTabla = divTabla.offsetHeight - 15;
 
     //cabecera de la tabla
     const cabecera = document.createElement('thead');
     const filaCabecera = document.createElement('tr');
     const thElemento = document.createElement('th');
-    thElemento.textContent = camion;
+    const precastElement = precastElements.find(elem => parseInt(elem.Camion) === camion);
+    thElemento.textContent = `${camion} * ${precastElement.tipoTransporte}`;
+    
     filaCabecera.appendChild(thElemento);
     cabecera.appendChild(filaCabecera);
     tabla.appendChild(cabecera);
@@ -1506,34 +1552,118 @@ function generarTabla(expressIDs, camion) {
     });
     tabla.appendChild(cuerpo);
 
+    
     // contenedor para la tabla y agregar estilos CSS
     var contenedorTabla = document.createElement("div");
-    contenedorTabla.style.margin="20px";
+    contenedorTabla.style.margin="10px";
     contenedorTabla.style.display = "inline-block";
     contenedorTabla.style.maxWidth = "50%";
+    contenedorTabla.style.height = alturaDivTabla + "px";
+    contenedorTabla.style.overflowY ="auto" ;
+
+    contenedorTabla.addEventListener("click", function() {
+        resaltarTabla(tabla);
+    });
+
     contenedorTabla.appendChild(tabla);
-    // Establecer los estilos de la tabla y agregarla al div
+
+    
     tabla.style.border = "1px solid black";
+    tabla.style.borderCollapse = "collapse"; // para que las líneas de la tabla se junten
+    tabla.style.width = "100%"; //  ocupa todo el ancho del contenedor
+    tabla.style.textAlign = "center"; //  centra el texto de la tabla
+    tabla.style.overflowY ="auto" ;
+    // estilos de la cabecera
+    thElemento.style.borderBottom = "2px solid black"; // para añadir una línea inferior a los elementos de la cabecera
+    thElemento.style.padding = "12px 15px"; // para añadir un padding al elemento de la cabecera
+    thElemento.style.overflowY ="auto" ;
+    thElemento.style.background= "#f2f2f2";
 
     tabla.style.verticalAlign = "top";
     divTabla.style.display = "flex";
     divTabla.style.flexDirection = "row";
-    divTabla.appendChild(tabla);
-
     divTabla.appendChild(contenedorTabla);
-}
+        // estilos de la cabecera
+    thElemento.style.borderBottom = "2px solid black"; // para añadir una línea inferior a los elementos de la cabecera
+    thElemento.style.padding = "12px 15px"; // para añadir un padding al elemento de la cabecera
+    thElemento.style.height = "30px"; // para hacer la cabecera más estrecha en altura
+    thElemento.style.lineHeight = "30px"; // para centrar el texto verticalmente en la cabecera
 
+    // estilos de las filas de la tabla
+    const filas = cuerpo.querySelectorAll('tr');
+        filas.forEach(fila => {
+        fila.style.borderBottom = "1px solid black"; // para añadir una línea horizontal a cada fila
+    });
+
+    // estilos de las celdas de la tabla
+    const celdas = cuerpo.querySelectorAll('td');
+        celdas.forEach(celda => {
+        celda.style.padding = "10px"; // para añadir un padding a cada celda
+        celda.style.borderBottom = "1px solid black"; // para añadir una línea horizontal a cada celda
+    });
+}
 function eliminarTabla(camion) {
     var divTabla = document.getElementById("datosCamiones");
     var thElements = divTabla.getElementsByTagName("th");
     
     for (var i = 0; i < thElements.length; i++) {
-        if (thElements[i].textContent === camion.toString()) {
+        if (thElements[i].textContent.startsWith(camion.toString())) {
             var tablaAEliminar = thElements[i].parentNode.parentNode.parentNode;
-            tablaAEliminar.parentNode.removeChild(tablaAEliminar);
-        break;
+            var contenedorTablaAEliminar = tablaAEliminar.parentNode;
+            contenedorTablaAEliminar.parentNode.removeChild(contenedorTablaAEliminar);
+            break;
         }
     }
 }
+function resaltarTabla(tabla) {
+  const tablas = document.querySelectorAll("#datosCamiones table");
+  tablas.forEach(t => {
+    if (t === tabla) {
+      t.style.border = "3px solid blue";
+      posicionesCamion(tabla); // Pasar el argumento tabla a la función posicionesCamion
+    } else {
+      t.style.border = "1px solid black";
+    }
+  });
+}
 
+function posicionesCamion(tabla) { // Recibir el argumento tabla
+  const posicionCamion = document.getElementById("posicionCamion");
+  posicionCamion.innerHTML = ""; // Limpiar el contenido previo del div
 
+  // Obtener el valor de la cabecera de la tabla resaltada
+  const cabeceraValor = tabla.getAttribute("data-cabecera");
+
+  // Crear una tabla de 3 filas por 5 columnas
+  const tablaNueva = document.createElement("table");
+
+  // Agregar una fila para la cabecera con el valor de la cabecera de la tabla resaltada
+  const cabeceraFila = document.createElement("tr");
+  const cabeceraCajon = document.createElement("th");
+  cabeceraCajon.setAttribute("colspan", "5");
+  cabeceraCajon.style.border = "1px solid black";
+  cabeceraCajon.style.textAlign = "center";
+  cabeceraCajon.style.verticalAlign = "middle";
+  cabeceraCajon.innerText = cabeceraValor;
+  cabeceraFila.appendChild(cabeceraCajon);
+  tablaNueva.appendChild(cabeceraFila);
+
+  for (let i = 1; i <= 3; i++) {
+    const fila = document.createElement("tr");
+    for (let j = 1; j <= 5; j++) {
+      const cajon = document.createElement("td");
+      const idCajon = (i - 1) * 5 + j; // Calcular el número del cajón
+      cajon.setAttribute("id", idCajon);
+      cajon.style.width = "50px";
+      cajon.style.height = "50px";
+      cajon.style.border = "1px solid black";
+      cajon.style.textAlign = "center";
+      cajon.style.verticalAlign = "middle";
+      cajon.innerText = idCajon;
+      fila.appendChild(cajon);
+    }
+    tablaNueva.appendChild(fila);
+  }
+
+  posicionCamion.appendChild(tablaNueva);
+}
