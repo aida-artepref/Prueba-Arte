@@ -107,7 +107,7 @@
   position: relative;
   height: 100vh;
   position:fixed;
-  bottom:110px;
+  bottom:210px;
   right:5px;
   width:auto;
   height:auto;
@@ -607,3 +607,97 @@ input[type="checkbox"] {
 }
 
 
+/* estilos de la tabla */
+.table {
+  border: 1px solid black;
+  border-collapse: collapse;
+  width: 100%;
+  text-align: center;
+  overflow-y: auto;
+}
+
+/* estilos de la cabecera */
+.table-header {
+  border-bottom: 2px solid black;
+  padding: 12px 15px;
+  height: 30px;
+  line-height: 30px;
+  background: #f2f2f2;
+  overflow-y: auto;
+}
+
+/* estilos de las filas de la tabla */
+.table-row {
+  border-bottom: 1px solid black;
+}
+
+/* estilos de las celdas de la tabla */
+.table-cell {
+  padding: 10px;
+  border-bottom: 1px solid black;
+}
+
+/* estilos del contenedor de la tabla */
+.table-container {
+  margin: 10px;
+  display: inline-block;
+  max-width: 50%;
+  height: calc(100% - 15px);
+  overflow-y: auto;
+  vertical-align: top;
+}
+
+
+.contenedor-tabla {
+  margin: 10px;
+  display: inline-block;
+  max-width: 50%;
+  overflow-y: auto;
+  height: calc(100% - 15px);
+}
+
+.tabla {
+  border: 1px solid black;
+  border-collapse: collapse;
+  width: 100%;
+  text-align: center;
+  overflow-y: auto;
+}
+
+.tabla thead th {
+  border-bottom: 2px solid black;
+  padding: 12px 15px;
+  height: 30px;
+  line-height: 30px;
+  overflow-y: auto;
+  background: #f2f2f2;
+}
+
+.tabla tbody tr {
+  border-bottom: 1px solid black;
+}
+
+.tabla tbody td {
+  padding: 10px;
+  border-bottom: 1px solid black;
+}
+
+
+td.cajon {
+  position: relative;
+  text-align: center;
+  vertical-align: middle;
+  width: 50px;
+  height: 50px;
+  border: 1px solid black;
+}
+
+td.cajon::before {
+  content: attr(data-id);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}

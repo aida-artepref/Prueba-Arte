@@ -67,7 +67,6 @@ async function loadModel(url){
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
 
-
     cargaGlobalIdenPrecast();
     crearBotonPrecas();  
     
@@ -231,7 +230,6 @@ function addCheckboxListeners() {
     });
     
 }
-
 
  ////-----------------------------------------------------------------------------------------------------------------------------------
  // reemplaza cualquier subconjunto anterior con el mismo ID personalizado ('full-model-subset').
@@ -444,7 +442,6 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionEstructuraBtn);
     var maxCamion = 0;
 
-    
     letraTransporte = "E";
     numT = numE;
     numLetra = numT + " - E";
@@ -455,6 +452,7 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
             maxCamion = precastElements[i].Camion;
         }
     }
+    maxCamion=parseInt(maxCamion);
     document.getElementById("numCamion").innerHTML = maxCamion+1;
     var elementoExistente = precastElements.find(function(elemento) {
         return elemento.tipoTransporte === numLetra;
@@ -507,6 +505,7 @@ document.addEventListener('keydown', function(event) {
                 maxCamion = precastElements[i].Camion;
             }
         }
+        maxCamion=parseInt(maxCamion);
         document.getElementById("numCamion").innerHTML = maxCamion+1;
     
         var elementoExistente = precastElements.find(function(elemento) {
@@ -560,6 +559,7 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
             maxCamion = precastElements[i].Camion;
         }
     }
+    maxCamion=parseInt(maxCamion);
     document.getElementById("numCamion").innerHTML = maxCamion+1;
 
     var elementoExistente = precastElements.find(function(elemento) {
@@ -613,6 +613,7 @@ document.addEventListener('keydown', function(event) {
                 maxCamion = precastElements[i].Camion;
             }
         }
+        maxCamion=parseInt(maxCamion);
         document.getElementById("numCamion").innerHTML = maxCamion+1;
 
         var elementoExistente = precastElements.find(function(elemento) {
@@ -665,6 +666,7 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
             maxCamion = precastElements[i].Camion;
         }
     }
+    maxCamion=parseInt(maxCamion);
     document.getElementById("numCamion").innerHTML = maxCamion+1;
     var elementoExistente = precastElements.find(function(elemento) {
         return elemento.tipoTransporte === numLetra;
@@ -716,6 +718,7 @@ document.addEventListener('keydown', function(event) {
                 maxCamion = precastElements[i].Camion;
             }
         }
+        maxCamion=parseInt(maxCamion);
         document.getElementById("numCamion").innerHTML = maxCamion+1;
         var elementoExistente = precastElements.find(function(elemento) {
             return elemento.tipoTransporte === numLetra;
@@ -835,11 +838,11 @@ function hideClickedItem(viewer) {
     const id = manager.getExpressId(result.object.geometry, result.faceIndex);
     
  // Comprobar si hay algún botón con la clase 'seleccionado' sino es asi npo deja ocultar elementos
- const botonSeleccionado = document.querySelector('.seleccionado');
- if (!botonSeleccionado) {
-     alert('Debe seleccionar boton tipo de carga E, A C');
-     return;
- }
+const botonSeleccionado = document.querySelector('.seleccionado');
+if (!botonSeleccionado) {
+    alert('Debe seleccionar boton tipo de carga E, A C');
+    return;
+}
 
     for (let i = 0; i < precastElements.length; i++) {
         if (precastElements[i].expressID === id) {
@@ -1144,23 +1147,9 @@ function nodeToString(node){
 const exportCSV = document.getElementById("exportButton");
 exportCSV.addEventListener('click', exportCSVmethod, false);
 
-let numCamConElementos;
-function ordenPrecastCamion(){
-    numCamConElementos =obtenerValorCamion(precastElements);
-    numCamConElementos.sort(function(a, b) {
-        return a - b;
-    });
-    console.log(numCamConElementos);
 
-    for (let i = 0; i < numCamConElementos.length - 1; i++) {
-        if (numCamConElementos[i+1] - numCamConElementos[i] > 1) {
-           console.log("Falta el número:", numCamConElementos[i] + 1);
-        }
-}
-}
 function exportCSVmethod(){
 
-    ordenPrecastCamion();
     let header = [];
     precastElements.forEach(precastElement => {
         Object.keys(precastElement).forEach(mKey => {
@@ -1388,7 +1377,6 @@ function obtenerValorCamion(precastElements) {
     
     return Array.from(valoresCamion);
 }
-
 //crea los botones con la numeracion de los camiones, 
 function generaBotonesNumCamion(camionesUnicos) {
     viewer.IFC.selector.unpickIfcItems();
@@ -1433,6 +1421,8 @@ function generaBotonesNumCamion(camionesUnicos) {
                 btn.style.justifyContent = "center";
                 btn.style.color = "";
                 eliminarTabla(camion);
+                const posicionCamion = document.getElementById("posicionCamion");
+                posicionCamion.innerHTML = ""; // limpia el contenido previo del div
                 botonesActivos--;
             } else {
                 //  muestra los elementos en tabla en el visor y activa el botón
@@ -1525,145 +1515,145 @@ function showElementsByCamion(viewer, precastElements) {
     }, delay);
 }
 
+
+let contenidoCelda;
+let tablaResaltada = false;
 function generarTabla(expressIDs, camion) {
-    var divTabla = document.getElementById("datosCamiones");
-    const tabla = document.createElement('table');
-    var alturaDivTabla = divTabla.offsetHeight - 15;
-
-    //cabecera de la tabla
-    const cabecera = document.createElement('thead');
-    const filaCabecera = document.createElement('tr');
-    const thElemento = document.createElement('th');
+    const divTabla = document.getElementById("datosCamiones");
     const precastElement = precastElements.find(elem => parseInt(elem.Camion) === camion);
-    thElemento.textContent = `${camion} * ${precastElement.tipoTransporte}`;
-    
-    filaCabecera.appendChild(thElemento);
-    cabecera.appendChild(filaCabecera);
-    tabla.appendChild(cabecera);
+    const cabeceraValor = `${camion} * ${precastElement.tipoTransporte}`;
 
-    //cuerpo de la tabla
+    const thElemento = document.createElement('th');// Cabecera de la tabla
+    thElemento.textContent = cabeceraValor;
+
+    const filaCabecera = document.createElement('tr');
+    filaCabecera.appendChild(thElemento);
+
+    const cabecera = document.createElement('thead');
+    cabecera.appendChild(filaCabecera);
+
     const cuerpo = document.createElement('tbody');
     expressIDs.forEach(id => {
-        const fila = document.createElement('tr');
         const tdElemento = document.createElement('td');
         tdElemento.textContent = id;
+        tdElemento.addEventListener('contextmenu', function(event) {
+            event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
+            contenidoCelda = tdElemento.textContent;
+            console.log(contenidoCelda);
+            
+            celdaSeleccionadaColor(event.target);
+            resaltarTabla(tabla, cabeceraValor);
+            viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], true);
+
+        });
+        const fila = document.createElement('tr');
         fila.appendChild(tdElemento);
         cuerpo.appendChild(fila);
     });
-    tabla.appendChild(cuerpo);
 
+    const tabla = document.createElement('table');// Tabla completa
+    tabla.classList.add('tabla');
+    tabla.appendChild(cabecera);
+    tabla.appendChild(cuerpo);
     
-    // contenedor para la tabla y agregar estilos CSS
-    var contenedorTabla = document.createElement("div");
-    contenedorTabla.style.margin="10px";
-    contenedorTabla.style.display = "inline-block";
-    contenedorTabla.style.maxWidth = "50%";
-    contenedorTabla.style.height = alturaDivTabla + "px";
-    contenedorTabla.style.overflowY ="auto" ;
+    const contenedorTabla = document.createElement("div");// Contenedor  agrega estilos CSS
+    contenedorTabla.classList.add('contenedor-tabla');
 
     contenedorTabla.addEventListener("click", function() {
-        resaltarTabla(tabla);
+        resaltarTabla(tabla, cabeceraValor);
     });
 
     contenedorTabla.appendChild(tabla);
-
-    
-    tabla.style.border = "1px solid black";
-    tabla.style.borderCollapse = "collapse"; // para que las líneas de la tabla se junten
-    tabla.style.width = "100%"; //  ocupa todo el ancho del contenedor
-    tabla.style.textAlign = "center"; //  centra el texto de la tabla
-    tabla.style.overflowY ="auto" ;
-    // estilos de la cabecera
-    thElemento.style.borderBottom = "2px solid black"; // para añadir una línea inferior a los elementos de la cabecera
-    thElemento.style.padding = "12px 15px"; // para añadir un padding al elemento de la cabecera
-    thElemento.style.overflowY ="auto" ;
-    thElemento.style.background= "#f2f2f2";
-
-    tabla.style.verticalAlign = "top";
-    divTabla.style.display = "flex";
-    divTabla.style.flexDirection = "row";
+    thElemento.classList.add('cabecera-tabla');
     divTabla.appendChild(contenedorTabla);
-        // estilos de la cabecera
-    thElemento.style.borderBottom = "2px solid black"; // para añadir una línea inferior a los elementos de la cabecera
-    thElemento.style.padding = "12px 15px"; // para añadir un padding al elemento de la cabecera
-    thElemento.style.height = "30px"; // para hacer la cabecera más estrecha en altura
-    thElemento.style.lineHeight = "30px"; // para centrar el texto verticalmente en la cabecera
+}
 
-    // estilos de las filas de la tabla
-    const filas = cuerpo.querySelectorAll('tr');
-        filas.forEach(fila => {
-        fila.style.borderBottom = "1px solid black"; // para añadir una línea horizontal a cada fila
-    });
+ultimaCeldaSeleccionada = null;
 
-    // estilos de las celdas de la tabla
-    const celdas = cuerpo.querySelectorAll('td');
-        celdas.forEach(celda => {
-        celda.style.padding = "10px"; // para añadir un padding a cada celda
-        celda.style.borderBottom = "1px solid black"; // para añadir una línea horizontal a cada celda
+function celdaSeleccionadaColor(celdaSeleccionada) {
+    if (tablaResaltada) {
+        if (ultimaCeldaSeleccionada) {
+            ultimaCeldaSeleccionada.style.backgroundColor = '';
+        }
+
+        celdaSeleccionada.style.backgroundColor = 'cyan';
+        ultimaCeldaSeleccionada = celdaSeleccionada;
+    }
+}
+
+
+function resaltarTabla(tabla, cabeceraValor) {
+    const tablas = document.querySelectorAll("#datosCamiones table");
+    tablas.forEach(t => {
+        if (t === tabla) {
+            t.style.border = "3px solid blue";
+            tablaResaltada = true;
+            posicionesCamion(tabla, cabeceraValor); // argumentos tabla y valor de cabecera a la función posicionesCamion
+            
+        } else {
+            t.style.border = "1px solid black";
+        }
     });
 }
+
 function eliminarTabla(camion) {
-    var divTabla = document.getElementById("datosCamiones");
-    var thElements = divTabla.getElementsByTagName("th");
+    const divTabla = document.getElementById("datosCamiones");
+    const thElements = divTabla.getElementsByTagName("th");
     
-    for (var i = 0; i < thElements.length; i++) {
-        if (thElements[i].textContent.startsWith(camion.toString())) {
-            var tablaAEliminar = thElements[i].parentNode.parentNode.parentNode;
-            var contenedorTablaAEliminar = tablaAEliminar.parentNode;
-            contenedorTablaAEliminar.parentNode.removeChild(contenedorTablaAEliminar);
+    for (let i = 0; i < thElements.length; i++) {
+        const thElement = thElements[i];
+        if (thElement.textContent.startsWith(camion.toString())) {
+            const tablaAEliminar = thElement.closest('table');
+            tablaAEliminar.remove();
             break;
         }
     }
-}
-function resaltarTabla(tabla) {
-  const tablas = document.querySelectorAll("#datosCamiones table");
-  tablas.forEach(t => {
-    if (t === tabla) {
-      t.style.border = "3px solid blue";
-      posicionesCamion(tabla); // Pasar el argumento tabla a la función posicionesCamion
-    } else {
-      t.style.border = "1px solid black";
-    }
-  });
+    contenidoCelda=null;
 }
 
-function posicionesCamion(tabla) { // Recibir el argumento tabla
-  const posicionCamion = document.getElementById("posicionCamion");
-  posicionCamion.innerHTML = ""; // Limpiar el contenido previo del div
 
-  // Obtener el valor de la cabecera de la tabla resaltada
-  const cabeceraValor = tabla.getAttribute("data-cabecera");
 
-  // Crear una tabla de 3 filas por 5 columnas
-  const tablaNueva = document.createElement("table");
+function posicionesCamion(tabla, cabeceraValor) { 
+    const posicionCamion = document.getElementById("posicionCamion");
+    posicionCamion.innerHTML = ""; // limpia el contenido previo del div
 
-  // Agregar una fila para la cabecera con el valor de la cabecera de la tabla resaltada
-  const cabeceraFila = document.createElement("tr");
-  const cabeceraCajon = document.createElement("th");
-  cabeceraCajon.setAttribute("colspan", "5");
-  cabeceraCajon.style.border = "1px solid black";
-  cabeceraCajon.style.textAlign = "center";
-  cabeceraCajon.style.verticalAlign = "middle";
-  cabeceraCajon.innerText = cabeceraValor;
-  cabeceraFila.appendChild(cabeceraCajon);
-  tablaNueva.appendChild(cabeceraFila);
+    const tablaNueva = document.createElement("table");
 
-  for (let i = 1; i <= 3; i++) {
-    const fila = document.createElement("tr");
-    for (let j = 1; j <= 5; j++) {
-      const cajon = document.createElement("td");
-      const idCajon = (i - 1) * 5 + j; // Calcular el número del cajón
-      cajon.setAttribute("id", idCajon);
-      cajon.style.width = "50px";
-      cajon.style.height = "50px";
-      cajon.style.border = "1px solid black";
-      cajon.style.textAlign = "center";
-      cajon.style.verticalAlign = "middle";
-      cajon.innerText = idCajon;
-      fila.appendChild(cajon);
+    const cabeceraFila = document.createElement("tr");
+    const cabeceraCajon = document.createElement("th");
+    cabeceraCajon.setAttribute("colspan", "5");
+    cabeceraCajon.style.border = "1px solid black";
+    cabeceraCajon.style.textAlign = "center";
+    cabeceraCajon.style.verticalAlign = "middle";
+    cabeceraCajon.innerText = cabeceraValor;
+    cabeceraFila.appendChild(cabeceraCajon);
+    tablaNueva.appendChild(cabeceraFila);
+
+    for (let i = 1; i <= 3; i++) {
+        const fila = document.createElement("tr");
+        for (let j = 1; j <= 5; j++) {
+            const cajon = document.createElement("td");
+            const idCajon = (i - 1) * 5 + j; // Calcular el número del cajón
+            cajon.setAttribute("id", "cajon-" + idCajon);
+            cajon.setAttribute("data-id", idCajon);
+            cajon.classList.add("cajon");
+            fila.appendChild(cajon);
+
+            cajon.addEventListener("click", function() {
+                cajon.innerText = contenidoCelda;
+                // Agregar el valor del ID del cajón pulsado al array precstElements
+                var posicionCajon = this.id;
+                console.log(posicionCajon);
+                for (var i = 0; i < precastElements.length; i++) {
+                    if (precastElements[i].expressID === contenidoCelda) {
+                        precastElements[i].Posicion = posicionCajon;
+                        break;
+                    }
+                }
+            });
+        }
+        tablaNueva.appendChild(fila);
     }
-    tablaNueva.appendChild(fila);
-  }
 
-  posicionCamion.appendChild(tablaNueva);
+    posicionCamion.appendChild(tablaNueva);
 }
