@@ -128169,28 +128169,25 @@ function showElementsByCamion(viewer, precastElements) {
 
 let contenidoCelda;
 let tablaResaltada = false;
+
 function generarTabla(expressIDs, camion) {
     const divTabla = document.getElementById("datosCamiones");
     const precastElement = precastElements.find(elem => parseInt(elem.Camion) === camion);
     const cabeceraValor = `${camion} * ${precastElement.tipoTransporte}`;
-
     const thElemento = document.createElement('th');// Cabecera de la tabla
     thElemento.textContent = cabeceraValor;
-
     const filaCabecera = document.createElement('tr');
     filaCabecera.appendChild(thElemento);
-
     const cabecera = document.createElement('thead');
     cabecera.appendChild(filaCabecera);
-
     const cuerpo = document.createElement('tbody');
     expressIDs.forEach(id => {
         const tdElemento = document.createElement('td');
         tdElemento.textContent = id;
+
         tdElemento.addEventListener('contextmenu', function(event) {
             event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
             contenidoCelda = tdElemento.textContent;
-            console.log(contenidoCelda);
             
             celdaSeleccionadaColor(event.target);
             resaltarTabla(tabla, cabeceraValor);
@@ -128206,7 +128203,6 @@ function generarTabla(expressIDs, camion) {
     tabla.classList.add('tabla');
     tabla.appendChild(cabecera);
     tabla.appendChild(cuerpo);
-    
     const contenedorTabla = document.createElement("div");// Contenedor  agrega estilos CSS
     contenedorTabla.classList.add('contenedor-tabla');
 
@@ -128240,11 +128236,25 @@ function resaltarTabla(tabla, cabeceraValor) {
             t.style.border = "3px solid blue";
             tablaResaltada = true;
             posicionesCamion(tabla, cabeceraValor); // argumentos tabla y valor de cabecera a la función posicionesCamion
-            
         } else {
             t.style.border = "1px solid black";
         }
     });
+
+    //actualiza coloreando celdas, para ver los eleemntos que ya estan asignados en el transporte
+    for (let i = 0; i < tabla.rows.length; i++) {// recorre las filas de la tabla
+         for (let j = 0; j < tabla.rows[i].cells.length; j++) { // recorre las celdas de cada fila 
+            let valorCelda = tabla.rows[i].cells[j].innerText;// Obtiene el valor de la celda actual
+            for (let k = 0; k < precastElements.length; k++) { // recorrer el array precastElements 
+                let expressID = precastElements[k].expressID; // obtiene el valor de la propiedad expressID del objeto actual
+                let posicion = precastElements[k].Posicion; // obtener el valor de la propiedad Posicion del objeto actual 
+                if (valorCelda == expressID && posicion) {// cuando el valor de la celda coincide con el valor de la propiedad expressID y hay algún valor en la propiedad Posicion 
+                    tabla.rows[i].cells[j].style.backgroundColor = 'green'; // Cambiar el fondo de la celda a gris 
+                    break; 
+                } 
+            } 
+        } 
+    }
 }
 
 function eliminarTabla(camion) {
@@ -128262,9 +128272,11 @@ function eliminarTabla(camion) {
     contenidoCelda=null;
 }
 
-
+// Variable global para almacenar la referencia al cajón pulsado más recientemente
+let ultimoCajonPulsado = null;
 
 function posicionesCamion(tabla, cabeceraValor) { 
+    let expressIdByCamion = [];
     const posicionCamion = document.getElementById("posicionCamion");
     posicionCamion.innerHTML = ""; // limpia el contenido previo del div
 
@@ -128285,26 +128297,56 @@ function posicionesCamion(tabla, cabeceraValor) {
         for (let j = 1; j <= 5; j++) {
             const cajon = document.createElement("td");
             const idCajon = (i - 1) * 5 + j; // Calcular el número del cajón
-            cajon.setAttribute("id", "cajon-" + idCajon);
+            cajon.setAttribute("id",  idCajon);
             cajon.setAttribute("data-id", idCajon);
             cajon.classList.add("cajon");
             fila.appendChild(cajon);
 
             cajon.addEventListener("click", function() {
-                cajon.innerText = contenidoCelda;
-                // Agregar el valor del ID del cajón pulsado al array precstElements
-                var posicionCajon = this.id;
-                console.log(posicionCajon);
-                for (var i = 0; i < precastElements.length; i++) {
-                    if (precastElements[i].expressID === contenidoCelda) {
-                        precastElements[i].Posicion = posicionCajon;
-                        break;
-                    }
-                }
+                asignaIdCelda(cajon, contenidoCelda);
             });
         }
         tablaNueva.appendChild(fila);
     }
 
     posicionCamion.appendChild(tablaNueva);
+
+    for (let i = 0; i < tabla.rows.length; i++) { // Recorrer las filas de la tabla
+        for (let j = 0; j < tabla.rows[i].cells.length; j++) { // Recorrer las celdas de cada fila 
+            let valorCelda = tabla.rows[i].cells[j].innerText;  // Obtener el texto de la celda actual 
+            expressIdByCamion.push(parseInt(valorCelda)); 
+        } 
+    }
+    //console.log(expressIdByCamion +" TODOS LOS expressID DEL CAMION SELECCIONADO");
+    actualizaCajones(expressIdByCamion);
+}
+function actualizaCajones(expressIdByCamion) {
+    precastElements.forEach(objeto => {
+        if (objeto.expressID && objeto.Posicion) {
+            const cajon = document.getElementById(objeto.Posicion);
+            if (cajon && expressIdByCamion.includes(objeto.expressID)) {
+                cajon.innerText = objeto.expressID;
+            }
+        }
+    });
+}
+
+function asignaIdCelda(cajon,contenidoCelda){
+    if (ultimoCajonPulsado) {
+        ultimoCajonPulsado.innerText = "";
+    }
+    cajon.innerText = contenidoCelda;
+    ultimoCajonPulsado = cajon;
+
+    // Agregar el valor del ID del cajón pulsado al array precstElements
+    const posicionCajon = cajon.id;
+    console.log(contenidoCelda);
+    console.log(typeof(contenidoCelda));
+    for (let i = 0; i < precastElements.length; i++) {
+        if (precastElements[i].expressID === parseInt(contenidoCelda)) {
+            precastElements[i].Posicion = posicionCajon;
+            ultimaCeldaSeleccionada.style.backgroundColor = 'red';
+            break;
+        }
+    }
 }
