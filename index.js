@@ -12,7 +12,9 @@ viewer.grid.setGrid();
 viewer.axes.setAxes();
 
 viewer.context.renderer.usePostproduction = true;
-
+// viewer.IFC.selector.defHighlightMat.color = new Color(255, 128, 0);
+viewer.IFC.selector.defSelectMat.color = new Color(153,255,51);
+console.log("HOLLLAA");
 const GUI={
     input: document.getElementById("file-input"),
     loader: document.getElementById("loader-button"),
@@ -837,12 +839,12 @@ function hideClickedItem(viewer) {
     const manager = viewer.IFC.loader.ifcManager;
     const id = manager.getExpressId(result.object.geometry, result.faceIndex);
     
- // Comprobar si hay algún botón con la clase 'seleccionado' sino es asi npo deja ocultar elementos
-const botonSeleccionado = document.querySelector('.seleccionado');
-if (!botonSeleccionado) {
-    alert('Debe seleccionar boton tipo de carga E, A C');
-    return;
-}
+    // Comprobar si hay algún botón con la clase 'seleccionado' sino es asi npo deja ocultar elementos
+    const botonSeleccionado = document.querySelector('.seleccionado');
+    if (!botonSeleccionado) {
+        alert('Debe seleccionar boton tipo de carga E, A C');
+        return;
+    }
 
     for (let i = 0; i < precastElements.length; i++) {
         if (precastElements[i].expressID === id) {
@@ -1537,11 +1539,11 @@ function generarTabla(expressIDs, camion) {
         tdElemento.addEventListener('contextmenu', function(event) {
             event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
             contenidoCelda = tdElemento.textContent;
-            
-            celdaSeleccionadaColor(event.target);
             resaltarTabla(tabla, cabeceraValor);
-            viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], true);
-
+            celdaSeleccionadaColor(event.target);
+            //viewer.IFC.selector.defSelectMat.color = new Color(255, 128, 0);
+            viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], false);
+            
         });
         const fila = document.createElement('tr');
         fila.appendChild(tdElemento);
@@ -1564,21 +1566,21 @@ function generarTabla(expressIDs, camion) {
     divTabla.appendChild(contenedorTabla);
 }
 
-ultimaCeldaSeleccionada = null;
+let ultimaCeldaSeleccionada = null;
 
 function celdaSeleccionadaColor(celdaSeleccionada) {
     if (tablaResaltada) {
-        if (ultimaCeldaSeleccionada) {
-            ultimaCeldaSeleccionada.style.backgroundColor = '';
-        }
-
-        celdaSeleccionada.style.backgroundColor = 'cyan';
+        // if (ultimaCeldaSeleccionada) {
+        //     ultimaCeldaSeleccionada.style.backgroundColor = '';
+        // }
+        
+    }celdaSeleccionada.style.backgroundColor = 'cyan';
         ultimaCeldaSeleccionada = celdaSeleccionada;
-    }
 }
 
 
 function resaltarTabla(tabla, cabeceraValor) {
+    
     const tablas = document.querySelectorAll("#datosCamiones table");
     tablas.forEach(t => {
         if (t === tabla) {
@@ -1589,7 +1591,11 @@ function resaltarTabla(tabla, cabeceraValor) {
             t.style.border = "1px solid black";
         }
     });
-
+    
+    if (ultimaCeldaSeleccionada && !tabla.contains(ultimaCeldaSeleccionada)) {
+        //ultimaCeldaSeleccionada.style.backgroundColor = '';
+        ultimaCeldaSeleccionada = null;
+    }
     //actualiza coloreando celdas, para ver los eleemntos que ya estan asignados en el transporte
     for (let i = 0; i < tabla.rows.length; i++) {// recorre las filas de la tabla
          for (let j = 0; j < tabla.rows[i].cells.length; j++) { // recorre las celdas de cada fila 
@@ -1598,9 +1604,13 @@ function resaltarTabla(tabla, cabeceraValor) {
                 let expressID = precastElements[k].expressID; // obtiene el valor de la propiedad expressID del objeto actual
                 let posicion = precastElements[k].Posicion; // obtener el valor de la propiedad Posicion del objeto actual 
                 if (valorCelda == expressID && posicion) {// cuando el valor de la celda coincide con el valor de la propiedad expressID y hay algún valor en la propiedad Posicion 
-                    tabla.rows[i].cells[j].style.backgroundColor = 'green'; // Cambiar el fondo de la celda a gris 
+                    tabla.rows[i].cells[j].style.backgroundColor = `#C5C5C5`; // Cambiar el fondo de la celda a gris 
                     break; 
                 } 
+                if (valorCelda == expressID && posicion==="") {// cuando el valor de la celda coincide con el valor de la propiedad expressID y hay algún valor en la propiedad Posicion 
+                    tabla.rows[i].cells[j].style.backgroundColor = ``; // Cambiar el fondo de la celda a gris 
+                    break; 
+                }
             } 
         } 
     }
@@ -1628,9 +1638,7 @@ function posicionesCamion(tabla, cabeceraValor) {
     let expressIdByCamion = [];
     const posicionCamion = document.getElementById("posicionCamion");
     posicionCamion.innerHTML = ""; // limpia el contenido previo del div
-
     const tablaNueva = document.createElement("table");
-
     const cabeceraFila = document.createElement("tr");
     const cabeceraCajon = document.createElement("th");
     cabeceraCajon.setAttribute("colspan", "5");
@@ -1640,6 +1648,13 @@ function posicionesCamion(tabla, cabeceraValor) {
     cabeceraCajon.innerText = cabeceraValor;
     cabeceraFila.appendChild(cabeceraCajon);
     tablaNueva.appendChild(cabeceraFila);
+    
+    for (let i = 0; i < tabla.rows.length; i++) { // Recorrer las filas de la tabla
+        for (let j = 0; j < tabla.rows[i].cells.length; j++) { // Recorrer las celdas de cada fila 
+            let valorCelda = tabla.rows[i].cells[j].innerText;  // Obtener el texto de la celda actual 
+            expressIdByCamion.push(parseInt(valorCelda)); 
+        } 
+    }
 
     for (let i = 1; i <= 3; i++) {
         const fila = document.createElement("tr");
@@ -1651,36 +1666,60 @@ function posicionesCamion(tabla, cabeceraValor) {
             cajon.classList.add("cajon");
             fila.appendChild(cajon);
 
-            cajon.addEventListener("click", function() {
-                asignaIdCelda(cajon, contenidoCelda);
+
+
+            cajon.addEventListener("contextmenu", function(event) {
+                event.preventDefault();
+                asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
+            });
+
+            cajon.addEventListener("dblclick", function() {
+                limpiaPosicion(cajon, contenidoCelda);
             });
         }
         tablaNueva.appendChild(fila);
     }
-
     posicionCamion.appendChild(tablaNueva);
 
-    for (let i = 0; i < tabla.rows.length; i++) { // Recorrer las filas de la tabla
-        for (let j = 0; j < tabla.rows[i].cells.length; j++) { // Recorrer las celdas de cada fila 
-            let valorCelda = tabla.rows[i].cells[j].innerText;  // Obtener el texto de la celda actual 
-            expressIdByCamion.push(parseInt(valorCelda)); 
-        } 
-    }
     //console.log(expressIdByCamion +" TODOS LOS expressID DEL CAMION SELECCIONADO");
     actualizaCajones(expressIdByCamion);
 }
+
+
+function limpiaPosicion(cajon, contenidoCelda){
+    console.log("ELIMANADO");
+}
+
+
 function actualizaCajones(expressIdByCamion) {
     precastElements.forEach(objeto => {
         if (objeto.expressID && objeto.Posicion) {
             const cajon = document.getElementById(objeto.Posicion);
             if (cajon && expressIdByCamion.includes(objeto.expressID)) {
+                const valorAnterior = cajon.innerText;
                 cajon.innerText = objeto.expressID;
+                if (valorAnterior !== "" && valorAnterior !== objeto.expressID) {
+                        precastElements.forEach(obj => {  // Recorrer el array precastElements para buscar el objeto que tiene el valor valorAnterior en su propiedad expressID y establecer su propiedad Posicion a ""
+                            if (obj.expressID === parseInt(valorAnterior)) {
+                                obj.Posicion = "";
+                            }
+                        });
+                }  
             }
         }
     });
 }
 
-function asignaIdCelda(cajon,contenidoCelda){
+function asignaIdCelda(cajon, contenidoCelda, expressIdByCamion){
+    if (!expressIdByCamion.includes(parseInt(contenidoCelda))) {// El contenidoCelda no está incluido en el array expressIdByCamion
+        console.log("NO SE PUEDE INCLUIR EN ESTE CAMION")
+        return;
+    }
+
+    let valorExiste = false;
+    if (cajon.innerText !== "") {
+        valorExiste = true;
+    }
     if (ultimoCajonPulsado) {
         ultimoCajonPulsado.innerText = "";
     }
@@ -1689,12 +1728,10 @@ function asignaIdCelda(cajon,contenidoCelda){
 
     // Agregar el valor del ID del cajón pulsado al array precstElements
     const posicionCajon = cajon.id;
-    console.log(contenidoCelda);
-    console.log(typeof(contenidoCelda));
     for (let i = 0; i < precastElements.length; i++) {
         if (precastElements[i].expressID === parseInt(contenidoCelda)) {
             precastElements[i].Posicion = posicionCajon;
-            ultimaCeldaSeleccionada.style.backgroundColor = 'red';
+            ultimaCeldaSeleccionada.style.backgroundColor = '#C5C5C5';
             break;
         }
     }
