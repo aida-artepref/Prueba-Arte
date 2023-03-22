@@ -13,8 +13,8 @@ viewer.axes.setAxes();
 
 viewer.context.renderer.usePostproduction = true;
 // viewer.IFC.selector.defHighlightMat.color = new Color(255, 128, 0);
-viewer.IFC.selector.defSelectMat.color = new Color(153,255,51);
-console.log("HOLLLAA");
+viewer.IFC.selector.defSelectMat.color = new Color(127, 255, 0);
+
 const GUI={
     input: document.getElementById("file-input"),
     loader: document.getElementById("loader-button"),
@@ -161,7 +161,6 @@ function setIfcPropertiesContent(ifcProject, viewer, model) {
             if (checkbox !== null) {
                 const classValue = checkbox.getAttribute('data-class');
                 console.log("Has pulsado el botón : " + classValue);
-                //notaElementos(precastElements, viewer);
             }
         });
     });
@@ -441,6 +440,7 @@ function funcTablaTransporte(numCamion, numLetra) {
 }
 
 nuevoCamionEstructuraBtn.addEventListener("click", function() {
+    console.log("CLICADO EEEE");
     seleccionarBoton(nuevoCamionEstructuraBtn);
     var maxCamion = 0;
 
@@ -488,9 +488,18 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
         document.getElementById("numT").innerHTML = numLetra;
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
+    } else if (numCamion !== maxCamion && elementoExistente === undefined ) {
+        numCamion=maxCamion+1;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        numE++;
+        numT = numE;
+        numLetra = numT + " - E";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
     }
+    
 });
-
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'E' || event.key === 'e') {
@@ -841,6 +850,10 @@ function hideClickedItem(viewer) {
     
     // Comprobar si hay algún botón con la clase 'seleccionado' sino es asi npo deja ocultar elementos
     const botonSeleccionado = document.querySelector('.seleccionado');
+
+    const botonSeleccionadoActual=botonSeleccionado;
+    console.log("BOTON SELEC ACTUAL"+botonSeleccionadoActual.id);
+  
     if (!botonSeleccionado) {
         alert('Debe seleccionar boton tipo de carga E, A C');
         return;
@@ -874,9 +887,17 @@ function hideClickedItem(viewer) {
             } else {
                 alert("El elemento "+precastElements[i].expressID+"  "+ precastElements[i].ifcType +" ya está cargado en el camion: "+precastElements[i].Camion);
             }
-             break; // Terminar el bucle una vez que se encuentra el primer objeto con el expressID correspondiente
+            break; 
         }
     }
+
+    camionesUnicos = obtenerValorCamion(precastElements);
+    generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual);
+
+   // var spanNumCamion = document.getElementById("numCamion");
+
+// Establecer el contenido del elemento con el valor de la variable
+//spanNumCamion.textContent = numCamion;
 }
 
 //Elimina de visor un elemento pulsado con boton derecho
@@ -1245,9 +1266,11 @@ GUI.importer.addEventListener("change", function(e) {
         clasificarPorTipoTransporte();
         actualizaDesplegables();
         creaTablaTransporte();
-
+        nuevoCamionEstructuraBtn.click();
     })
     .catch(error => console.error(error));
+
+    
 });
 
 function creaTablaTransporte() {
@@ -1309,7 +1332,6 @@ function buscaMaxTransporte(transporteA){
             camionMaximo = objetoActual;
         }
     }
-    console.log(camionMaximo);
     buscaValoresMax(camionMaximo);
 }
 
@@ -1332,13 +1354,14 @@ function buscaValoresMax(camionMaximo){
         }
         if (letraTrans==='E'){
             numE=numCamMax;
-            //numE++;
             numT=numE;
-            //document.getElementById("numT").textContent = numT + " - " + letraTrans;
+
             document.getElementById("numT").textContent =  "" ;
     }
+    
 }
 
+let camionesUnicos=[];
 
 async function mostrarElementosRestantes(){
     allIDs.splice(0, allIDs.length);
@@ -1356,7 +1379,7 @@ async function mostrarElementosRestantes(){
         }
     }
     //camionesUnicos es un array numerico con el valor de los diferentes camiones agrupados
-    const camionesUnicos = obtenerValorCamion(precastElements);
+    camionesUnicos = obtenerValorCamion(precastElements);
     //genera los botones en HTML con los diferentes camiones cargados
     generaBotonesNumCamion(camionesUnicos);
     viewer.IFC.loader.ifcManager.clearSubset(0,"full-model-subset");
@@ -1380,14 +1403,12 @@ function obtenerValorCamion(precastElements) {
     return Array.from(valoresCamion);
 }
 //crea los botones con la numeracion de los camiones, 
-function generaBotonesNumCamion(camionesUnicos) {
+function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
     viewer.IFC.selector.unpickIfcItems();
     const btnNumCamiones = document.getElementById("divNumCamiones");
     let botonesActivos = 0; // contador de botones activos
     let maximo = Math.max(...camionesUnicos.filter(num => !isNaN(num))); // filtramos los valores que no son NaN
 
-    document.getElementById("numCamion").innerText = "";
-    nuevoCamionEstructuraBtn.classList.remove("seleccionado");
 
     for (let i = 0; i < precastElements.length; i++) {
         if (parseInt(precastElements[i].Camion) === maximo) {
@@ -1396,6 +1417,7 @@ function generaBotonesNumCamion(camionesUnicos) {
         }
     }
     numCamion=maximo;
+    document.getElementById("numCamion").innerText = numCamion;
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
     
@@ -1580,7 +1602,6 @@ function celdaSeleccionadaColor(celdaSeleccionada) {
 
 
 function resaltarTabla(tabla, cabeceraValor) {
-    
     const tablas = document.querySelectorAll("#datosCamiones table");
     tablas.forEach(t => {
         if (t === tabla) {
@@ -1650,10 +1671,11 @@ function posicionesCamion(tabla, cabeceraValor) {
     tablaNueva.appendChild(cabeceraFila);
     
     for (let i = 0; i < tabla.rows.length; i++) { // Recorrer las filas de la tabla
-        for (let j = 0; j < tabla.rows[i].cells.length; j++) { // Recorrer las celdas de cada fila 
-            let valorCelda = tabla.rows[i].cells[j].innerText;  // Obtener el texto de la celda actual 
+      //  for (let j = 0; j < tabla.rows[i].cells.length; j++) { // Recorrer las celdas de cada fila 
+            //let valorCelda = tabla.rows[i].cells[j].innerText;  // Obtener el texto de la celda actual 
+            let valorCelda = tabla.rows[i].innerText;
             expressIdByCamion.push(parseInt(valorCelda)); 
-        } 
+       // } 
     }
 
     for (let i = 1; i <= 3; i++) {
@@ -1666,15 +1688,13 @@ function posicionesCamion(tabla, cabeceraValor) {
             cajon.classList.add("cajon");
             fila.appendChild(cajon);
 
-
-
             cajon.addEventListener("contextmenu", function(event) {
                 event.preventDefault();
                 asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
             });
 
-            cajon.addEventListener("dblclick", function() {
-                limpiaPosicion(cajon, contenidoCelda);
+            cajon.addEventListener("dblclick", function(event) {
+                limpiaPosicion(cajon, tabla);
             });
         }
         tablaNueva.appendChild(fila);
@@ -1685,11 +1705,23 @@ function posicionesCamion(tabla, cabeceraValor) {
     actualizaCajones(expressIdByCamion);
 }
 
+function limpiaPosicion(cajon, tabla){
+    contenidoCelda = cajon.textContent;
+    precastElements.forEach(function(obj) {
+        if (obj.expressID === parseInt(contenidoCelda)) {
+            obj.Posicion = "";
+        }
+    });
+    cajon.innerHTML = "";
 
-function limpiaPosicion(cajon, contenidoCelda){
-    console.log("ELIMANADO");
+    const celdas = tabla.getElementsByTagName("td");
+
+    for (let i = 0; i < celdas.length; i++) {
+        if (celdas[i].textContent === contenidoCelda) {
+            celdas[i].style.background = "";
+        }
+    }
 }
-
 
 function actualizaCajones(expressIdByCamion) {
     precastElements.forEach(objeto => {
