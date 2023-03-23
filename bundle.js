@@ -126856,7 +126856,7 @@ function generateCheckboxes(uniqueClasses) {
     let html = '';
     uniqueClasses.forEach(function(uniqueClass) {
         html += `<div class="checkbox-container">`;
-        html += `<button class="btn-notacion" data-id="${uniqueClass}"> </button>`;
+        // html += `<button class="btn-notacion" data-id="${uniqueClass}"> </button>`;
         html += `<input type="checkbox" checked data-class="${uniqueClass}">${uniqueClass}`;
         html += `</div>`;
     });
@@ -127461,6 +127461,7 @@ const actValorCamion = precastElements.find(element => element.expressID === (pa
     if (actValorCamion) {
         actValorCamion.Camion = "";
         actValorCamion.tipoTransporte = "";
+        actValorCamion.Posicion = "";
     }
 });
 
@@ -127508,9 +127509,6 @@ function hideClickedItem(viewer) {
     // Comprobar si hay algún botón con la clase 'seleccionado' sino es asi npo deja ocultar elementos
     const botonSeleccionado = document.querySelector('.seleccionado');
 
-    const botonSeleccionadoActual=botonSeleccionado;
-    console.log("BOTON SELEC ACTUAL"+botonSeleccionadoActual.id);
-  
     if (!botonSeleccionado) {
         alert('Debe seleccionar boton tipo de carga E, A C');
         return;
@@ -128087,6 +128085,8 @@ function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
                     
                 }
             });
+
+
             const isActive = btn.classList.contains("active");
             if (isActive) {
             //, elimina los elementos del visor y desactiva el botón
@@ -128192,6 +128192,7 @@ function showElementsByCamion(viewer, precastElements) {
 
 
 let contenidoCelda;
+let tablaResaltada = false;
 
 function generarTabla(expressIDs, camion) {
     const divTabla = document.getElementById("datosCamiones");
@@ -128207,11 +128208,17 @@ function generarTabla(expressIDs, camion) {
     expressIDs.forEach(id => {
         const tdElemento = document.createElement('td');
         tdElemento.textContent = id;
+        // Condicion si el elemento está en precastElements y si su propiedad "Posicion" no está vacía
+        const precastElem = precastElements.find(elem => elem.expressID === id && elem.Posicion !== "" && elem.Posicion !== undefined);
+        if (precastElem) {
+            tdElemento.style.backgroundColor = "#C5C5C5"; 
+        }
 
         tdElemento.addEventListener('contextmenu', function(event) {
             event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
             contenidoCelda = tdElemento.textContent;
             resaltarTabla(tabla, cabeceraValor);
+            tablaResaltada=true;
             celdaSeleccionadaColor(event.target);
             //viewer.IFC.selector.defSelectMat.color = new Color(255, 128, 0);
             viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], false);
@@ -128241,7 +128248,11 @@ function generarTabla(expressIDs, camion) {
 let ultimaCeldaSeleccionada = null;
 
 function celdaSeleccionadaColor(celdaSeleccionada) {
-celdaSeleccionada.style.backgroundColor = 'cyan';
+    if (tablaResaltada) {
+        if (ultimaCeldaSeleccionada && precastElements.some(elem => elem.expressID === ultimaCeldaSeleccionada.innerText && elem.Posicion)) {
+            ultimaCeldaSeleccionada.style.backgroundColor = '#C5C5C5';  
+        }
+    }celdaSeleccionada.style.backgroundColor = 'cyan';
         ultimaCeldaSeleccionada = celdaSeleccionada;
 }
 
@@ -128251,17 +128262,18 @@ function resaltarTabla(tabla, cabeceraValor) {
     tablas.forEach(t => {
         if (t === tabla) {
             t.style.border = "3px solid blue";
+            tablaResaltada = true;
             posicionesCamion(tabla, cabeceraValor); // argumentos tabla y valor de cabecera a la función posicionesCamion
         } else {
             t.style.border = "1px solid black";
         }
     });
     
-    if (ultimaCeldaSeleccionada && !tabla.contains(ultimaCeldaSeleccionada)) {
-        //ultimaCeldaSeleccionada.style.backgroundColor = '';
-        ultimaCeldaSeleccionada = null;
-    }
-    //actualiza coloreando celdas, para ver los eleemntos que ya estan asignados en el transporte
+    // if (ultimaCeldaSeleccionada && !tabla.contains(ultimaCeldaSeleccionada)) {
+    //     ultimaCeldaSeleccionada.style.backgroundColor = '';
+    //     ultimaCeldaSeleccionada = null;
+    // }
+    //actualiza coloreando celdas, para ver los elementos que ya estan asignados en el transporte
     for (let i = 0; i < tabla.rows.length; i++) {// recorre las filas de la tabla
          for (let j = 0; j < tabla.rows[i].cells.length; j++) { // recorre las celdas de cada fila 
             let valorCelda = tabla.rows[i].cells[j].innerText;// Obtiene el valor de la celda actual
