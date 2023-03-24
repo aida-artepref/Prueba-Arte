@@ -126981,6 +126981,7 @@ document.getElementById("numCamion").innerHTML = numCamion;
 document.getElementById("numT").innerHTML = numT + " - " + letraTransporte  ;
 actualizaDesplegables();
 
+
 function activarBoton(target, numCamActual) {
     const targetButton = document.getElementById(target);
     const buttons = document.querySelectorAll('.botonesTransporte');
@@ -126990,6 +126991,8 @@ function activarBoton(target, numCamActual) {
         }
     });
     targetButton.classList.add('seleccionado');
+    //numCamion=numCamActual;
+
 }
 
 function crearMenuDesplegable(numElementos, target) { // menú desplegable dinámico
@@ -127026,18 +127029,21 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
             break;
             }
         } 
+    
         if (camSeleccionado === null) {
             for (let objetoTransporte of tablaTransporte) {
                 if (objetoTransporte.tipoTransporte === tipoSeleccionado) {
                     numCamion = objetoTransporte.Camion;  // el valor de la propiedad Camion a la variable numCamion
-                    // document.getElementById("numCamion").innerHTML = numCamion;
+                    document.getElementById("numCamion").innerHTML = numCamion;
                     break; 
                 }
             }
             document.getElementById("numCamion").innerHTML = numCamion;
         }
-        numCamion = parseInt(document.getElementById("numCamion").innerHTML);
+        numCamion=camSeleccionado;
+        // numCamion = parseInt(document.getElementById("numCamion").innerHTML);
     });
+
     for (let i = 0; i <= numElementos; i++) {
         const option = document.createElement('option');
         option.text = i;
@@ -127126,7 +127132,7 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
     } else if (numCamion === maxCamion && elementoExistente === undefined) {
-        //numCamion=maxCamion+1;
+        numCamion=maxCamion+1;
         document.getElementById("numCamion").innerHTML = numCamion;
         //numE++;
         numT = numE;
@@ -127178,7 +127184,7 @@ document.addEventListener('keydown', function(event) {
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
         } else if (numCamion === maxCamion && elementoExistente === undefined) {
-            //numCamion=maxCamion+1;
+            numCamion=maxCamion+1;
             document.getElementById("numCamion").innerHTML = numCamion;
             //numE++;
             numT = numE;
@@ -127499,10 +127505,10 @@ function hideClickedItem(viewer) {
         if (precastElements[i].expressID === id) {
             if (precastElements[i].Camion === '' || precastElements[i].Camion === undefined) {
                 viewer.IFC.loader.ifcManager.removeFromSubset(
-                0,
-                [id],
-                'full-model-subset',
-                );
+                    0,
+                    [id],
+                    'full-model-subset',
+                    );
                 viewer.IFC.selector.unpickIfcItems();
                 elementosOcultos.push(id);
                 globalIds.push(globalId);// cuando oculto un elemnto su globalId se añade al array globalIds
@@ -127529,11 +127535,6 @@ function hideClickedItem(viewer) {
 
     camionesUnicos = obtenerValorCamion(precastElements);
     generaBotonesNumCamion(camionesUnicos);
-
-   // var spanNumCamion = document.getElementById("numCamion");
-
-// Establecer el contenido del elemento con el valor de la variable
-//spanNumCamion.textContent = numCamion;
 }
 
 //Elimina de visor un elemento pulsado con boton derecho
@@ -127890,7 +127891,7 @@ GUI.importer.addEventListener("change", function(e) {
         reader.readAsText(input); 
     });
     readCsvFile.then(() => {
-        // numCamion=buscaNumCamionMaximo();
+        
         mostrarElementosRestantes();
         clasificarPorTipoTransporte();
         actualizaDesplegables();
@@ -128268,11 +128269,12 @@ function eliminarTabla(camion) {
         const thElement = thElements[i];
         if (thElement.textContent.startsWith(camion.toString())) {
             const tablaAEliminar = thElement.closest('table');
-            tablaAEliminar.remove();
+            const contenedorAEliminar = tablaAEliminar.parentNode;
+            contenedorAEliminar.remove();
             break;
         }
     }
-    contenidoCelda=null;
+    contenidoCelda = null;
 }
 
 // Variable global para almacenar la referencia al cajón pulsado más recientemente
