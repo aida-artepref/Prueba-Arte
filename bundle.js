@@ -126677,6 +126677,12 @@ viewer.clipper.active = true;
 viewer.grid.setGrid();
 viewer.axes.setAxes();
 
+document.addEventListener("keydown", function(event) {
+    if (event.keyCode === 116) { // keyCode 116 es la tecla F5
+      event.preventDefault(); // evita que se procese 
+    }
+});
+
 viewer.context.renderer.usePostproduction = true;
 // viewer.IFC.selector.defHighlightMat.color = new Color(255, 128, 0);
 viewer.IFC.selector.defSelectMat.color = new Color(127, 255, 0);
@@ -126705,10 +126711,7 @@ let idsTotal;
 let elementosOcultos=[];
 let uniqueTypes=[];
 let precastElements=[];
-
-document.getElementById("toolbar");
-document.getElementById("hidebutton");
-
+let model;
 
 //cada vez elemento imput cambia, genera uURL y lo pasa a la lib IFC
 GUI.input.onchange = async (event) => {
@@ -126717,12 +126720,9 @@ GUI.input.onchange = async (event) => {
     loadModel(url); 
 };
 
-
-let model;
 //si el Ifc ya esta cargado por defecto y no selecciona atraves del input
 async function loadModel(url){
     model= await viewer.IFC.loadIfcUrl(url); 
-    
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
@@ -126737,9 +126737,7 @@ async function loadModel(url){
 
     cargaGlobalIdenPrecast();
     crearBotonPrecas();  
-    
     addCheckboxListeners() ;
-
     verNumPrecast();
 }
 
@@ -126748,18 +126746,10 @@ viewer.container = container;
 const navCube = new NavCube(viewer);
 navCube.onPick(model);
 viewer.clipper.active = true;
-// window.onkeydown = (event) => {
-// 	if (event.code === "KeyP") {
-// 		viewer.clipper.createPlane();
-// 	} else if (event.code === "KeyO") {
-// 		viewer.clipper.deletePlane();
-// 	}
-// };
-
 
 function verNumPrecast(){
     var divNumPrecast = document.createElement("div"); // se crea el div que va  a mostrar la info del num de elementos en precastElements
-    divNumPrecast.innerHTML =  precastElements.length; //muestra cantidad en HTML
+    divNumPrecast.innerHTML =  precastElements.length; //muestra cantidad elementos en HTML
     divNumPrecast.classList.add("divNumPrecast"); //estilo al div
     document.body.appendChild(divNumPrecast);
 }
@@ -126914,6 +126904,7 @@ function getWholeSubset(viewer, model, allIDs) {
 		customID: 'full-model-subset',
 	});
 }
+
 // function getWholeSubsetRojo(viewer, model, expressID, subset_name, materialRojo) {
 // 	return viewer.IFC.loader.ifcManager.createSubset({
 //         modelID: model.modelID,
@@ -126941,7 +126932,6 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 	items.ifcModels.push(subset);
 	items.pickableIfcModels.push(subset); 
 }
-
 
 window.ondblclick = () => hideClickedItem(viewer); //evento dblClic carga al camion elementos
 window.oncontextmenu=()=> hideClickedItemBtnDrch(viewer); //evento btnDrch oculta del visor elemento
@@ -127088,6 +127078,15 @@ const nuevoCamionCerramientoBtn = document.getElementById("nuevoCamionCerramient
 let botonSeleccionado = nuevoCamionEstructuraBtn;
 botonSeleccionado.classList.add("seleccionado");
 
+function buscaNumCamionMaximo(){
+    for (let i = 0; i < precastElements.length; i++) {
+        if (precastElements[i].Camion > numCamion) {
+            numCamion = precastElements[i].Camion;
+        }
+    }
+    return(numCamion);
+}
+
 let tablaTransporte = [{ Camion: 1, tipoTransporte: '1 - E' }];
 function funcTablaTransporte(numCamion, numLetra) {
     //  objeto con las propiedades Camion y tipoTransporte
@@ -127097,22 +127096,21 @@ function funcTablaTransporte(numCamion, numLetra) {
 }
 
 nuevoCamionEstructuraBtn.addEventListener("click", function() {
-    console.log("CLICADO EEEE");
     seleccionarBoton(nuevoCamionEstructuraBtn);
+    numCamion=buscaNumCamionMaximo();
     var maxCamion = 0;
-
     letraTransporte = "E";
     numT = numE;
     numLetra = numT + " - E";
     document.getElementById("numT").innerHTML = numLetra;
-
+    
     for (var i = 0; i < precastElements.length; i++) {
         if (precastElements[i].Camion > maxCamion) {
             maxCamion = precastElements[i].Camion;
         }
     }
     maxCamion=parseInt(maxCamion);
-    document.getElementById("numCamion").innerHTML = maxCamion+1;
+    
     var elementoExistente = precastElements.find(function(elemento) {
         return elemento.tipoTransporte === numLetra;
     });
@@ -127128,7 +127126,7 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
     } else if (numCamion === maxCamion && elementoExistente === undefined) {
-        numCamion=maxCamion+1;
+        //numCamion=maxCamion+1;
         document.getElementById("numCamion").innerHTML = numCamion;
         //numE++;
         numT = numE;
@@ -127137,7 +127135,7 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
     } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
-        numCamion=maxCamion+1;
+        numCamion++;
         document.getElementById("numCamion").innerHTML = numCamion;
         numE++;
         numT = numE;
@@ -127145,41 +127143,30 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
         document.getElementById("numT").innerHTML = numLetra;
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
-    } else if (numCamion !== maxCamion && elementoExistente === undefined ) {
-        numCamion=maxCamion+1;
-        document.getElementById("numCamion").innerHTML = numCamion;
-        numE++;
-        numT = numE;
-        numLetra = numT + " - E";
-        document.getElementById("numT").innerHTML = numLetra;
-        funcTablaTransporte(numCamion, numLetra);
-        actualizaDesplegables();
-    }
-    
+    } 
 });
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'E' || event.key === 'e') {
         seleccionarBoton(nuevoCamionEstructuraBtn);
+        numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
-        
         letraTransporte = "E";
         numT = numE;
         numLetra = numT + " - E";
         document.getElementById("numT").innerHTML = numLetra;
-    
+        
         for (var i = 0; i < precastElements.length; i++) {
             if (precastElements[i].Camion > maxCamion) {
                 maxCamion = precastElements[i].Camion;
             }
         }
         maxCamion=parseInt(maxCamion);
-        document.getElementById("numCamion").innerHTML = maxCamion+1;
-    
+        
         var elementoExistente = precastElements.find(function(elemento) {
             return elemento.tipoTransporte === numLetra;
         });
-    
+
         if (numCamion === maxCamion && elementoExistente !== undefined ) {
             numCamion++;
             numE++;
@@ -127191,7 +127178,7 @@ document.addEventListener('keydown', function(event) {
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
         } else if (numCamion === maxCamion && elementoExistente === undefined) {
-            numCamion=maxCamion+1;
+            //numCamion=maxCamion+1;
             document.getElementById("numCamion").innerHTML = numCamion;
             //numE++;
             numT = numE;
@@ -127200,7 +127187,7 @@ document.addEventListener('keydown', function(event) {
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
         } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
-            numCamion=maxCamion+1;
+            numCamion++;
             document.getElementById("numCamion").innerHTML = numCamion;
             numE++;
             numT = numE;
@@ -127208,15 +127195,15 @@ document.addEventListener('keydown', function(event) {
             document.getElementById("numT").innerHTML = numLetra;
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
-        }
+        } 
     }
 });
 
 nuevoCamionAlveolarBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionAlveolarBtn);
+    numCamion=buscaNumCamionMaximo();
     var maxCamion = 0;
 
-    document.getElementById("numCamion").innerHTML = numCamion;
     letraTransporte = "A";
     numT = numA;
     numLetra = numT + " - A";
@@ -127228,7 +127215,6 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
         }
     }
     maxCamion=parseInt(maxCamion);
-    document.getElementById("numCamion").innerHTML = maxCamion+1;
 
     var elementoExistente = precastElements.find(function(elemento) {
         return elemento.tipoTransporte === numLetra;
@@ -127254,7 +127240,6 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
     } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
-        numCamion=maxCamion+1;
         document.getElementById("numCamion").innerHTML = numCamion;
         numA++;
         numT = numA;
@@ -127268,9 +127253,9 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
 document.addEventListener('keydown', function(event) {
     if (event.key === 'a' || event.key === 'A') {
         seleccionarBoton(nuevoCamionAlveolarBtn);
+        numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
 
-        
         letraTransporte = "A";
         numT = numA;
         numLetra = numT + " - A";
@@ -127282,7 +127267,6 @@ document.addEventListener('keydown', function(event) {
             }
         }
         maxCamion=parseInt(maxCamion);
-        document.getElementById("numCamion").innerHTML = maxCamion+1;
 
         var elementoExistente = precastElements.find(function(elemento) {
             return elemento.tipoTransporte === numLetra;
@@ -127308,7 +127292,6 @@ document.addEventListener('keydown', function(event) {
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
         } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
-            numCamion=maxCamion+1;
             document.getElementById("numCamion").innerHTML = numCamion;
             numA++;
             numT = numA;
@@ -127322,6 +127305,7 @@ document.addEventListener('keydown', function(event) {
 
 nuevoCamionCerramientoBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionCerramientoBtn);
+    numCamion=buscaNumCamionMaximo();
     var maxCamion = 0;
 
     letraTransporte = "C";
@@ -127360,7 +127344,7 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
     } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
-        numCamion=maxCamion+1;
+        // numCamion=maxCamion+1;
         document.getElementById("numCamion").innerHTML = numCamion;
         numC++;
         numT = numC;
@@ -127374,12 +127358,14 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
 document.addEventListener('keydown', function(event) {
     if (event.key === 'c' || event.key === 'C') {
         seleccionarBoton(nuevoCamionCerramientoBtn);
+        numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
 
         letraTransporte = "C";
         numT = numC;
         numLetra = numT + " - C";
         document.getElementById("numT").innerHTML = numLetra;
+        document.getElementById("numCamion").innerHTML = numCamion;
 
         for (var i = 0; i < precastElements.length; i++) {
             if (precastElements[i].Camion > maxCamion) {
@@ -127387,7 +127373,7 @@ document.addEventListener('keydown', function(event) {
             }
         }
         maxCamion=parseInt(maxCamion);
-        document.getElementById("numCamion").innerHTML = maxCamion+1;
+        
         var elementoExistente = precastElements.find(function(elemento) {
             return elemento.tipoTransporte === numLetra;
         });
@@ -127405,14 +127391,12 @@ document.addEventListener('keydown', function(event) {
         } else if (numCamion === maxCamion && elementoExistente === undefined) {
             numCamion=maxCamion+1;
             document.getElementById("numCamion").innerHTML = numCamion;
-            //numE++;
             numT = numC;
             numLetra = numT + " - C";
             document.getElementById("numT").innerHTML = numLetra;
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
         } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
-            numCamion=maxCamion+1;
             document.getElementById("numCamion").innerHTML = numCamion;
             numC++;
             numT = numC;
@@ -127441,28 +127425,28 @@ function seleccionarBoton(boton) {
 const divCargas = document.querySelector('.divCargas');
 let listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
 listaElementos.addEventListener('dblclick', function(event) {
-const target = event.target;
-let elementoEliminadoTabla;
-if (target.tagName === 'TD') {
-    elementoEliminadoTabla = target.parentNode.firstChild.textContent;
-    target.parentNode.remove();
-    let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
-    if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
-        elementosOcultos.splice(indexToRemove, 1);
-        globalIds.splice(indexToRemove, 1);
+    const target = event.target;
+    let elementoEliminadoTabla;
+    if (target.tagName === 'TD') {
+        elementoEliminadoTabla = target.parentNode.firstChild.textContent;
+        target.parentNode.remove();
+        let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
+        if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
+            elementosOcultos.splice(indexToRemove, 1);
+            globalIds.splice(indexToRemove, 1);
+        }
+        allIDs.push(parseInt(elementoEliminadoTabla));
     }
-    allIDs.push(parseInt(elementoEliminadoTabla));
-}
-showAllItems(viewer, allIDs);
-const divCheck = document.getElementById("checktiposIfc");
-const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");// Obtener todos los checkbox dentro del div
-checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
-const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
-    if (actValorCamion) {
-        actValorCamion.Camion = "";
-        actValorCamion.tipoTransporte = "";
-        actValorCamion.Posicion = "";
-    }
+    showAllItems(viewer, allIDs);
+    const divCheck = document.getElementById("checktiposIfc");
+    const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");// Obtener todos los checkbox dentro del div
+    checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
+    const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
+        if (actValorCamion) {
+            actValorCamion.Camion = "";
+            actValorCamion.tipoTransporte = "";
+            actValorCamion.Posicion = "";
+        }
 });
 
 //muestra en HTML a través de una tabla los elemntos no visibles en visor
@@ -127492,13 +127476,10 @@ async function listarOcultos(elementosOcultos) {
     }
     table.appendChild(tbody);
     itemList.appendChild(table);
-
     $(table).tablesorter();//para ordenar la tabla si pulsamos en sus encabezados
-
 }
 
 function hideClickedItem(viewer) {
-
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
     const result = viewer.context.castRayIfc();
@@ -127506,7 +127487,7 @@ function hideClickedItem(viewer) {
     const manager = viewer.IFC.loader.ifcManager;
     const id = manager.getExpressId(result.object.geometry, result.faceIndex);
     
-    // Comprobar si hay algún botón con la clase 'seleccionado' sino es asi npo deja ocultar elementos
+    // Comprobar si hay algún botón con la clase 'seleccionado' sino es asi no deja cargar elementos
     const botonSeleccionado = document.querySelector('.seleccionado');
 
     if (!botonSeleccionado) {
@@ -127578,11 +127559,11 @@ reduceDivBtn.classList.add("cargas-btn");
 divCargas.insertBefore(reduceDivBtn, divCargas.childNodes[0]);
 
 reduceDivBtn.addEventListener("click", () => {
-    divCargas.style.width = "30px";
+    divCargas.style.width = "20px";
     reduceDivBtn.style.display = "none";
     const expandDivBtn = document.createElement("button");
 
-    expandDivBtn.innerHTML = '<span style="display: inline-block; vertical-align: middle; width: 30px; line-height: 30px;"></span>';
+    expandDivBtn.innerHTML = '<span style="display: inline-block; vertical-align: middle; width: 20px; line-height: 20px;"></span>';
 
     expandDivBtn.id = "expandDivBtn";
     expandDivBtn.style.verticalAlign = "middle"; // Centra el contenido verticalmente
@@ -127641,8 +127622,6 @@ async function precastProperties(precast,modelID, precastID){
     delete props.psets;
     delete props.type;
     
-    // precast['GlobalId'] = props['GlobalId'].value; //establece propiedad GlobalId en obj precast y le asigna un valor
-    // precast
     for (let pset in psets){
         psetName = psets[pset].Name.value;
         let properties = psets[pset].HasProperties;
@@ -127664,8 +127643,6 @@ async function precastProperties(precast,modelID, precastID){
             }
         }
     }
-    
-   // addPropEstructura();
 }
 
 //PAra crear arbol del proyecto cuando se selecciona ifc
@@ -127913,6 +127890,7 @@ GUI.importer.addEventListener("change", function(e) {
         reader.readAsText(input); 
     });
     readCsvFile.then(() => {
+        // numCamion=buscaNumCamionMaximo();
         mostrarElementosRestantes();
         clasificarPorTipoTransporte();
         actualizaDesplegables();
@@ -127961,6 +127939,8 @@ function clasificarPorTipoTransporte() {
             case "E":
             transporteE.push(precastElements[i]);
             break;
+            // default:
+            // break;
         }
     }
     buscaMaxTransporte(transporteA);
@@ -128037,7 +128017,6 @@ async function mostrarElementosRestantes(){
     await listarOcultos(elementosOcultos);
 }
 
-
 //devuelve los valores de camion agrupados
 function obtenerValorCamion(precastElements) {
     const valoresCamion = new Set();
@@ -128058,7 +128037,6 @@ function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
     let botonesActivos = 0; // contador de botones activos
     let maximo = Math.max(...camionesUnicos.filter(num => !isNaN(num))); // filtramos los valores que no son NaN
 
-
     for (let i = 0; i < precastElements.length; i++) {
         if (parseInt(precastElements[i].Camion) === maximo) {
             tipoTransporteMaximo = precastElements[i].tipoTransporte;
@@ -128074,19 +128052,15 @@ function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
         const btn = document.createElement("button");
         btn.setAttribute("class","btnNumCamion");
         btn.textContent = camion;
-        
         btnNumCamiones.appendChild(btn);
         btn.addEventListener("click", function() {
             const expressIDs = [];
-            
             precastElements.forEach(function(precastElement) {
                 if (parseInt(precastElement.Camion) === camion) {
                     expressIDs.push(precastElement.expressID);
                     
                 }
             });
-
-
             const isActive = btn.classList.contains("active");
             if (isActive) {
             //, elimina los elementos del visor y desactiva el botón
@@ -128109,7 +128083,7 @@ function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
                 generarTabla(expressIDs, camion);
                 botonesActivos++;
             }
-            if (botonesActivos === 0) { // si las cargas están desactivados muestra lementos que faltan por transportar
+            if (botonesActivos === 0) { // si las cargas están desactivados muestra elementos que faltan por transportar
                 showAllItems(viewer, allIDs);
             }
         });
@@ -128190,7 +128164,6 @@ function showElementsByCamion(viewer, precastElements) {
     }, delay);
 }
 
-
 let contenidoCelda;
 let tablaResaltada = false;
 
@@ -128213,7 +128186,6 @@ function generarTabla(expressIDs, camion) {
         if (precastElem) {
             tdElemento.style.backgroundColor = "#C5C5C5"; 
         }
-
         tdElemento.addEventListener('contextmenu', function(event) {
             event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
             contenidoCelda = tdElemento.textContent;
@@ -128222,24 +128194,20 @@ function generarTabla(expressIDs, camion) {
             celdaSeleccionadaColor(event.target);
             //viewer.IFC.selector.defSelectMat.color = new Color(255, 128, 0);
             viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], false);
-            
         });
         const fila = document.createElement('tr');
         fila.appendChild(tdElemento);
         cuerpo.appendChild(fila);
     });
-
     const tabla = document.createElement('table');// Tabla completa
     tabla.classList.add('tabla');
     tabla.appendChild(cabecera);
     tabla.appendChild(cuerpo);
     const contenedorTabla = document.createElement("div");// Contenedor  agrega estilos CSS
     contenedorTabla.classList.add('contenedor-tabla');
-
     contenedorTabla.addEventListener("click", function() {
         resaltarTabla(tabla, cabeceraValor);
     });
-
     contenedorTabla.appendChild(tabla);
     thElemento.classList.add('cabecera-tabla');
     divTabla.appendChild(contenedorTabla);
@@ -128255,7 +128223,6 @@ function celdaSeleccionadaColor(celdaSeleccionada) {
     }celdaSeleccionada.style.backgroundColor = 'cyan';
         ultimaCeldaSeleccionada = celdaSeleccionada;
 }
-
 
 function resaltarTabla(tabla, cabeceraValor) {
     const tablas = document.querySelectorAll("#datosCamiones table");
@@ -128351,6 +128318,10 @@ function posicionesCamion(tabla, cabeceraValor) {
 
             cajon.addEventListener("dblclick", function(event) {
                 limpiaPosicion(cajon, tabla);
+            });
+
+            cajon.addEventListener("click", function(event) {
+                viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(cajon.textContent)], false);
             });
         }
         tablaNueva.appendChild(fila);
