@@ -127074,6 +127074,7 @@ document.addEventListener('click', function(event) {
     buttons.forEach(function(button) {
         button.classList.remove('seleccionado');
     });
+    
 });
 
 const nuevoCamionEstructuraBtn = document.getElementById("nuevoCamionEstructura");
@@ -127495,6 +127496,7 @@ function hideClickedItem(viewer) {
     
     // Comprobar si hay algún botón con la clase 'seleccionado' sino es asi no deja cargar elementos
     const botonSeleccionado = document.querySelector('.seleccionado');
+    const botonSeleccionadoActual=botonSeleccionado;
 
     if (!botonSeleccionado) {
         alert('Debe seleccionar boton tipo de carga E, A C');
@@ -127534,6 +127536,7 @@ function hideClickedItem(viewer) {
     }
 
     camionesUnicos = obtenerValorCamion(precastElements);
+    console.log(botonSeleccionadoActual);
     generaBotonesNumCamion(camionesUnicos);
 }
 
@@ -128044,8 +128047,8 @@ function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
             break;
         }
     }
-    numCamion=maximo;
-    document.getElementById("numCamion").innerText = numCamion;
+    //numCamion=maximo;
+    //document.getElementById("numCamion").innerText = numCamion;
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
     
