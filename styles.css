@@ -693,3 +693,18 @@ td.cajon::before {
   height: 100%;
   opacity: 0;
 }
+
+
+#numT {
+  font-size: 20px;
+  background-color: rgb(189, 155, 194);
+  padding: 10px; 
+margin-right: 30px;
+border: 1px solid #333;
+border-radius: 5px;
+box-shadow:5px grey;
+color: black;}
+
+
+#numCamion {
+  color: black;}
