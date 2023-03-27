@@ -127968,7 +127968,7 @@ GUI.importer.addEventListener("change", function(e) {
         reader.readAsText(input); 
     });
     readCsvFile.then(() => {
-       
+        // numCamion=buscaNumCamionMaximo();
         mostrarElementosRestantes();
         clasificarPorTipoTransporte();
         actualizaDesplegables();

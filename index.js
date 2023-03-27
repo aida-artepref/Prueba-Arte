@@ -1306,7 +1306,11 @@ GUI.importer.addEventListener("change", function(e) {
         reader.readAsText(input); 
     });
     readCsvFile.then(() => {
+<<<<<<< HEAD
        
+=======
+        
+>>>>>>> main
         mostrarElementosRestantes();
         clasificarPorTipoTransporte();
         actualizaDesplegables();
