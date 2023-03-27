@@ -127460,6 +127460,7 @@ document.addEventListener('keydown', function(event) {
             document.getElementById("numT").innerHTML = numLetra;
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
+
         } else if (numCamion === maxCamion && elementoExistente === undefined) {
             numCamion=maxCamion+1;
             document.getElementById("numCamion").innerHTML = numCamion;
@@ -127468,6 +127469,7 @@ document.addEventListener('keydown', function(event) {
             document.getElementById("numT").innerHTML = numLetra;
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
+
         } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
             document.getElementById("numCamion").innerHTML = numCamion;
             numC++;
@@ -127476,6 +127478,7 @@ document.addEventListener('keydown', function(event) {
             document.getElementById("numT").innerHTML = numLetra;
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
+
         }else if (numCamion !== maxCamion && elementoExistente === undefined ) {
             numCamion="";
             numCamion=parseInt(buscaNumCamionMaximo())+1;
@@ -127967,8 +127970,9 @@ GUI.importer.addEventListener("change", function(e) {
         };
         reader.readAsText(input); 
     });
+
     readCsvFile.then(() => {
-        // numCamion=buscaNumCamionMaximo();
+
         mostrarElementosRestantes();
         clasificarPorTipoTransporte();
         actualizaDesplegables();

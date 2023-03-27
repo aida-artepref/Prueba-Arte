@@ -3,7 +3,6 @@ import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
 
-
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color(255,255,255)});
 
@@ -794,6 +793,7 @@ document.addEventListener('keydown', function(event) {
             document.getElementById("numT").innerHTML = numLetra;
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
+
         } else if (numCamion === maxCamion && elementoExistente === undefined) {
             numCamion=maxCamion+1;
             document.getElementById("numCamion").innerHTML = numCamion;
@@ -802,6 +802,7 @@ document.addEventListener('keydown', function(event) {
             document.getElementById("numT").innerHTML = numLetra;
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
+
         } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
             document.getElementById("numCamion").innerHTML = numCamion;
             numC++;
@@ -810,6 +811,7 @@ document.addEventListener('keydown', function(event) {
             document.getElementById("numT").innerHTML = numLetra;
             funcTablaTransporte(numCamion, numLetra);
             actualizaDesplegables();
+
         }else if (numCamion !== maxCamion && elementoExistente === undefined ) {
             numCamion="";
             numCamion=parseInt(buscaNumCamionMaximo())+1;
@@ -1305,12 +1307,9 @@ GUI.importer.addEventListener("change", function(e) {
         };
         reader.readAsText(input); 
     });
+
     readCsvFile.then(() => {
-<<<<<<< HEAD
-       
-=======
-        
->>>>>>> main
+
         mostrarElementosRestantes();
         clasificarPorTipoTransporte();
         actualizaDesplegables();
