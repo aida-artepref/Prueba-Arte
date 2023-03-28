@@ -261,16 +261,16 @@ ul, #myUL {
 
   #reduceDivBtn, #expandDivBtn {
     position: absolute;
-    right: -20px;
+    right: -25px;
     top: calc(50% - 15px);
     width: 20px;
-    border-radius: 50px;
+    border-radius: 20px;
     border: 1px solid rgb(63, 63, 63);
     color: #fff;
     font-size: 20px;
     cursor: pointer;
     z-index: 1;
-    box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.5);
     background-color: #bdbcbc;
     line-height: 30px;
     text-align: center;
@@ -340,7 +340,7 @@ ul, #myUL {
   .item-list-elementos-cargados li {
     margin-bottom: 5px;
     padding: 5px;
-    border: 1px solid #d4d4d4;
+    border: 1px solid hsl(0, 0%, 83%);
     border-radius: 5px;
     background-color: #f7f7f7;
     color: #333;
@@ -350,7 +350,7 @@ ul, #myUL {
     bottom: 21%;
     left:10px;
     background-color:rgba(255, 255, 255, 0.267);
-    border: 1px solid gray;
+    border: 1px solid rgb(126, 126, 126);
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     padding: 10px;
     width: auto;
@@ -409,7 +409,7 @@ ul, #myUL {
 
 
 #btnCreaPrecast{
-  background-color: #e20a17;
+  background-color: #7939393f;
 }
 
 
@@ -504,6 +504,7 @@ button {
   height: 100%;
   overflow-x: auto;
   border-right: 1px solid black; /* agregar un borde derecho de 1px */
+  
 }
 
 #posicionCamion {
@@ -702,9 +703,18 @@ td.cajon::before {
 margin-right: 30px;
 border: 1px solid #333;
 border-radius: 5px;
-box-shadow:5px grey;
+box-shadow:0px 2px 5px rgba(0,0,0,0.5);
 color: black;}
 
 
 #numCamion {
   color: black;}
+
+select.seleccionado {
+    background-color: rgb(189, 155, 194);
+}
+  
+#barraSuperior .button {
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+}
+

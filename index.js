@@ -4,10 +4,12 @@ import { IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
 
 const container = document.getElementById('viewer-container');
-const viewer = new IfcViewerAPI({container, backgroundColor: new Color(255,255,255)});
+const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
+
+
 
 viewer.clipper.active = true;
-viewer.grid.setGrid();
+viewer.grid.setGrid(200,100);
 viewer.axes.setAxes();
 
 document.addEventListener("keydown", function(event) {
@@ -54,8 +56,25 @@ GUI.input.onchange = async (event) => {
 }
 
 //si el Ifc ya esta cargado por defecto y no selecciona atraves del input
-async function loadModel(url){
-    model= await viewer.IFC.loadIfcUrl(url); 
+async function loadModel(url) {
+    // const progressContainer = document.getElementById('progress-container');
+    // progressContainer.style.display = 'block';
+
+    // const progressBar = document.getElementById('progress-bar');
+    // let progress = 0;
+    // drawProgress(progress);
+
+    // model = await viewer.IFC.loadIfcUrl(url, function (progressEvent) {
+    //   if (progressEvent.lengthComputable) {
+    //     progress = progressEvent.loaded / progressEvent.total;
+    //     drawProgress(progress);
+    //   }
+    // });
+
+    // Ocultar la barra de progreso al finalizar la carga del modelo
+    //progressContainer.style.display = 'none';
+
+    model = await viewer.IFC.loadIfcUrl(url);
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
@@ -68,6 +87,8 @@ async function loadModel(url){
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
 
+
+    viewer.shadows = true;
     cargaGlobalIdenPrecast();
     crearBotonPrecas();  
     addCheckboxListeners() ;
@@ -75,10 +96,26 @@ async function loadModel(url){
 
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
-    reduceDivBtn.click();
-
+    expandeDivBtn.click();
 }
 
+// function drawProgress(progress) {
+//     const canvas = document.getElementById('progress-bar');
+//     const context = canvas.getContext('2d');
+//     const x = canvas.width / 2;
+//     const y = canvas.height / 2;
+//     const radius = 30;
+//     const startAngle = -0.5 * Math.PI;
+//     const endAngle = (2 * progress - 0.5) * Math.PI;
+//     const counterClockwise = false;
+
+//     context.clearRect(0, 0, canvas.width, canvas.height);
+//     context.beginPath();
+//     context.arc(x, y, radius, startAngle, endAngle, counterClockwise);
+//     context.lineWidth = 10;
+//     context.strokeStyle = '#4CAF50';
+//     context.stroke();
+// }
 //Nave cube
 viewer.container = container;
 const navCube = new NavCube(viewer);
@@ -106,7 +143,7 @@ function crearBotonPrecas(){
     // Agrega un ID y una clase al nuevo botón
     btnCreaPrecast.id = "btnCreaPrecast";
     btnCreaPrecast.className;
-    btnCreaPrecast.textContent = "Pulsa";// Agrega el texto que deseas que aparezca en el botón
+    btnCreaPrecast.textContent = "Añade Prop";// Agrega el texto que deseas que aparezca en el botón
 
     // Obtiene una referencia al último botón existente
     var ultimoBoton = document.querySelector(".button-container .button:last-of-type");
@@ -161,7 +198,7 @@ function setIfcPropertiesContent(ifcProject, viewer, model) {
             const checkbox = event.currentTarget.parentElement.querySelector('input[type="checkbox"]');
             if (checkbox !== null) {
                 const classValue = checkbox.getAttribute('data-class');
-                console.log("Has pulsado el botón : " + classValue);
+                //console.log("Has pulsado el botón : " + classValue);
             }
         });
     });
@@ -375,6 +412,8 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
             }
         } 
     
+        this.classList.add('seleccionado');
+
         if (camSeleccionado === null) {
             for (let objetoTransporte of tablaTransporte) {
                 if (objetoTransporte.tipoTransporte === tipoSeleccionado) {
@@ -396,7 +435,6 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
         // if (i === 0) { // Si el valor de la opción es 0
         //     option.setAttribute("disabled", true); // Deshabilitar la opción
         // }
-        
         select.add(option);
     }
     return select;
@@ -503,6 +541,9 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
     } else if (numCamion !== maxCamion && elementoExistente === undefined ) {
         numCamion="";
         numCamion=parseInt(buscaNumCamionMaximo())+1;
+        if (isNaN(numCamion)) {
+            numCamion = 1;
+        }
         document.getElementById("numCamion").innerHTML = numCamion;
         numT = numE;
         numLetra = numT + " - E";
@@ -564,8 +605,10 @@ document.addEventListener('keydown', function(event) {
         } else if (numCamion !== maxCamion && elementoExistente === undefined ) {
             numCamion="";
             numCamion=parseInt(buscaNumCamionMaximo())+1;
+            if (isNaN(numCamion)) {
+                numCamion = 1;
+            }
             document.getElementById("numCamion").innerHTML = numCamion;
-            //numE++;
             numT = numE;
             numLetra = numT + " - E";
             document.getElementById("numT").innerHTML = numLetra;
@@ -579,23 +622,19 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
     seleccionarBoton(nuevoCamionAlveolarBtn);
     numCamion=buscaNumCamionMaximo();
     var maxCamion = 0;
-
     letraTransporte = "A";
     numT = numA;
     numLetra = numT + " - A";
     document.getElementById("numT").innerHTML = numLetra;
-
     for (var i = 0; i < precastElements.length; i++) {
         if (precastElements[i].Camion > maxCamion) {
             maxCamion = precastElements[i].Camion;
         }
     }
     maxCamion=parseInt(maxCamion);
-
     var elementoExistente = precastElements.find(function(elemento) {
         return elemento.tipoTransporte === numLetra;
     });
-
     if (numCamion === maxCamion && elementoExistente !== undefined ) {
         numCamion++;
         numA++;
@@ -609,7 +648,6 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
     } else if (numCamion === maxCamion && elementoExistente === undefined) {
         numCamion=maxCamion+1;
         document.getElementById("numCamion").innerHTML = numCamion;
-        //numA++;
         numT = numA;
         numLetra = numT + " - A";
         document.getElementById("numT").innerHTML = numLetra;
@@ -626,6 +664,9 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
     }else if (numCamion !== maxCamion && elementoExistente === undefined ) {
         numCamion="";
         numCamion=parseInt(buscaNumCamionMaximo())+1;
+        if (isNaN(numCamion)) {
+            numCamion = 1;
+        }
         document.getElementById("numCamion").innerHTML = numCamion;
         numT = numA;
         numLetra = numT + " - A";
@@ -687,8 +728,10 @@ document.addEventListener('keydown', function(event) {
         }else if (numCamion !== maxCamion && elementoExistente === undefined ) {
             numCamion="";
             numCamion=parseInt(buscaNumCamionMaximo())+1;
+            if (isNaN(numCamion)) {
+                numCamion = 1;
+            }
             document.getElementById("numCamion").innerHTML = numCamion;
-            //numE++;
             numT = numA;
             numLetra = numT + " - A";
             document.getElementById("numT").innerHTML = numLetra;
@@ -750,8 +793,10 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
     }else if (numCamion !== maxCamion && elementoExistente === undefined ) {
         numCamion="";
         numCamion=parseInt(buscaNumCamionMaximo())+1;
+        if (isNaN(numCamion)) {
+            numCamion = 1;
+        }
         document.getElementById("numCamion").innerHTML = numCamion;
-        //numE++;
         numT = numC;
         numLetra = numT + " - C";
         document.getElementById("numT").innerHTML = numLetra;
@@ -815,6 +860,9 @@ document.addEventListener('keydown', function(event) {
         }else if (numCamion !== maxCamion && elementoExistente === undefined ) {
             numCamion="";
             numCamion=parseInt(buscaNumCamionMaximo())+1;
+            if (isNaN(numCamion)) {
+                numCamion = 1;
+            }
             document.getElementById("numCamion").innerHTML = numCamion;
             numT = numC;
             numLetra = numT + " - C";
@@ -832,7 +880,6 @@ function seleccionarBoton(boton) {
     });
     botonSeleccionado = boton;
     botonSeleccionado.classList.add("seleccionado");
-    console.log("Botón seleccionado:", botonSeleccionado);
 }
 
 //Lógica para eliminar de la tabla HTML los elementos cargados, volver a visualizarlos
@@ -907,12 +954,10 @@ function hideClickedItem(viewer) {
     // Comprobar si hay algún botón con la clase 'seleccionado' sino es asi no deja cargar elementos
     const botonSeleccionado = document.querySelector('.seleccionado');
     const botonSeleccionadoActual=botonSeleccionado;
-
     if (!botonSeleccionado) {
         alert('Debe seleccionar boton tipo de carga E, A C');
         return;
     }
-
     for (let i = 0; i < precastElements.length; i++) {
         if (precastElements[i].expressID === id) {
             if (precastElements[i].Camion === '' || precastElements[i].Camion === undefined) {
@@ -944,9 +989,7 @@ function hideClickedItem(viewer) {
             break; 
         }
     }
-
     camionesUnicos = obtenerValorCamion(precastElements);
-    console.log(botonSeleccionadoActual);
     generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual);
 }
 
@@ -1604,7 +1647,7 @@ function generarTabla(expressIDs, camion) {
         // Condicion si el elemento está en precastElements y si su propiedad "Posicion" no está vacía
         const precastElem = precastElements.find(elem => elem.expressID === id && elem.Posicion !== "" && elem.Posicion !== undefined);
         if (precastElem) {
-            tdElemento.style.backgroundColor = "#C5C5C5"; 
+            tdElemento.style.backgroundColor = "189,155,194"; 
         }
         tdElemento.addEventListener('contextmenu', function(event) {
             event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
@@ -1638,7 +1681,7 @@ let ultimaCeldaSeleccionada = null;
 function celdaSeleccionadaColor(celdaSeleccionada) {
     if (tablaResaltada) {
         if (ultimaCeldaSeleccionada && precastElements.some(elem => elem.expressID === ultimaCeldaSeleccionada.innerText && elem.Posicion)) {
-            ultimaCeldaSeleccionada.style.backgroundColor = '#C5C5C5';  
+            ultimaCeldaSeleccionada.style.backgroundColor = '#BD9BC2';  
         }
     }celdaSeleccionada.style.backgroundColor = 'cyan';
         ultimaCeldaSeleccionada = celdaSeleccionada;
@@ -1648,7 +1691,8 @@ function resaltarTabla(tabla, cabeceraValor) {
     const tablas = document.querySelectorAll("#datosCamiones table");
     tablas.forEach(t => {
         if (t === tabla) {
-            t.style.border = "3px solid blue";
+            t.style.border = "3px solid rgb(135,76,143)";
+            t.style.boxShadow = "10px 10px 10px rgba(0, 0, 0, 0.5)";
             tablaResaltada = true;
             posicionesCamion(tabla, cabeceraValor); // argumentos tabla y valor de cabecera a la función posicionesCamion
         } else {
@@ -1668,7 +1712,7 @@ function resaltarTabla(tabla, cabeceraValor) {
                 let expressID = precastElements[k].expressID; // obtiene el valor de la propiedad expressID del objeto actual
                 let posicion = precastElements[k].Posicion; // obtener el valor de la propiedad Posicion del objeto actual 
                 if (valorCelda == expressID && posicion) {// cuando el valor de la celda coincide con el valor de la propiedad expressID y hay algún valor en la propiedad Posicion 
-                    tabla.rows[i].cells[j].style.backgroundColor = `#C5C5C5`; // Cambiar el fondo de la celda a gris 
+                    tabla.rows[i].cells[j].style.backgroundColor = `#BD9BC2`; // Cambiar el fondo de la celda a gris 
                     break; 
                 } 
                 if (valorCelda == expressID && posicion==="") {// cuando el valor de la celda coincide con el valor de la propiedad expressID y hay algún valor en la propiedad Posicion 
@@ -1748,8 +1792,6 @@ function posicionesCamion(tabla, cabeceraValor) {
         tablaNueva.appendChild(fila);
     }
     posicionCamion.appendChild(tablaNueva);
-
-    //console.log(expressIdByCamion +" TODOS LOS expressID DEL CAMION SELECCIONADO");
     actualizaCajones(expressIdByCamion);
 }
 
@@ -1792,7 +1834,6 @@ function actualizaCajones(expressIdByCamion) {
 
 function asignaIdCelda(cajon, contenidoCelda, expressIdByCamion){
     if (!expressIdByCamion.includes(parseInt(contenidoCelda))) {// El contenidoCelda no está incluido en el array expressIdByCamion
-        console.log("NO SE PUEDE INCLUIR EN ESTE CAMION")
         return;
     }
 
@@ -1811,7 +1852,7 @@ function asignaIdCelda(cajon, contenidoCelda, expressIdByCamion){
     for (let i = 0; i < precastElements.length; i++) {
         if (precastElements[i].expressID === parseInt(contenidoCelda)) {
             precastElements[i].Posicion = posicionCajon;
-            ultimaCeldaSeleccionada.style.backgroundColor = '#C5C5C5';
+            ultimaCeldaSeleccionada.style.backgroundColor = '#BD9BC2';
             break;
         }
     }
