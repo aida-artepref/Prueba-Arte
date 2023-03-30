@@ -1494,7 +1494,65 @@ function obtenerValorCamion(precastElements) {
     return Array.from(valoresCamion);
 }
 //crea los botones con la numeracion de los camiones, 
-function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
+// function generaBotonesNumCamion(camionesUnicos) {
+//     viewer.IFC.selector.unpickIfcItems();
+    
+//     const btnNumCamiones = document.getElementById("divNumCamiones");
+//     let botonesActivos = 0; // contador de botones activos
+//     let maximo = Math.max(...camionesUnicos.filter(num => !isNaN(num))); // filtramos los valores que no son NaN
+
+//     for (let i = 0; i < precastElements.length; i++) {
+//         if (parseInt(precastElements[i].Camion) === maximo) {
+//             tipoTransporteMaximo = precastElements[i].tipoTransporte;
+//             break;
+//         }
+//     }
+//     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
+//     agregarBotonCero();
+//     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
+    
+//     camionesUnicos.forEach(function(camion) {
+//         const btn = document.createElement("button");
+//         btn.setAttribute("class","btnNumCamion")
+//         btn.textContent = camion;
+//         btnNumCamiones.appendChild(btn);
+//         btn.addEventListener("click", function() {
+//             const expressIDs = [];
+//             precastElements.forEach(function(precastElement) {
+//                 if (parseInt(precastElement.Camion) === camion) {
+//                     expressIDs.push(precastElement.expressID);
+                    
+//                 }
+//             });
+//             const isActive = btn.classList.contains("active");
+//             if (isActive) {
+//             //, elimina los elementos del visor y desactiva el botón
+//                 viewer.IFC.selector.unpickIfcItems();
+//                 hideAllItems(viewer, expressIDs);
+//                 btn.classList.remove("active");
+//                 btn.style.justifyContent = "center";
+//                 btn.style.color = "";
+//                 eliminarTabla(camion);
+//                 const posicionCamion = document.getElementById("posicionCamion");
+//                 posicionCamion.innerHTML = ""; // limpia el contenido previo del div
+//                 botonesActivos--;
+//             } else {
+//                 //  muestra los elementos en tabla en el visor y activa el botón
+//                 viewer.IFC.selector.unpickIfcItems();
+//                 hideAllItems(viewer, allIDs);
+//                 showAllItems(viewer, expressIDs);
+//                 btn.classList.add("active");
+//                 btn.style.color = "red";
+//                 generarTabla(expressIDs, camion);
+//                 botonesActivos++;
+//             }
+//             if (botonesActivos === 0) { // si las cargas están desactivados muestra elementos que faltan por transportar
+//                 showAllItems(viewer, allIDs);
+//             }
+//         });
+//     });
+// }
+function generaBotonesNumCamion(camionesUnicos) {
     viewer.IFC.selector.unpickIfcItems();
     
     const btnNumCamiones = document.getElementById("divNumCamiones");
@@ -1507,8 +1565,6 @@ function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
             break;
         }
     }
-    //numCamion=maximo;
-    //document.getElementById("numCamion").innerText = numCamion;
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
     agregarBotonCero();
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
@@ -1517,6 +1573,20 @@ function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
         const btn = document.createElement("button");
         btn.setAttribute("class","btnNumCamion")
         btn.textContent = camion;
+        
+        precastElements.forEach(function(precastElement) {
+            if (parseInt(precastElement.Camion) === camion) {
+                const tipoTransporte = precastElement.tipoTransporte;
+                if (tipoTransporte.includes("E")) {
+                    btn.style.backgroundColor = "#6d4c90";
+                } else if (tipoTransporte.includes("A")) {
+                    btn.style.backgroundColor = "#4c7a90";
+                } else if (tipoTransporte.includes("C")) {
+                    btn.style.backgroundColor = "#90834c";
+                }
+            }
+        });
+        
         btnNumCamiones.appendChild(btn);
         btn.addEventListener("click", function() {
             const expressIDs = [];
@@ -1553,7 +1623,6 @@ function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
             }
         });
     });
-
 }
 
 function agregarBotonCero() {
