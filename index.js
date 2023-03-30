@@ -6,8 +6,6 @@ import { NavCube } from './NavCube/NavCube.js';
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 
-
-
 viewer.clipper.active = true;
 viewer.grid.setGrid(200,100);
 viewer.axes.setAxes();
@@ -96,7 +94,7 @@ async function loadModel(url) {
 
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
-    expandeDivBtn.click();
+    //expandeDivBtn.click();
 }
 
 // function drawProgress(progress) {
@@ -432,9 +430,6 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
         const option = document.createElement('option');
         option.text = i;
 
-        // if (i === 0) { // Si el valor de la opción es 0
-        //     option.setAttribute("disabled", true); // Deshabilitar la opción
-        // }
         select.add(option);
     }
     return select;
@@ -984,7 +979,12 @@ function hideClickedItem(viewer) {
                     allIDs.splice(indexToRemove, 1);
                 } 
             } else {
+                
                 alert("El elemento "+precastElements[i].expressID+"  "+ precastElements[i].ifcType +" ya está cargado en el camion: "+precastElements[i].Camion);
+                document.getElementById("datosCamiones").innerHTML = "";
+                document.getElementById("posicionCamion").innerHTML = "";
+                hideAllItems(viewer, elementosOcultos);
+                showAllItems ( viewer, allIDs);
             }
             break; 
         }
@@ -1496,6 +1496,7 @@ function obtenerValorCamion(precastElements) {
 //crea los botones con la numeracion de los camiones, 
 function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
     viewer.IFC.selector.unpickIfcItems();
+    
     const btnNumCamiones = document.getElementById("divNumCamiones");
     let botonesActivos = 0; // contador de botones activos
     let maximo = Math.max(...camionesUnicos.filter(num => !isNaN(num))); // filtramos los valores que no son NaN
@@ -1509,6 +1510,7 @@ function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
     //numCamion=maximo;
     //document.getElementById("numCamion").innerText = numCamion;
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
+    agregarBotonCero();
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
     
     camionesUnicos.forEach(function(camion) {
@@ -1551,7 +1553,7 @@ function generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual) {
             }
         });
     });
-agregarBotonCero();
+
 }
 
 function agregarBotonCero() {
@@ -1577,13 +1579,25 @@ function agregarBotonCero() {
             btnCero.style.color = "";
         } else {
             hideAllItems(viewer, idsTotal);
+            const botones = document.querySelectorAll('#divNumCamiones button');
+
+            botones.forEach(function(boton) {
+                boton.classList.remove('active');
+                boton.style.border = '1px solid white';
+                boton.style.color="white";
+            });
+            document.getElementById("datosCamiones").innerHTML = "";
+            document.getElementById("posicionCamion").innerHTML = "";
             btnCero.classList.add("active");
             btnCero.style.justifyContent = "center";
-            btnCero.style.color = "";
+            
             showElementsByCamion(viewer, precastElements);
         }
     });
 }
+
+    // document.getElementById("datosCamiones").innerHTML = "";
+    // document.getElementById("posicionCamion").innerHTML = "";
 
 function showElementsByCamion(viewer, precastElements) {
     // Crear el div y el label
@@ -1630,6 +1644,8 @@ function showElementsByCamion(viewer, precastElements) {
 let contenidoCelda;
 let tablaResaltada = false;
 
+
+
 function generarTabla(expressIDs, camion) {
     const divTabla = document.getElementById("datosCamiones");
     const precastElement = precastElements.find(elem => parseInt(elem.Camion) === camion);
@@ -1647,7 +1663,7 @@ function generarTabla(expressIDs, camion) {
         // Condicion si el elemento está en precastElements y si su propiedad "Posicion" no está vacía
         const precastElem = precastElements.find(elem => elem.expressID === id && elem.Posicion !== "" && elem.Posicion !== undefined);
         if (precastElem) {
-            tdElemento.style.backgroundColor = "189,155,194"; 
+            tdElemento.style.backgroundColor = "#BD9BC2"; 
         }
         tdElemento.addEventListener('contextmenu', function(event) {
             event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
@@ -1683,27 +1699,23 @@ function celdaSeleccionadaColor(celdaSeleccionada) {
         if (ultimaCeldaSeleccionada && precastElements.some(elem => elem.expressID === ultimaCeldaSeleccionada.innerText && elem.Posicion)) {
             ultimaCeldaSeleccionada.style.backgroundColor = '#BD9BC2';  
         }
-    }celdaSeleccionada.style.backgroundColor = 'cyan';
+    }celdaSeleccionada.style.backgroundColor = '#e8cdba';
         ultimaCeldaSeleccionada = celdaSeleccionada;
 }
+
+let tablaActual; // variable global para almacenar la tabla actualmente resaltada
 
 function resaltarTabla(tabla, cabeceraValor) {
     const tablas = document.querySelectorAll("#datosCamiones table");
     tablas.forEach(t => {
         if (t === tabla) {
-            t.style.border = "3px solid rgb(135,76,143)";
-            t.style.boxShadow = "10px 10px 10px rgba(0, 0, 0, 0.5)";
+            t.style.border = "3px solid red";
             tablaResaltada = true;
             posicionesCamion(tabla, cabeceraValor); // argumentos tabla y valor de cabecera a la función posicionesCamion
         } else {
             t.style.border = "1px solid black";
         }
     });
-    
-    // if (ultimaCeldaSeleccionada && !tabla.contains(ultimaCeldaSeleccionada)) {
-    //     ultimaCeldaSeleccionada.style.backgroundColor = '';
-    //     ultimaCeldaSeleccionada = null;
-    // }
     //actualiza coloreando celdas, para ver los elementos que ya estan asignados en el transporte
     for (let i = 0; i < tabla.rows.length; i++) {// recorre las filas de la tabla
          for (let j = 0; j < tabla.rows[i].cells.length; j++) { // recorre las celdas de cada fila 
@@ -1748,10 +1760,15 @@ function posicionesCamion(tabla, cabeceraValor) {
     const posicionCamion = document.getElementById("posicionCamion");
     posicionCamion.innerHTML = ""; // limpia el contenido previo del div
     const tablaNueva = document.createElement("table");
+    tablaNueva.style.marginTop = "5px";
+    tablaNueva.style.marginLeft = "10px";
+    tablaNueva.style.borderCollapse = "collapse";
+    tablaNueva.style.border = "2px solid #874c8f";
+
     const cabeceraFila = document.createElement("tr");
     const cabeceraCajon = document.createElement("th");
     cabeceraCajon.setAttribute("colspan", "5");
-    cabeceraCajon.style.border = "1px solid black";
+    cabeceraCajon.style.border = "2px solid #874c8f";
     cabeceraCajon.style.textAlign = "center";
     cabeceraCajon.style.verticalAlign = "middle";
     cabeceraCajon.innerText = cabeceraValor;
@@ -1778,7 +1795,9 @@ function posicionesCamion(tabla, cabeceraValor) {
 
             cajon.addEventListener("contextmenu", function(event) {
                 event.preventDefault();
-                asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
+                if (cajon.innerText === '') {
+                    asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
+                }
             });
 
             cajon.addEventListener("dblclick", function(event) {
@@ -1832,22 +1851,30 @@ function actualizaCajones(expressIdByCamion) {
     });
 }
 
-function asignaIdCelda(cajon, contenidoCelda, expressIdByCamion){
-    if (!expressIdByCamion.includes(parseInt(contenidoCelda))) {// El contenidoCelda no está incluido en el array expressIdByCamion
+function asignaIdCelda(cajon, contenidoCelda, expressIdByCamion) {
+    if (!expressIdByCamion.includes(parseInt(contenidoCelda))) {
+        // El contenidoCelda no está incluido en el array expressIdByCamion
         return;
     }
 
-    let valorExiste = false;
-    if (cajon.innerText !== "") {
-        valorExiste = true;
+    // let valorExiste = false;
+    let cajones = document.querySelectorAll(".cajon");
+    for (let i = 0; i < cajones.length; i++) {
+        if (cajones[i] !== cajon && cajones[i].innerText === contenidoCelda) {
+            // El valor ya está en otro cajón, lo eliminamos antes de asignarlo al cajón actual
+            cajones[i].innerText = "";
+            break;
+        }
     }
-    if (ultimoCajonPulsado) {
-        ultimoCajonPulsado.innerText = "";
-    }
+
+    // if (cajon.innerText !== "") {
+    //     valorExiste = true;
+    // }
+
     cajon.innerText = contenidoCelda;
     ultimoCajonPulsado = cajon;
 
-    // Agregar el valor del ID del cajón pulsado al array precstElements
+    // Agregar el valor del ID del cajón pulsado al array precastElements
     const posicionCajon = cajon.id;
     for (let i = 0; i < precastElements.length; i++) {
         if (precastElements[i].expressID === parseInt(contenidoCelda)) {
