@@ -378,7 +378,23 @@ function activarBoton(target, numCamActual) {
 function crearMenuDesplegable(numElementos, target) { // menú desplegable dinámico
     const select = document.createElement('select'); // controlador de eventos en el elemento select.
     select.setAttribute('data-target', target);
+
     select.addEventListener('change', function() {
+  // Obtener el botón padre del elemento select
+  const botonPadre = this.parentNode;
+
+  // Activar el botón correspondiente al desplegable seleccionado
+  botonPadre.classList.add('active');
+  botonPadre.classList.add('seleccionado');
+
+  // Desactivar otros botones si es necesario
+  const botones = document.querySelectorAll('button');
+  for (let boton of botones) {
+    if (boton !== botonPadre && boton.classList.contains('seleccionado')) {
+      boton.classList.remove('active');
+      boton.classList.remove('seleccionado');
+    }
+  }
         numCamActual = parseInt(this.value); //numCamActual  valor entero del elemento select
         numT=numCamActual;
         
@@ -388,7 +404,7 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
         activarBoton(this.getAttribute('data-target'), numCamActual);
 
         letraTransporte = '';
-        const botonPadre = this.parentNode;
+        // const botonPadre = this.parentNode;
         if (botonPadre.id === 'menosA') {
             letraTransporte = 'A';
         } else if (botonPadre.id === 'menosC') {
