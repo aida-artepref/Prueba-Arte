@@ -748,7 +748,6 @@ select.seleccionado {
 #barraSuperior .button {
   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
 }
-
 .icono-ojo {
   width: 30px;
   height: 30px;
@@ -756,12 +755,18 @@ select.seleccionado {
   background-size: contain;
   margin: auto;
   /* border: 1px solid rgb(0, 0, 0) !important; */
-  background-color: #dbdbdb !important;
   text-align: center;
   padding: 0 !important;
   cursor: pointer;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9) ;
 }
 
 .icono-ojo i {
   display: inline-block;
+}
+
+.icono-ojo-silueta::before {
+  content: "\f06e"; /* Código Unicode del icono de ojo sin tachar */
+  font-family: "Font Awesome 5 Free"; /* Nombre de la fuente que contiene el icono */
+  font-weight: 900; /* Peso de la fuente */
 }

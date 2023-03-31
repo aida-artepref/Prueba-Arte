@@ -889,42 +889,60 @@ function seleccionarBoton(boton) {
     });
     botonSeleccionado = boton;
     botonSeleccionado.classList.add("seleccionado");
+    
+    // var btns = document.querySelectorAll('.icono-ojo');
+    // console.log(btns.length);
+    // for (var i = 0; i < btns.length; i++) {
+    //     btns[i].style.border = '';
+    //     btns[i].style.backgroundColor = '';
+    // }
 }
 
-// Seleccionar botones de la tercera fila
+// seleccion de botones de la tercera fila - icono
 let ultimoBotonClicadojo = null;
-
 const iconosOjo = document.querySelectorAll('.icono-ojo');
 iconosOjo.forEach(boton => {
     boton.addEventListener('click', function () {
         generarTablaPorLetra(boton.dataset.letra);
         if (ultimoBotonClicadojo && ultimoBotonClicadojo !== boton) {
             ultimoBotonClicadojo.style.border = '';
+            ultimoBotonClicadojo.querySelector('i').classList.remove('fa-eye');
+            ultimoBotonClicadojo.querySelector('i').classList.add('fa-eye-slash');
+            ultimoBotonClicadojo.style.backgroundColor = ''; 
         }
         if (boton.style.border === "1px solid red") {
             boton.style.border = '';
+            boton.querySelector('i').classList.remove('fa-eye');
+            boton.querySelector('i').classList.add('fa-eye-slash');
+            boton.style.backgroundColor = '';
+            boton.querySelector('i').style.color = '';
             ultimoBotonClicadojo = null;
-        } else {
+        }  else {
             boton.style.border = "1px solid red";
-            ultimoBotonClicadojo = boton;
-        }
-        const botonesConBordeRojo = document.querySelectorAll('.icono-ojo[style="border: 1px solid red;"]');
-        console.log(botonesConBordeRojo.length);
-        if (botonesConBordeRojo.length === 0 && !ultimoBotonClicadojo) {
-            console.log("Debe mostarr toda la tabla");
-            listarOcultos(elementosOcultos);
-        } 
+            boton.style.borderRadius = "5px";
+            boton.querySelector('i').classList.remove('fa-eye-slash');
+            boton.querySelector('i').classList.add('fa-eye');
+            
+            // Agregar el color de fondo del botón superior al botón clickeado
+            const tipoCarga = document.getElementById('tipoCarga');
+            const botonesFila1 = tipoCarga.querySelectorAll('.boton-carga');
+            const letra = boton.dataset.letra.toUpperCase();
+            const botonFila1 = Array.from(botonesFila1).find(boton => boton.innerText === letra);
+            if (botonFila1) {
+                const colorFondo = botonFila1.dataset.color;
+                boton.style.backgroundColor = colorFondo;
+                botonFila1.click();
+            }
+        ultimoBotonClicadojo = boton;
+    }
+    const botonesConBordeRojo = document.querySelectorAll('.icono-ojo[style="border: 1px solid red;"]');
+    if (botonesConBordeRojo.length === 0 && !ultimoBotonClicadojo) {
+        listarOcultos(elementosOcultos);
+    } 
     });
 });
 
 
-const iconoE = document.querySelector("#iconoE");
-const iconoA = document.querySelector("#iconoA");
-const iconoC = document.querySelector("#iconoC");
-
-// iconoE.addEventListener("click", () => generarTablaPorLetra("E"));
-// iconoA.addEventListener("click", () => generarTablaPorLetra("A"));
-// iconoC.addEventListener("click", () => generarTablaPorLetra("C"));
 
 function generarTablaPorLetra(letra) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
