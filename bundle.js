@@ -127047,21 +127047,19 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
     select.setAttribute('data-target', target);
 
     select.addEventListener('change', function() {
-  // Obtener el botón padre del elemento select
-  const botonPadre = this.parentNode;
+        const botonPadre = this.parentNode; //  botón padre del elemento select
 
-  // Activar el botón correspondiente al desplegable seleccionado
-  botonPadre.classList.add('active');
-  botonPadre.classList.add('seleccionado');
+        botonPadre.classList.add('active');
+        botonPadre.classList.add('seleccionado');
 
-  // Desactivar otros botones si es necesario
-  const botones = document.querySelectorAll('button');
-  for (let boton of botones) {
-    if (boton !== botonPadre && boton.classList.contains('seleccionado')) {
-      boton.classList.remove('active');
-      boton.classList.remove('seleccionado');
-    }
-  }
+        // desactiva otros botones si es necesario
+        const botones = document.querySelectorAll('button');
+        for (let boton of botones) {
+            if (boton !== botonPadre && boton.classList.contains('seleccionado')) {
+            boton.classList.remove('active');
+            boton.classList.remove('seleccionado');
+            }
+        }
         numCamActual = parseInt(this.value); //numCamActual  valor entero del elemento select
         numT=numCamActual;
         
@@ -127559,6 +127557,69 @@ function seleccionarBoton(boton) {
     botonSeleccionado = boton;
     botonSeleccionado.classList.add("seleccionado");
 }
+
+// Seleccionar botones de la tercera fila
+let ultimoBotonClicadojo = null;
+
+const iconosOjo = document.querySelectorAll('.icono-ojo');
+iconosOjo.forEach(boton => {
+    boton.addEventListener('click', function () {
+        generarTablaPorLetra(boton.dataset.letra);
+        if (ultimoBotonClicadojo && ultimoBotonClicadojo !== boton) {
+            ultimoBotonClicadojo.style.border = '';
+        }
+        if (boton.style.border === "1px solid red") {
+            boton.style.border = '';
+            ultimoBotonClicadojo = null;
+        } else {
+            boton.style.border = "1px solid red";
+            ultimoBotonClicadojo = boton;
+        }
+        const botonesConBordeRojo = document.querySelectorAll('.icono-ojo[style="border: 1px solid red;"]');
+        console.log(botonesConBordeRojo.length);
+        if (botonesConBordeRojo.length === 0 && !ultimoBotonClicadojo) {
+            console.log("Debe mostarr toda la tabla");
+            listarOcultos(elementosOcultos);
+        } 
+    });
+});
+
+
+document.querySelector("#iconoE");
+document.querySelector("#iconoA");
+document.querySelector("#iconoC");
+
+// iconoE.addEventListener("click", () => generarTablaPorLetra("E"));
+// iconoA.addEventListener("click", () => generarTablaPorLetra("A"));
+// iconoC.addEventListener("click", () => generarTablaPorLetra("C"));
+
+function generarTablaPorLetra(letra) {
+    const itemList = document.querySelector(".item-list-elementos-cargados");
+    itemList.innerHTML = "";
+    const table = document.createElement("table");
+    table.classList.add("table");
+    const thead = document.createElement("thead");
+    thead.innerHTML ="<tr><th>expressID</th><th>GlobalId</th><th>Camion</th><th>Tipo</th><th>Volumen</th></tr>";
+    table.appendChild(thead);
+    const filteredElements = precastElements.filter((elemento) => elemento.tipoTransporte.includes(letra) );
+    const tbody = document.createElement("tbody");
+    for (let i = filteredElements.length - 1; i >= 0; i--) {
+        const id = filteredElements[i].expressID;
+        const elemento = precastElements.find((elemento) => elemento.expressID === id);
+        if (!elemento) {
+            throw new Error(`No se encontró el elemento con expressID = ${id}`);
+        }
+        const tr = document.createElement("tr");
+        tr.classList.add("item-list-elemento");
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.tipoTransporte}</td><td>${elemento.Volumen_real}</td>`;
+        tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    itemList.appendChild(table);
+    $(table).tablesorter();
+}
+
+
 
 //Lógica para eliminar de la tabla HTML los elementos cargados, volver a visualizarlos
 //los elementos que borra de la tabla HTML los devuelve al array allIDs
@@ -128171,65 +128232,7 @@ function obtenerValorCamion(precastElements) {
     
     return Array.from(valoresCamion);
 }
-//crea los botones con la numeracion de los camiones, 
-// function generaBotonesNumCamion(camionesUnicos) {
-//     viewer.IFC.selector.unpickIfcItems();
-    
-//     const btnNumCamiones = document.getElementById("divNumCamiones");
-//     let botonesActivos = 0; // contador de botones activos
-//     let maximo = Math.max(...camionesUnicos.filter(num => !isNaN(num))); // filtramos los valores que no son NaN
 
-//     for (let i = 0; i < precastElements.length; i++) {
-//         if (parseInt(precastElements[i].Camion) === maximo) {
-//             tipoTransporteMaximo = precastElements[i].tipoTransporte;
-//             break;
-//         }
-//     }
-//     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
-//     agregarBotonCero();
-//     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
-    
-//     camionesUnicos.forEach(function(camion) {
-//         const btn = document.createElement("button");
-//         btn.setAttribute("class","btnNumCamion")
-//         btn.textContent = camion;
-//         btnNumCamiones.appendChild(btn);
-//         btn.addEventListener("click", function() {
-//             const expressIDs = [];
-//             precastElements.forEach(function(precastElement) {
-//                 if (parseInt(precastElement.Camion) === camion) {
-//                     expressIDs.push(precastElement.expressID);
-                    
-//                 }
-//             });
-//             const isActive = btn.classList.contains("active");
-//             if (isActive) {
-//             //, elimina los elementos del visor y desactiva el botón
-//                 viewer.IFC.selector.unpickIfcItems();
-//                 hideAllItems(viewer, expressIDs);
-//                 btn.classList.remove("active");
-//                 btn.style.justifyContent = "center";
-//                 btn.style.color = "";
-//                 eliminarTabla(camion);
-//                 const posicionCamion = document.getElementById("posicionCamion");
-//                 posicionCamion.innerHTML = ""; // limpia el contenido previo del div
-//                 botonesActivos--;
-//             } else {
-//                 //  muestra los elementos en tabla en el visor y activa el botón
-//                 viewer.IFC.selector.unpickIfcItems();
-//                 hideAllItems(viewer, allIDs);
-//                 showAllItems(viewer, expressIDs);
-//                 btn.classList.add("active");
-//                 btn.style.color = "red";
-//                 generarTabla(expressIDs, camion);
-//                 botonesActivos++;
-//             }
-//             if (botonesActivos === 0) { // si las cargas están desactivados muestra elementos que faltan por transportar
-//                 showAllItems(viewer, allIDs);
-//             }
-//         });
-//     });
-// }
 function generaBotonesNumCamion(camionesUnicos) {
     viewer.IFC.selector.unpickIfcItems();
     

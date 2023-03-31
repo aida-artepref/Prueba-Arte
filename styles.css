@@ -41,6 +41,7 @@
     border: var(--border);
     border-radius: 0.5rem;
     user-select: none;
+    -webkit-user-select: none;
     cursor: pointer;
 }
 
@@ -54,6 +55,7 @@
   border: var(--border);
   border-radius: 0.5rem;
   user-select: none;
+  -webkit-user-select: none;
   cursor: pointer;
   text-align: center;
   cursor: pointer;
@@ -189,6 +191,7 @@ ul, #myUL {
   .caret {
     cursor: pointer;
     user-select: none; /* Prevent text selection */
+    -webkit-user-select: none;
   }
   
   /* Create the caret/arrow with a unicode, and style it */
@@ -588,7 +591,7 @@ input[type="checkbox"] {
 .boton-carga {
   background-color: white;
   color: black;
-  border: none;
+  border: 1px solid #000 !important;
   padding: 10px 20px;
   font-size: 18px;
 }
@@ -596,7 +599,7 @@ input[type="checkbox"] {
 .boton-carga.seleccionado {
   background-color: var(--boton-activo-fondo);
   color: white; 
-  border-radius: 20px;
+  border-radius: 80px;
   border: 1px solid rgb(255, 0, 0) !important;
   
 }
@@ -746,3 +749,19 @@ select.seleccionado {
   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
 }
 
+.icono-ojo {
+  width: 30px;
+  height: 30px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin: auto;
+  /* border: 1px solid rgb(0, 0, 0) !important; */
+  background-color: #dbdbdb !important;
+  text-align: center;
+  padding: 0 !important;
+  cursor: pointer;
+}
+
+.icono-ojo i {
+  display: inline-block;
+}

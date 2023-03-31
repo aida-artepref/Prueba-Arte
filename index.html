@@ -28,15 +28,21 @@
         <div id="viewer-container">
             <div class="divCargas"  style="display: none;" >
               <div class="titleCargas" >
-                <div id="tipoCarga" style="display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr;">
+                <div id="tipoCarga" style="display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 0.5fr 0.5fr; ">
                   <button id="nuevoCamionEstructura" class="boton-carga" data-color="#6d4c90"><strong>E</strong></button>
                   <button id="nuevoCamionAlveolar" class="boton-carga" data-color="#4c7a90"><strong>A</strong></button>
                   <button id="nuevoCamionCerramiento" class="boton-carga" data-color="#90834c"><strong>C</strong></button>
-              
-                  <button id="menosE" class="botonesMenos" style="grid-row: 2;">-</button>
-                  <button id="menosA" class="botonesMenos" style="grid-row: 2;">-</button>
-                  <button id="menosC" class="botonesMenos" style="grid-row: 2;">-</button>
+                
+                  <button id="menosE" class="botonesMenos" style="grid-row: 2; grid-row-end: span 1; height: 30px;">-</button>
+                  <button id="menosA" class="botonesMenos" style="grid-row: 2; grid-row-end: span 1; height: 30px;">-</button>
+                  <button id="menosC" class="botonesMenos" style="grid-row: 2; grid-row-end: span 1; height: 30px;">-</button>
+                
+                  <button id="iconoE" class="icono-ojo"data-letra="E"><i class="far fa-eye-slash"></i></button>
+                  <button id="iconoA" class="icono-ojo"data-letra="A"><i class="far fa-eye-slash"></i></button>
+                  <button id="iconoC" class="icono-ojo"data-letra="C"><i class="far fa-eye-slash"></i></button>
                 </div>
+                
+                
                 
                   <span id="numCamion"> {{numCamion}} </span> 
                   <span id="numT"> {{numT}} </span>
