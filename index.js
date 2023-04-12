@@ -532,7 +532,6 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
     } else if (numCamion === maxCamion && elementoExistente === undefined) {
         numCamion=maxCamion+1;
         document.getElementById("numCamion").innerHTML = numCamion;
-        //numE++;
         numT = numE;
         numLetra = numT + " - E";
         document.getElementById("numT").innerHTML = numLetra;
@@ -883,26 +882,23 @@ document.addEventListener('keydown', function(event) {
 });
 
 function seleccionarBoton(boton) {
+
     const botonesTipoCarga = document.querySelectorAll('#tipoCarga button');
     botonesTipoCarga.forEach((boton) => {
         boton.classList.remove('seleccionado');
     });
     botonSeleccionado = boton;
     botonSeleccionado.classList.add("seleccionado");
-    
-    // var btns = document.querySelectorAll('.icono-ojo');
-    // console.log(btns.length);
-    // for (var i = 0; i < btns.length; i++) {
-    //     btns[i].style.border = '';
-    //     btns[i].style.backgroundColor = '';
-    // }
+
 }
+
 
 // seleccion de botones de la tercera fila - icono
 let ultimoBotonClicadojo = null;
 const iconosOjo = document.querySelectorAll('.icono-ojo');
 iconosOjo.forEach(boton => {
     boton.addEventListener('click', function () {
+        
         generarTablaPorLetra(boton.dataset.letra);
         if (ultimoBotonClicadojo && ultimoBotonClicadojo !== boton) {
             ultimoBotonClicadojo.style.border = '';
@@ -945,6 +941,9 @@ iconosOjo.forEach(boton => {
 
 
 function generarTablaPorLetra(letra) {
+    console.log("PULSADO DE LETRA: "+letra);
+        
+    console.log("De tipo "+typeof(letra));
     const itemList = document.querySelector(".item-list-elementos-cargados");
     itemList.innerHTML = "";
     const table = document.createElement("table");
@@ -952,7 +951,17 @@ function generarTablaPorLetra(letra) {
     const thead = document.createElement("thead");
     thead.innerHTML ="<tr><th>expressID</th><th>GlobalId</th><th>Camion</th><th>Tipo</th><th>Volumen</th></tr>";
     table.appendChild(thead);
-    const filteredElements = precastElements.filter((elemento) => elemento.tipoTransporte.includes(letra) );
+
+    //const filteredElements = precastElements.filter((elemento) => elemento.tipoTransporte.includes(letra) );
+    // const filteredElements = precastElements.filter((elemento) => elemento.tipoTransporte.includes(letra));
+    // const filteredElements = precastElements.filter((elemento) => elemento.tipoTransporte.toLowerCase().includes(letra.toLowerCase()));
+    const filteredElements = precastElements.filter((elemento) => {
+        if (elemento.hasOwnProperty("tipoTransporte")) {
+            return elemento.tipoTransporte.includes(letra);
+        }
+        return false;
+    });
+    
     const tbody = document.createElement("tbody");
     for (let i = filteredElements.length - 1; i >= 0; i--) {
         const id = filteredElements[i].expressID;
@@ -1064,6 +1073,8 @@ function hideClickedItem(viewer) {
                 if (actValorCamion) {
                     actValorCamion.Camion = numCamion ;
                     actValorCamion.tipoTransporte = numT + ' - ' + letraTransporte;
+                    actValorCamion.letraTransporte=letraTransporte;
+                    actValorCamion.numTransporte=numT;
                     actValorCamion.Posicion="";
                 }
                 listarOcultos(elementosOcultos);
@@ -1809,7 +1820,7 @@ function celdaSeleccionadaColor(celdaSeleccionada) {
         ultimaCeldaSeleccionada = celdaSeleccionada;
 }
 
-let tablaActual; // variable global para almacenar la tabla actualmente resaltada
+// let tablaActual; // variable global para almacenar la tabla actualmente resaltada
 
 function resaltarTabla(tabla, cabeceraValor) {
     const tablas = document.querySelectorAll("#datosCamiones table");
@@ -1858,8 +1869,6 @@ function eliminarTabla(camion) {
     contenidoCelda = null;
 }
 
-// Variable global para almacenar la referencia al cajón pulsado más recientemente
-let ultimoCajonPulsado = null;
 
 function posicionesCamion(tabla, cabeceraValor) { 
     let expressIdByCamion = [];
@@ -1881,12 +1890,9 @@ function posicionesCamion(tabla, cabeceraValor) {
     cabeceraFila.appendChild(cabeceraCajon);
     tablaNueva.appendChild(cabeceraFila);
     
-    for (let i = 0; i < tabla.rows.length; i++) { // Recorrer las filas de la tabla
-      //  for (let j = 0; j < tabla.rows[i].cells.length; j++) { // Recorrer las celdas de cada fila 
-            //let valorCelda = tabla.rows[i].cells[j].innerText;  // Obtener el texto de la celda actual 
+    for (let i = 0; i < tabla.rows.length; i++) { // Recorrer las filas de la tabla 
             let valorCelda = tabla.rows[i].innerText;
             expressIdByCamion.push(parseInt(valorCelda)); 
-       // } 
     }
 
     for (let i = 1; i <= 3; i++) {
