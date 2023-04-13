@@ -127549,14 +127549,22 @@ document.addEventListener('keydown', function(event) {
 });
 
 function seleccionarBoton(boton) {
-
     const botonesTipoCarga = document.querySelectorAll('#tipoCarga button');
+    document.querySelectorAll('.icono-ojo');
     botonesTipoCarga.forEach((boton) => {
         boton.classList.remove('seleccionado');
     });
     botonSeleccionado = boton;
     botonSeleccionado.classList.add("seleccionado");
-
+    
+    // botonesIconoOjo.forEach((botonIcono) => {
+    //     if (botonIcono.style.backgroundColor !== "") {
+    //         botonIcono.style.backgroundColor = "";
+    //         const icono = botonIcono.querySelector('i');
+    //         icono.classList.remove('fa-eye');
+    //         icono.classList.add('fa-eye-slash');
+    //     }
+    // });
 }
 
 
@@ -127565,7 +127573,6 @@ let ultimoBotonClicadojo = null;
 const iconosOjo = document.querySelectorAll('.icono-ojo');
 iconosOjo.forEach(boton => {
     boton.addEventListener('click', function () {
-        
         generarTablaPorLetra(boton.dataset.letra);
         if (ultimoBotonClicadojo && ultimoBotonClicadojo !== boton) {
             ultimoBotonClicadojo.style.border = '';
@@ -127595,6 +127602,7 @@ iconosOjo.forEach(boton => {
                 const colorFondo = botonFila1.dataset.color;
                 boton.style.backgroundColor = colorFondo;
                 botonFila1.click();
+                //botonFila1.classList.add('seleccionado');
             }
         ultimoBotonClicadojo = boton;
     }
@@ -127608,9 +127616,6 @@ iconosOjo.forEach(boton => {
 
 
 function generarTablaPorLetra(letra) {
-    console.log("PULSADO DE LETRA: "+letra);
-        
-    console.log("De tipo "+typeof(letra));
     const itemList = document.querySelector(".item-list-elementos-cargados");
     itemList.innerHTML = "";
     const table = document.createElement("table");
@@ -128532,61 +128537,164 @@ function eliminarTabla(camion) {
 }
 
 
-function posicionesCamion(tabla, cabeceraValor) { 
-    let expressIdByCamion = [];
+function posicionesCamion(tabla, cabeceraValor) {
+    const expressIdByCamion = [];
     const posicionCamion = document.getElementById("posicionCamion");
     posicionCamion.innerHTML = ""; // limpia el contenido previo del div
+
     const tablaNueva = document.createElement("table");
     tablaNueva.style.marginTop = "5px";
     tablaNueva.style.marginLeft = "10px";
     tablaNueva.style.borderCollapse = "collapse";
-    tablaNueva.style.border = "2px solid #874c8f";
+    tablaNueva.style.border = "2px solid";
+    tablaNueva.style.height = "95%";
+    let cantidadFilas, cantidadColumnas;
 
+    if (cabeceraValor.includes("E")) {
+        cantidadFilas = 3;
+        cantidadColumnas = 5;
+        tablaNueva.style.borderColor = "#874c8f";
+    } else if (cabeceraValor.includes("A")) {
+        cantidadFilas = 4;
+        cantidadColumnas = 4;
+        tablaNueva.style.borderColor = "#4c7a90";
+    } else if (cabeceraValor.includes("C")) {
+        cantidadFilas = 1;
+        cantidadColumnas = 13;
+        tablaNueva.style.borderColor = "#90834c";
+    } else {// Si el cabeceraValor no incluye ninguna de las letras especificadas
+        console.error("CabeceraValor no válido");
+        return;
+    }
     const cabeceraFila = document.createElement("tr");
     const cabeceraCajon = document.createElement("th");
-    cabeceraCajon.setAttribute("colspan", "5");
-    cabeceraCajon.style.border = "2px solid #874c8f";
+    cabeceraCajon.setAttribute("colspan", cantidadColumnas);
     cabeceraCajon.style.textAlign = "center";
     cabeceraCajon.style.verticalAlign = "middle";
     cabeceraCajon.innerText = cabeceraValor;
     cabeceraFila.appendChild(cabeceraCajon);
     tablaNueva.appendChild(cabeceraFila);
+
     
-    for (let i = 0; i < tabla.rows.length; i++) { // Recorrer las filas de la tabla 
-            let valorCelda = tabla.rows[i].innerText;
-            expressIdByCamion.push(parseInt(valorCelda)); 
+
+    for (let i = 0; i < tabla.rows.length; i++) {
+        let valorCelda = tabla.rows[i].innerText;
+        expressIdByCamion.push(parseInt(valorCelda));
     }
-
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 0; i < cantidadFilas; i++) {
         const fila = document.createElement("tr");
-        for (let j = 1; j <= 5; j++) {
-            const cajon = document.createElement("td");
-            const idCajon = (i - 1) * 5 + j; // Calcular el número del cajón
-            cajon.setAttribute("id",  idCajon);
-            cajon.setAttribute("data-id", idCajon);
-            cajon.classList.add("cajon");
-            fila.appendChild(cajon);
-
-            cajon.addEventListener("contextmenu", function(event) {
+            if (cantidadFilas === 1) {
+                fila.style.height = "95%";
+            }
+            for (let j = 0; j < cantidadColumnas; j++) {
+                const cajon = document.createElement("td");
+                
+                if(cantidadFilas===4){
+                    cajon.style.height = "38px";
+                    
+                    if (j === 1) {
+                        cajon.style.borderRight = "3px solid #4c7a90"; //  borde derecho 
+                    }
+                }
+                if(cantidadFilas===1){
+                    if (j === 6) {
+                        cajon.style.borderRight = "3px solid #90834c"; //  borde derecho 
+                        cajon.style.borderLeft = "3px solid #90834c";
+                    }
+                }
+                const idCajon = i * cantidadColumnas + j + 1;
+                cajon.setAttribute("id", idCajon);
+                cajon.setAttribute("data-id", idCajon);
+                cajon.classList.add("cajon");
+                fila.appendChild(cajon);
+        
+                cajon.addEventListener("contextmenu", function (event) {
                 event.preventDefault();
-                if (cajon.innerText === '') {
+                if (cajon.innerText === "") {
                     asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
                 }
-            });
-
-            cajon.addEventListener("dblclick", function(event) {
+                });
+        
+                cajon.addEventListener("dblclick", function (event) {
                 limpiaPosicion(cajon, tabla);
-            });
-
-            cajon.addEventListener("click", function(event) {
-                viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(cajon.textContent)], false);
-            });
+                });
+        
+                cajon.addEventListener("click", function (event) {
+                viewer.IFC.selector.pickIfcItemsByID(
+                    0,
+                    [parseInt(cajon.textContent)],
+                    false
+                );
+                });
+            }
+            
+            tablaNueva.appendChild(fila);
         }
-        tablaNueva.appendChild(fila);
-    }
-    posicionCamion.appendChild(tablaNueva);
-    actualizaCajones(expressIdByCamion);
+        if (cabeceraValor.includes("A")) {
+            cambiarIdsTabla(tablaNueva);
+        }
+        posicionCamion.appendChild(tablaNueva);
+        actualizaCajones(expressIdByCamion);
 }
+
+
+function cambiarIdsTabla(tabla) {
+    const nuevosIds = [1, 2, 9, 10, 3, 4, 11, 12, 5, 6, 13, 14, 7, 8, 15, 16];
+    let indiceNuevoId = -1;
+
+    for (let i = 0; i < tabla.rows.length; i++) {
+        for (let j = 0; j < tabla.rows[i].cells.length; j++) {
+            let cajon = tabla.rows[i].cells[j];
+            cajon.setAttribute("id", nuevosIds[indiceNuevoId]);
+            indiceNuevoId++;
+        }
+    }
+}
+
+
+// function posicionesCamion(tabla, cabeceraValor) {
+//     const expressIdByCamion = [];
+//     const posicionCamion = document.getElementById("posicionCamion");
+//     posicionCamion.innerHTML = "";
+  
+//     const cabeceras = {
+//       E: { filas: 3, columnas: 5, color: "#874c8f" },
+//       A: { filas: 4, columnas: 4, color: "#4c7a90" },
+//       C: { filas: 1, columnas: 13, color: "#90834c" }
+//     };
+  
+//     const { filas: cantidadFilas, columnas: cantidadColumnas, color: borderColor } = cabeceras[cabeceraValor] || {};
+//     if (!cabeceraValor) {
+//       console.error("CabeceraValor no válido");
+//       return;
+//     }
+  
+//     const cabeceraCajon = `<th colspan="${cantidadColumnas}" style="text-align:center;vertical-align:middle;">${cabeceraValor}</th>`;
+//     const cabeceraFila = `<tr>${cabeceraCajon}</tr>`;
+//     const cajon = `<td id="%id%" data-id="%id%" class="cajon"></td>`;
+//     const filas = Array(cantidadFilas).fill().map((_, i) => {
+//       const cajones = Array(cantidadColumnas).fill().map((_, j) => {
+//         const id = i * cantidadColumnas + j + 1;
+//         return cajon.replace(/%id%/g, id);
+//       }).join('');
+//       const fila = `<tr style="${cantidadFilas === 1 ? 'height:95%;' : ''}">${cajones}</tr>`;
+//       return fila;
+//     });
+  
+//     const tablaNueva = `<table style="margin-top:5px;margin-left:10px;border-collapse:collapse;border:2px solid ${borderColor};height:95%;">${cabeceraFila}${filas.join('')}</table>`;
+//     posicionCamion.innerHTML = tablaNueva;
+  
+//     const valoresCeldas = Array.from(tabla.rows).map(row => parseInt(row.innerText));
+//     expressIdByCamion.push(...valoresCeldas);
+//     actualizaCajones(expressIdByCamion);
+  
+//     document.querySelectorAll('.cajon').forEach(cajon => {
+//       cajon.addEventListener("contextmenu", asignaIdCelda.bind(null, cajon, contenidoCelda, expressIdByCamion));
+//       cajon.addEventListener("dblclick", limpiaPosicion.bind(null, cajon, tabla));
+//       cajon.addEventListener("click", viewer.IFC.selector.pickIfcItemsByID.bind(viewer.IFC.selector, 0, [parseInt(cajon.textContent)], false));
+//     });
+//   }
+  
 
 function limpiaPosicion(cajon, tabla){
     contenidoCelda = cajon.textContent;
@@ -128641,9 +128749,6 @@ function asignaIdCelda(cajon, contenidoCelda, expressIdByCamion) {
         }
     }
 
-    // if (cajon.innerText !== "") {
-    //     valorExiste = true;
-    // }
 
     cajon.innerText = contenidoCelda;
     ultimoCajonPulsado = cajon;
