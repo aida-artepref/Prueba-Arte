@@ -2,7 +2,7 @@ import { Color, Loader, MeshBasicMaterial, LineBasicMaterial, MeshStandardMateri
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
-
+console.log("HELLO");
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 

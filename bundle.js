@@ -126670,6 +126670,7 @@ class NavCube {
 	}
 }
 
+console.log("HELLO");
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 
