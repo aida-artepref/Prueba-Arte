@@ -513,8 +513,11 @@ button {
 #posicionCamion {
   width: 50%; 
   height: 200px;
+<<<<<<< HEAD
   overflow: auto;
   display: flex;
+=======
+>>>>>>> main
 }
 #posicionCamion table {
   height: 75% ;
