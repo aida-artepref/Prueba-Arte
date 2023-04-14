@@ -126722,23 +126722,7 @@ GUI.input.onchange = async (event) => {
 
 //si el Ifc ya esta cargado por defecto y no selecciona atraves del input
 async function loadModel(url) {
-    // const progressContainer = document.getElementById('progress-container');
-    // progressContainer.style.display = 'block';
-
-    // const progressBar = document.getElementById('progress-bar');
-    // let progress = 0;
-    // drawProgress(progress);
-
-    // model = await viewer.IFC.loadIfcUrl(url, function (progressEvent) {
-    //   if (progressEvent.lengthComputable) {
-    //     progress = progressEvent.loaded / progressEvent.total;
-    //     drawProgress(progress);
-    //   }
-    // });
-
-    // Ocultar la barra de progreso al finalizar la carga del modelo
-    //progressContainer.style.display = 'none';
-
+ 
     model = await viewer.IFC.loadIfcUrl(url);
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
@@ -126751,7 +126735,6 @@ async function loadModel(url) {
 
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
-
 
     viewer.shadows = true;
     cargaGlobalIdenPrecast();
@@ -126781,6 +126764,7 @@ async function loadModel(url) {
 //     context.strokeStyle = '#4CAF50';
 //     context.stroke();
 // }
+
 //Nave cube
 viewer.container = container;
 const navCube = new NavCube(viewer);
@@ -127567,7 +127551,6 @@ function seleccionarBoton(boton) {
     // });
 }
 
-
 // seleccion de botones de la tercera fila - icono
 let ultimoBotonClicadojo = null;
 const iconosOjo = document.querySelectorAll('.icono-ojo');
@@ -127613,8 +127596,6 @@ iconosOjo.forEach(boton => {
     });
 });
 
-
-
 function generarTablaPorLetra(letra) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
     itemList.innerHTML = "";
@@ -127650,8 +127631,6 @@ function generarTablaPorLetra(letra) {
     itemList.appendChild(table);
     $(table).tablesorter();
 }
-
-
 
 //Lógica para eliminar de la tabla HTML los elementos cargados, volver a visualizarlos
 //los elementos que borra de la tabla HTML los devuelve al array allIDs
@@ -128036,7 +128015,6 @@ function nodeToString(node){
 const exportCSV = document.getElementById("exportButton");
 exportCSV.addEventListener('click', exportCSVmethod, false);
 
-
 function exportCSVmethod(){
 
     let header = [];
@@ -128380,9 +128358,6 @@ function agregarBotonCero() {
     });
 }
 
-    // document.getElementById("datosCamiones").innerHTML = "";
-    // document.getElementById("posicionCamion").innerHTML = "";
-
 function showElementsByCamion(viewer, precastElements) {
     // Crear el div y el label
     const label = document.createElement("label");
@@ -128427,9 +128402,6 @@ function showElementsByCamion(viewer, precastElements) {
 
 let contenidoCelda;
 let tablaResaltada = false;
-
-
-
 function generarTabla(expressIDs, camion) {
     const divTabla = document.getElementById("datosCamiones");
     const precastElement = precastElements.find(elem => parseInt(elem.Camion) === camion);
@@ -128449,7 +128421,7 @@ function generarTabla(expressIDs, camion) {
         if (precastElem) {
             tdElemento.style.backgroundColor = "#BD9BC2"; 
         }
-        tdElemento.addEventListener('contextmenu', function(event) {
+        tdElemento.addEventListener('contextmenu', async function(event) {
             event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
             contenidoCelda = tdElemento.textContent;
             resaltarTabla(tabla, cabeceraValor);
@@ -128457,6 +128429,10 @@ function generarTabla(expressIDs, camion) {
             celdaSeleccionadaColor(event.target);
             //viewer.IFC.selector.defSelectMat.color = new Color(255, 128, 0);
             viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], false);
+
+            const props = await viewer.IFC.getProperties(model.modelID, id, true,true);
+            //console.log(props);
+            updatePropertyMenu(props);
         });
         const fila = document.createElement('tr');
         fila.appendChild(tdElemento);
@@ -128477,7 +128453,6 @@ function generarTabla(expressIDs, camion) {
 }
 
 let ultimaCeldaSeleccionada = null;
-
 function celdaSeleccionadaColor(celdaSeleccionada) {
     if (tablaResaltada) {
         if (ultimaCeldaSeleccionada && precastElements.some(elem => elem.expressID === ultimaCeldaSeleccionada.innerText && elem.Posicion)) {
@@ -128486,8 +128461,6 @@ function celdaSeleccionadaColor(celdaSeleccionada) {
     }celdaSeleccionada.style.backgroundColor = '#e8cdba';
         ultimaCeldaSeleccionada = celdaSeleccionada;
 }
-
-// let tablaActual; // variable global para almacenar la tabla actualmente resaltada
 
 function resaltarTabla(tabla, cabeceraValor) {
     const tablas = document.querySelectorAll("#datosCamiones table");
@@ -128535,7 +128508,6 @@ function eliminarTabla(camion) {
     }
     contenidoCelda = null;
 }
-
 
 function posicionesCamion(tabla, cabeceraValor) {
     const expressIdByCamion = [];
@@ -128631,14 +128603,104 @@ function posicionesCamion(tabla, cabeceraValor) {
             tablaNueva.appendChild(fila);
         }
         if (cabeceraValor.includes("A")) {
-            cambiarIdsTabla(tablaNueva);
+            cambiarIdsTablaA(tablaNueva);
         }
         posicionCamion.appendChild(tablaNueva);
         actualizaCajones(expressIdByCamion);
+        crearTablaDerecha(tabla, cabeceraValor);
 }
 
+function crearTablaDerecha(tabla, cabeceraValor) {
+    const expressIdByCamion = [];
+    const tablaDerecha = document.createElement("table");
+    tablaDerecha.style.marginTop = "5px";
+    tablaDerecha.style.marginLeft = "10px";
+    tablaDerecha.style.borderCollapse = "collapse";
+    tablaDerecha.style.border = "2px solid";
+    tablaDerecha.style.height = "95%";  
+    let cantidadFilas, cantidadColumnas;
+  
+    if (cabeceraValor.includes("E")) {
+      cantidadFilas = 3;
+      cantidadColumnas = 5;
+      tablaDerecha.style.borderColor = "#874c8f";
+    } else if (cabeceraValor.includes("A")) {
+      cantidadFilas = 4;
+      cantidadColumnas = 4;
+      tablaDerecha.style.borderColor = "#4c7a90";
+    } else if (cabeceraValor.includes("C")) {
+      cantidadFilas = 1;
+      cantidadColumnas = 13;
+      tablaDerecha.style.borderColor = "#90834c";
+    } else {// Si el cabeceraValor no incluye ninguna de las letras especificadas
+      console.error("CabeceraValor no válido");
+      return;
+    }
+  const cabeceraFila = document.createElement("tr");
+    const cabeceraCajon = document.createElement("th");
+    cabeceraCajon.setAttribute("colspan", cantidadColumnas);
+    cabeceraCajon.style.textAlign = "center";
+    cabeceraCajon.style.verticalAlign = "middle";
+    cabeceraCajon.innerText = cabeceraValor;
+    cabeceraFila.appendChild(cabeceraCajon);
+    tablaDerecha.appendChild(cabeceraFila);
+    for (let i = 0; i < cantidadFilas; i++) {
+      const fila = document.createElement("tr");
+      if (cantidadFilas === 1) {
+        fila.style.height = "95%";
+      }
+      for (let j = 0; j < cantidadColumnas; j++) {
+        const cajon = document.createElement("td");
+  
+        if (cantidadFilas === 4) {
+          cajon.style.height = "38px";
+  
+          if (j === 1) {
+            cajon.style.borderRight = "3px solid #4c7a90"; // borde derecho
+          }
+        }
+        if (cantidadFilas === 1) {
+          if (j === 6) {
+            cajon.style.borderRight = "3px solid #90834c"; // borde derecho
+            cajon.style.borderLeft = "3px solid #90834c";
+          }
+        }
+        const idCajon = i * cantidadColumnas + j + 1;
+        cajon.setAttribute("id", idCajon);
+        cajon.setAttribute("data-id", idCajon);
+        cajon.classList.add("cajon");
+        fila.appendChild(cajon);
+  
+        cajon.addEventListener("contextmenu", function (event) {
+          event.preventDefault();
+          if (cajon.innerText === "") {
+            asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
+          }
+        });
+  
+        cajon.addEventListener("dblclick", function (event) {
+          limpiaPosicion(cajon, tabla);
+        });
+  
+        cajon.addEventListener("click", function (event) {
+            viewer.IFC.selector.pickIfcItemsByID(
+                0,
+                [parseInt(cajon.textContent)],
+                false
+            );
+            });
+        }
+        
+        tablaDerecha.appendChild(fila);
+    }
+    if (cabeceraValor.includes("A")) {
+        cambiarIdsTablaA(tablaDerecha);
+    }
+    posicionCamion.appendChild(tablaDerecha);
+    actualizaCajones(expressIdByCamion);
+}
 
-function cambiarIdsTabla(tabla) {
+function cambiarIdsTablaA(tabla) {
     const nuevosIds = [1, 2, 9, 10, 3, 4, 11, 12, 5, 6, 13, 14, 7, 8, 15, 16];
     let indiceNuevoId = -1;
 
@@ -128650,51 +128712,6 @@ function cambiarIdsTabla(tabla) {
         }
     }
 }
-
-
-// function posicionesCamion(tabla, cabeceraValor) {
-//     const expressIdByCamion = [];
-//     const posicionCamion = document.getElementById("posicionCamion");
-//     posicionCamion.innerHTML = "";
-  
-//     const cabeceras = {
-//       E: { filas: 3, columnas: 5, color: "#874c8f" },
-//       A: { filas: 4, columnas: 4, color: "#4c7a90" },
-//       C: { filas: 1, columnas: 13, color: "#90834c" }
-//     };
-  
-//     const { filas: cantidadFilas, columnas: cantidadColumnas, color: borderColor } = cabeceras[cabeceraValor] || {};
-//     if (!cabeceraValor) {
-//       console.error("CabeceraValor no válido");
-//       return;
-//     }
-  
-//     const cabeceraCajon = `<th colspan="${cantidadColumnas}" style="text-align:center;vertical-align:middle;">${cabeceraValor}</th>`;
-//     const cabeceraFila = `<tr>${cabeceraCajon}</tr>`;
-//     const cajon = `<td id="%id%" data-id="%id%" class="cajon"></td>`;
-//     const filas = Array(cantidadFilas).fill().map((_, i) => {
-//       const cajones = Array(cantidadColumnas).fill().map((_, j) => {
-//         const id = i * cantidadColumnas + j + 1;
-//         return cajon.replace(/%id%/g, id);
-//       }).join('');
-//       const fila = `<tr style="${cantidadFilas === 1 ? 'height:95%;' : ''}">${cajones}</tr>`;
-//       return fila;
-//     });
-  
-//     const tablaNueva = `<table style="margin-top:5px;margin-left:10px;border-collapse:collapse;border:2px solid ${borderColor};height:95%;">${cabeceraFila}${filas.join('')}</table>`;
-//     posicionCamion.innerHTML = tablaNueva;
-  
-//     const valoresCeldas = Array.from(tabla.rows).map(row => parseInt(row.innerText));
-//     expressIdByCamion.push(...valoresCeldas);
-//     actualizaCajones(expressIdByCamion);
-  
-//     document.querySelectorAll('.cajon').forEach(cajon => {
-//       cajon.addEventListener("contextmenu", asignaIdCelda.bind(null, cajon, contenidoCelda, expressIdByCamion));
-//       cajon.addEventListener("dblclick", limpiaPosicion.bind(null, cajon, tabla));
-//       cajon.addEventListener("click", viewer.IFC.selector.pickIfcItemsByID.bind(viewer.IFC.selector, 0, [parseInt(cajon.textContent)], false));
-//     });
-//   }
-  
 
 function limpiaPosicion(cajon, tabla){
     contenidoCelda = cajon.textContent;
