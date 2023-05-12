@@ -126672,7 +126672,7 @@ class NavCube {
 
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
-
+const scene = viewer.context.scene.scene;
 viewer.clipper.active = true;
 viewer.grid.setGrid(100,100);
 viewer.axes.setAxes();
@@ -126729,8 +126729,8 @@ async function loadModel(url) {
     allIDs = getAllIds(model); 
     idsTotal=getAllIds(model); 
     console.log(idsTotal.length+" total de elementos en modelo inicial");
-    const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
-    setIfcPropertiesContent(ifcProject);
+    await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
+    //setIfcPropertiesContent(ifcProject, viewer, model);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
 
     let subset = getWholeSubset(viewer, model, allIDs);
@@ -126741,7 +126741,8 @@ async function loadModel(url) {
     await  crearBotonPrecas(); 
     
     
-    addCheckboxListeners() ;
+    //addCheckboxListeners() ;
+    
     verNumPrecast();
     
     const divCargas = document.querySelector('.divCargas');
@@ -126788,6 +126789,7 @@ async function crearBotonPrecasFuisonados(){
         await agregarPropiedadesElementPart();
         btnCreaPrecastFusionados.remove();
         eliminarElementosAssembly();
+        generateCheckboxes(precastElements);
     });
 }
 
@@ -126795,7 +126797,6 @@ function eliminarElementosAssembly() {
     precastElements = precastElements.filter(element => element.ifcType !== 'IFCELEMENTASSEMBLY');
     console.log("TOTAL DE ELEMNTOS EN PRECAST: "+precastElements.length);
 }
-
 
 async function crearBotonPrecas(){
     // Crea un nuevo botón
@@ -126819,6 +126820,7 @@ async function crearBotonPrecas(){
         crearBotonPrecasFuisonados();
     });
 }
+
 async function cargaProp() {
     await new Promise(resolve => {
         // Carga las propiedades/psets al array
@@ -126864,93 +126866,251 @@ function cargaGlobalIdenPrecast(){
   //******************************************************************************************************************* */
  /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
  //-------------extrae todos los tipos de elementos del modelo y los agrupa en un objeto llamado categorias.
-function setIfcPropertiesContent(ifcProject, viewer, model) {
-    const ifcClass = getIfcClass(ifcProject);
-    let uniqueClasses = [...new Set(ifcClass)];
-    const checkboxesHTML = generateCheckboxes(uniqueClasses);
-    document.getElementById('checktiposIfc').innerHTML = checkboxesHTML;
+// function setIfcPropertiesContent(ifcProject, viewer, model) {
+//     const ifcClass = getIfcClass(ifcProject);
+//     let uniqueClasses = [...new Set(ifcClass)];
+//     const checkboxesHTML = generateCheckboxes(uniqueClasses);
+//     document.getElementById('checktiposIfc').innerHTML = checkboxesHTML;
 
-    const btnNota = document.querySelectorAll('.btn-notacion');
-    btnNota.forEach(function(button) {
+//     const btnNota = document.querySelectorAll('.btn-notacion');
+//     btnNota.forEach(function(button) {
     
-        const icon = document.createElement('i');
-        icon.classList.add('fas', 'fa-sticky-note');
-        button.appendChild(icon);
+//         const icon = document.createElement('i');
+//         icon.classList.add('fas', 'fa-sticky-note');
+//         button.appendChild(icon);
 
-        button.addEventListener('click', function(event) {
-            const checkbox = event.currentTarget.parentElement.querySelector('input[type="checkbox"]');
-            if (checkbox !== null) {
-                checkbox.getAttribute('data-class');
-                //console.log("Has pulsado el botón : " + classValue);
+//         button.addEventListener('click', function(event) {
+//             const checkbox = event.currentTarget.parentElement.querySelector('input[type="checkbox"]');
+//             if (checkbox !== null) {
+//                 const classValue = checkbox.getAttribute('data-class');
+//                 //console.log("Has pulsado el botón : " + classValue);
+//             }
+//         });
+//     });
+// }
+
+//  //recorre el modelo y almacena el tipo de cada elemento en un array typeArray.
+// function getIfcClass(ifcProject) {
+//     let typeArray = [];
+//     return getIfcClass_base(ifcProject, typeArray);
+// }
+
+// //recursivamente  se llama a sí misma para procesar los hijos de cada elemento y agregar su tipo al array.
+// function getIfcClass_base(ifcProject, typeArray) {
+//     const children = ifcProject.children;
+//     if (children.length === 0) {
+//         typeArray.push(ifcProject.type);
+//     } else {
+//         for (const obj of children) {
+//             getIfcClass_base(obj, typeArray);
+//         }
+//     }
+//     return typeArray;
+// }
+
+// // Crea automaticamente los check con las categorias del IFC cargado y  asocia un numero a cada check(dataclass)
+// function generateCheckboxes(uniqueClasses) {
+//     let html = '';
+//     uniqueClasses.forEach(function(uniqueClass) {
+//         html += `<div class="checkbox-container">`;
+//         // html += `<button class="btn-notacion" data-id="${uniqueClass}"> </button>`;
+//         html += `<input type="checkbox" checked data-class="${uniqueClass}">${uniqueClass}`;
+//         html += `</div>`;
+//     });
+//     return html;
+// }
+
+// //evento cambio en los checK tipos de elementos
+// function addCheckboxListeners() {
+//     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+//     checkboxes.forEach(function(checkbox) {
+//         checkbox.addEventListener('change', function() {
+//             viewer.IFC.selector.unpickIfcItems();
+//             const isChecked = this.checked;
+//             const tipo = this.getAttribute('data-class');
+//             const matchingIds = [];
+//             for (let i = 0; i < precastElements.length; i++) {
+//                 const element = precastElements[i];
+//                 if (element.ifcType === tipo) {
+//                     matchingIds.push(element.expressID);
+//                 }
+//             }
+//             if (isChecked) {  // si esta checkeado comprueba que no est eya en el transporte, si es asi lo elimina para no volver a mostrarlo
+//                 for(let i=0; i< matchingIds.length; i++){
+//                     const matchingId = matchingIds[i];
+//                     const matchingElement = precastElements.find(el => el.expressID === matchingId);
+                    
+//                     if (matchingElement && matchingElement.Camion !== '' && matchingElement.Camion !== undefined) {
+//                     matchingIds.splice(i, 1);
+//                     i--;
+//                     }
+//                 }
+//                 showAllItems(viewer, matchingIds);
+//             } else {
+//                 hideAllItems(viewer, matchingIds);
+//             }
+//         });
+        
+//     });
+    
+// }
+function generateCheckboxes(precastElements) {
+    // Agrupa los elementos por la primera letra de la propiedad ART_Pieza
+    const groupedElements = precastElements.reduce((acc, el) => {
+      if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
+        return acc;
+      }
+      const firstLetter = el.ART_Pieza.charAt(0).toUpperCase();
+      if (!acc[firstLetter]) {
+        acc[firstLetter] = [];
+      }
+      acc[firstLetter].push(el);
+      return acc;
+    }, {});
+  
+    const checktiposIfcContainer = document.getElementById('checktiposIfc');
+    checktiposIfcContainer.style.display = 'block';
+  
+    Object.entries(groupedElements).forEach(([artPieza, elements]) => {
+        const checkboxContainer = document.createElement('div');
+        checkboxContainer.classList.add('checkbox-container');
+    
+        const button = document.createElement('button');
+        button.classList.add('btnCheck');
+        button.setAttribute('data-art-pieza', artPieza);
+        button.textContent = artPieza;
+        checkboxContainer.appendChild(button);
+    
+        const checkboxGroup = document.createElement('div');
+        checkboxGroup.classList.add('checkbox-group');
+    
+        const checkbox = document.createElement('input');
+        checkbox.setAttribute('type', 'checkbox');
+        checkbox.setAttribute('checked', 'true');
+        checkbox.setAttribute('data-art-pieza', artPieza);
+        checkbox.style.marginLeft = '8px';
+        checkboxGroup.appendChild(checkbox);
+    
+        const checkboxLabel = document.createElement('label');
+        checkboxLabel.textContent = `${artPieza} (${elements.length})`;
+        checkboxGroup.appendChild(checkboxLabel);
+    
+        checkboxContainer.appendChild(checkboxGroup);
+        checktiposIfcContainer.appendChild(checkboxContainer);
+    });
+    
+    setTimeout(() => {
+        addCheckboxListeners();
+        addBotonCheckboxListeners();
+    }, 0);
+    }
+
+function addBotonCheckboxListeners() {
+    const buttons = document.querySelectorAll('.btnCheck');
+    for (let i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener('click', function() {
+            const letter = this.dataset.artPieza;
+            this.checked;
+            const artPieza = this.getAttribute('data-art-pieza');
+            const visibleIds = [];
+            this.parentNode.textContent.trim();
+            precastElements.forEach(function(el, index) {
+                if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
+                    return ;
+                }
+                if (el.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
+                    visibleIds.push(el.expressID);
+                    }
+                });
+            if (this.classList.contains('pulsado')) {
+                this.classList.remove('pulsado');
+                removeLabels(letter);
+            } else {
+                this.classList.add('pulsado');
+                generateLabels(visibleIds);
             }
         });
-    });
+    }
 }
 
- //recorre el modelo y almacena el tipo de cada elemento en un array typeArray.
-function getIfcClass(ifcProject) {
-    let typeArray = [];
-    return getIfcClass_base(ifcProject, typeArray);
-}
 
-//recursivamente  se llama a sí misma para procesar los hijos de cada elemento y agregar su tipo al array.
-function getIfcClass_base(ifcProject, typeArray) {
-    const children = ifcProject.children;
-    if (children.length === 0) {
-        typeArray.push(ifcProject.type);
-    } else {
-        for (const obj of children) {
-            getIfcClass_base(obj, typeArray);
+function removeLabels(letter) {
+    const labels = document.querySelectorAll('.pieza-label'); // Buscar todos los elementos con la clase "pieza-label-item"
+    for (let i = 0; i < labels.length; i++) {
+        const label = labels[i];
+        const texto = labels[i].textContent.charAt(0);
+        if (texto === letter || texto===""||texto===undefined) {
+            label.style.visibility =  'hidden';
         }
     }
-    return typeArray;
+}
+async function generateLabels(expressIDs) {
+    for (let i = 0; i < precastElements.length; i++) {
+        const element = precastElements[i];
+  
+        if (expressIDs.includes(element.expressID)) {
+            const { ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ } = element;
+            console.log (ART_Pieza+" Nombre" );
+                        console.log (ART_CoordX+" CoordX" );
+                        console.log (ART_CoordY+" CoordY" );
+                        console.log (ART_CoordZ+" CoordZ" );
+            muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ);
+        }
+    }
 }
 
-// Crea automaticamente los check con las categorias del IFC cargado y  asocia un numero a cada check(dataclass)
-function generateCheckboxes(uniqueClasses) {
-    let html = '';
-    uniqueClasses.forEach(function(uniqueClass) {
-        html += `<div class="checkbox-container">`;
-        // html += `<button class="btn-notacion" data-id="${uniqueClass}"> </button>`;
-        html += `<input type="checkbox" checked data-class="${uniqueClass}">${uniqueClass}`;
-        html += `</div>`;
-    });
-    return html;
+function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ) {
+    if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
+        return;
+    } else {
+        const elements = document.getElementsByTagName('p');
+        let count = 0;
+    
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+    
+            if (element.textContent.startsWith(ART_Pieza)) {
+            if (element.style.visibility === 'hidden') {
+                element.style.visibility = 'visible';
+            }
+            count++;
+            }
+        }
+    
+        if (count === 0) {
+            const label = document.createElement('p');
+            label.textContent = ART_Pieza;
+            label.classList.add('pieza-label'); // Agregar una clase para identificar estas etiquetas
+            const labelObject = new CSS2DObject(label);
+            labelObject.position.set(parseFloat(ART_CoordX) / 1000, parseFloat(ART_CoordZ) / 1000, (-parseFloat(ART_CoordY) / 1000));
+            scene.add(labelObject);
+        }
+    }
 }
 
-//evento cambio en los checK tipos de elementos
 function addCheckboxListeners() {
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach(function(checkbox) {
-        checkbox.addEventListener('change', function() {
-            viewer.IFC.selector.unpickIfcItems();
-            const isChecked = this.checked;
-            const tipo = this.getAttribute('data-class');
-            const matchingIds = [];
-            for (let i = 0; i < precastElements.length; i++) {
-                const element = precastElements[i];
-                if (element.ifcType === tipo) {
-                    matchingIds.push(element.expressID);
-                }
+    checkbox.addEventListener('change', function() {
+        viewer.IFC.selector.unpickIfcItems();
+        const isChecked = this.checked;
+        const artPieza = this.getAttribute('data-art-pieza');
+        const matchingIds = [];
+        precastElements.forEach(function(element) {
+            if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" ||element.ART_Pieza=== undefined) {
+                return;
             }
-            if (isChecked) {  // si esta checkeado comprueba que no est eya en el transporte, si es asi lo elimina para no volver a mostrarlo
-                for(let i=0; i< matchingIds.length; i++){
-                    const matchingId = matchingIds[i];
-                    const matchingElement = precastElements.find(el => el.expressID === matchingId);
-                    
-                    if (matchingElement && matchingElement.Camion !== '' && matchingElement.Camion !== undefined) {
-                    matchingIds.splice(i, 1);
-                    i--;
-                    }
-                }
+            if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
+                matchingIds.push(element.expressID);
+            }
+        });
+            if (isChecked) {
                 showAllItems(viewer, matchingIds);
             } else {
                 hideAllItems(viewer, matchingIds);
             }
         });
-        
     });
-    
 }
 
  ////-----------------------------------------------------------------------------------------------------------------------------------
@@ -127938,7 +128098,6 @@ async function precastProperties(precast,modelID, precastID){
                 }
             }
         }
-        console.log(precast.expressID);
     }
 }
 

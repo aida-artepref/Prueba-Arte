@@ -350,16 +350,24 @@ ul, #myUL {
   }
   .divCheck {
     position: fixed;
-    bottom: 21%;
-    left:10px;
+    bottom: 41%;
+    right:10px;
     background-color:rgba(255, 255, 255, 0.267);
     border: 1px solid rgb(126, 126, 126);
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 10px;
+    padding: 5px;
     width: auto;
     height: auto;  
+    background-color: white;
   }
 
+  .pulsado {
+    background-color:rgb(99, 99, 99) !important;
+    color:white !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.2);
+    color: #fff;
+  }
+  
 
 
   #file-name {
@@ -428,7 +436,16 @@ ul, #myUL {
   background-color: #7939393f;
 }
 
-
+.btnCheck{
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  padding: 5px 5px;
+  border: solid 1px ;
+  cursor: pointer;
+  /* margin: 5px; */
+  font-size: 15px;
+  border-radius: 5px;
+}
 button {
   background-color: #ffffff;
   color: rgb(0, 0, 0);
@@ -792,4 +809,19 @@ select.seleccionado {
   content: "\f06e"; /* Código Unicode del icono de ojo sin tachar */
   font-family: "Font Awesome 5 Free"; /* Nombre de la fuente que contiene el icono */
   font-weight: 900; /* Peso de la fuente */
+}
+
+
+
+
+.pieza-label{
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid black;
+  border-radius: 3px;
+  color: black;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 5px;
+  font-family: 'Roboto';
+  pointer-events: all;
 }
