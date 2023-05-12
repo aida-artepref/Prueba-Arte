@@ -410,6 +410,19 @@ ul, #myUL {
     background-color: chartreuse;
 }
 
+#propiedades-container {
+  visibility: visible;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  top: 680px; 
+  right: 10px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.7);
+  margin: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.5); /* Añade un borde de 1 píxel y color suave */
+  border-radius: 20px;
+}
 
 #btnCreaPrecast{
   background-color: #7939393f;

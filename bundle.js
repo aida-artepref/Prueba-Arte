@@ -126670,12 +126670,11 @@ class NavCube {
 	}
 }
 
-console.log("HELLO");
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 
 viewer.clipper.active = true;
-viewer.grid.setGrid(200,100);
+viewer.grid.setGrid(100,100);
 viewer.axes.setAxes();
 
 document.addEventListener("keydown", function(event) {
@@ -126723,7 +126722,7 @@ GUI.input.onchange = async (event) => {
 
 //si el Ifc ya esta cargado por defecto y no selecciona atraves del input
 async function loadModel(url) {
- 
+
     model = await viewer.IFC.loadIfcUrl(url);
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
@@ -126738,33 +126737,17 @@ async function loadModel(url) {
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
 
     viewer.shadows = true;
-    cargaGlobalIdenPrecast();
-    crearBotonPrecas();  
+    await cargaGlobalIdenPrecast();
+    await  crearBotonPrecas(); 
+    
+    
     addCheckboxListeners() ;
     verNumPrecast();
-
+    
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
-    //expandeDivBtn.click();
+
 }
-
-// function drawProgress(progress) {
-//     const canvas = document.getElementById('progress-bar');
-//     const context = canvas.getContext('2d');
-//     const x = canvas.width / 2;
-//     const y = canvas.height / 2;
-//     const radius = 30;
-//     const startAngle = -0.5 * Math.PI;
-//     const endAngle = (2 * progress - 0.5) * Math.PI;
-//     const counterClockwise = false;
-
-//     context.clearRect(0, 0, canvas.width, canvas.height);
-//     context.beginPath();
-//     context.arc(x, y, radius, startAngle, endAngle, counterClockwise);
-//     context.lineWidth = 10;
-//     context.strokeStyle = '#4CAF50';
-//     context.stroke();
-// }
 
 //Nave cube
 viewer.container = container;
@@ -126786,7 +126769,35 @@ function verNumPrecast(){
     document.body.appendChild(divNumPrecast);
 }
 
-function crearBotonPrecas(){
+async function crearBotonPrecasFuisonados(){
+    // Crea un nuevo botón
+    var btnCreaPrecastFusionados= document.createElement("button");
+    btnCreaPrecastFusionados.classList.add("button");
+    // Agrega un ID y una clase al nuevo botón
+    btnCreaPrecastFusionados.id = "btnCreaPrecastFusionados";
+    btnCreaPrecastFusionados.className;
+    btnCreaPrecastFusionados.textContent = "Fusiona";// Agrega el texto que deseas que aparezca en el botón
+
+    // Obtiene una referencia al último botón existente
+    var ultimoBoton = document.querySelector(".button-container .button:last-of-type");
+
+    // Inserta el nuevo botón justo después del último botón existente
+    var contenedorBotones = document.querySelector(".button-container");
+    contenedorBotones.insertBefore(btnCreaPrecastFusionados, ultimoBoton.nextSibling);
+    btnCreaPrecastFusionados.addEventListener("click", async function() {
+        await agregarPropiedadesElementPart();
+        btnCreaPrecastFusionados.remove();
+        eliminarElementosAssembly();
+    });
+}
+
+function eliminarElementosAssembly() {
+    precastElements = precastElements.filter(element => element.ifcType !== 'IFCELEMENTASSEMBLY');
+    console.log("TOTAL DE ELEMNTOS EN PRECAST: "+precastElements.length);
+}
+
+
+async function crearBotonPrecas(){
     // Crea un nuevo botón
     var btnCreaPrecast = document.createElement("button");
     btnCreaPrecast.classList.add("button");
@@ -126802,20 +126813,42 @@ function crearBotonPrecas(){
     var contenedorBotones = document.querySelector(".button-container");
     contenedorBotones.insertBefore(btnCreaPrecast, ultimoBoton.nextSibling);
 
-    btnCreaPrecast.addEventListener("click", function() {
-        cargaProp();
+    btnCreaPrecast.addEventListener("click", async function() {
+        await cargaProp();
         btnCreaPrecast.remove();
+        crearBotonPrecasFuisonados();
+    });
+}
+async function cargaProp() {
+    await new Promise(resolve => {
+        // Carga las propiedades/psets al array
+        precastElements.forEach(precast => {
+            if (precast.ifcType != 'IFCBUILDING' && precast.ifcType != 'IFCBUILDINGELEMENTPART') {
+                precastProperties(precast, 0, precast.expressID);
+            }
+        });
+        resolve();
     });
 }
 
-function cargaProp(){
-//Carga las propiedades/psets al array
-    precastElements.forEach(precast => {
-        if (precast.ifcType !='IFCBUILDING'){
-            precastProperties(precast, 0, precast.expressID);
-        }
-    }); 
+async function agregarPropiedadesElementPart() {
+    for (let i = 1; i < precastElements.length; i++) {
+        const currentElement = precastElements[i];
+        const previousElement = precastElements[i - 1];
     
+        if (currentElement.ifcType === 'IFCBUILDINGELEMENTPART') {
+            for (const prop in previousElement) {
+                if (previousElement.hasOwnProperty(prop)) {
+                    const prefixedProp = 'BEP_' + prop;
+                    if (!currentElement.hasOwnProperty(prop)) {
+                    currentElement[prop] = previousElement[prop];
+                    } else {
+                    currentElement[prefixedProp] = previousElement[prop];
+                    }
+                }
+            }
+        }
+    }
 }
 
 function cargaGlobalIdenPrecast(){
@@ -127807,17 +127840,113 @@ viewer.IFC.selector.unpickIfcItems();
 //para darle otro aspecto en **const viewer = new IfcViewerAPI({container, backgroundColor: new Color(255,255,255)}); se puede modificar su aspecto     
 let globalIds=[];
 let globalId;
-//onclick y selecciona elemento
-container.onclick = async()=>{
-    const divProp = document.querySelector('#main-container');
-    divProp.style.display = 'block'; //hace visible el div de la tabla en HTML
-    const found=await viewer.IFC.selector.pickIfcItem(false);
-    if(found === null || found === undefined) return; //elemento no seleccionado no hace nada
-    //y para acceder a propiedades de ese elemento, con doble true es recursivo y arrastra todas las props->psets incluidas
-    const props = await viewer.IFC.getProperties (found.modelID, found.id, true,true);
-    globalId=props['GlobalId'].value;
-    updatePropertyMenu(props);  
-};
+
+
+// container.onclick = async()=>{
+//     const divProp = document.querySelector('#main-container');
+//     divProp.style.display = 'block'; //hace visible el div de la tabla en HTML
+//     const found=await viewer.IFC.selector.pickIfcItem(false);
+//     if(found === null || found === undefined) return; //elemento no seleccionado no hace nada
+//     //y para acceder a propiedades de ese elemento, con doble true es recursivo y arrastra todas las props->psets incluidas
+//     const props = await viewer.IFC.getProperties (found.modelID, found.id, true,true);
+//     globalId=props['GlobalId'].value;
+//     //console.log(globalId);
+//     updatePropertyMenu(props);  
+// }
+
+
+// container.onclick = async () => {
+//     const found = await viewer.IFC.selector.pickIfcItem(false);
+//     if (found === null || found === undefined) return;
+//     const expressID = found.id;
+
+//     const props = await viewer.IFC.getProperties(found.modelID, expressID, true, true);
+  
+//     const mats = props.mats;
+//     const psets = props.psets;
+//     const type = props.type;
+//     delete props.mats;
+//     delete props.psets;
+//     delete props.type;
+
+//     for (let pset in psets) {
+//         let properties = psets[pset].HasProperties;
+//         if (psets[pset] !== IfcElementQuantity) {
+//             let ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ,ART_Longitud, ART_Volumen;
+//             for (let property in properties) {
+//                 if (properties[property].Name.value === 'BEP_ART_Pieza') {
+//                     ART_Pieza =  properties[property].NominalValue.value;
+//                 }
+//                 // if (properties[property].Name.value === 'ART_CoordX') {
+//                 //     ART_CoordX =  properties[property].NominalValue.value;
+//                 // }
+//                 // if (properties[property].Name.value === 'ART_CoordY') {
+//                 //     ART_CoordY =  properties[property].NominalValue.value;
+//                 // }
+//                 // if (properties[property].Name.value === 'ART_CoordZ') {
+//                 //     ART_CoordZ = properties[property].NominalValue.value;
+//                 // }
+//                 if (properties[property].Name.value === 'BEP_ART_Longitud') {
+//                     ART_Longitud = properties[property].NominalValue.value;
+//                 }
+//                 if (properties[property].Name.value === 'BEP_ART_Volumen') {
+//                     ART_Volumen = properties[property].NominalValue.value;
+//                 }
+//             }
+//             //muestraNombrePiezaOnClick(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ);
+//             muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen);
+//         }
+//     }
+// };
+
+
+container.onclick = async () => {
+    const found = await viewer.IFC.selector.pickIfcItem(false);
+    if (found === null || found === undefined) return;
+    const expressID = found.id;
+  
+    let ART_Pieza = null;
+    for (const precast of precastElements) {
+      if (precast.expressID === expressID ) {
+        ART_Pieza = precast['ART_Pieza'];
+        ART_Longitud = precast['ART_Longitud'];
+        ART_Volumen = precast['ART_Volumen'];
+        break;
+      }
+    }
+  
+    muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen);
+  };
+
+function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen) {
+    const longitudNum = parseFloat(ART_Longitud);
+    const volumenNum = parseFloat(ART_Volumen);
+    const longitudFormatted = longitudNum.toFixed(2);// Limitar a dos decimales
+    const volumenFormatted = (volumenNum * 2.5).toFixed(2);
+
+    const propiedadesDiv = document.createElement('div');
+    propiedadesDiv.classList.add('propiedades');
+    
+    const piezaLabel = document.createElement('p');
+    piezaLabel.innerHTML = `Pieza: <strong>${ART_Pieza}</strong>`;
+    
+    const longitudLabel = document.createElement('p');
+    longitudLabel.innerHTML = `Longitud: <strong>${longitudFormatted}</strong>`;
+    
+    const volumenLabel = document.createElement('p');
+    volumenLabel.innerHTML = `Peso: <strong>${volumenFormatted}</strong>`;
+    
+    propiedadesDiv.appendChild(piezaLabel);
+    propiedadesDiv.appendChild(longitudLabel);
+    propiedadesDiv.appendChild(volumenLabel);
+    
+    const propiedadesContainer = document.getElementById('propiedades-container');
+    propiedadesContainer.innerHTML = ''; // Limpia el contenido existente
+    propiedadesContainer.appendChild(propiedadesDiv);
+}
+
+
+
 // **************************************************
 
 async function precastPropertiesGlobalId(precast,modelID, precastID){
@@ -127856,6 +127985,7 @@ async function precastProperties(precast,modelID, precastID){
                 }
             }
         }
+        console.log(precast.expressID);
     }
 }
 
@@ -127882,12 +128012,12 @@ function updatePropertyMenu (props){
         let properties = psets[pset].HasProperties;
         if (psets[pset] !== IfcElementQuantity){
             for (let property in properties){
-                createPropertyEntry(properties[property].Name.value, 
-                    properties[property].NominalValue.value);
+                createPropertyEntry(properties[property].Name.value, properties[property].NominalValue.value);
             }
         }
     }
-    psets[0].HasProperties;
+    //let properties2= psets[2].HasProperties;
+    //console.log(properties2);
 }
 
 //para construir un menu de propiedades 
@@ -128592,12 +128722,15 @@ function posicionesCamion(tabla, cabeceraValor) {
                 limpiaPosicion(cajon, tabla);
                 });
         
-                cajon.addEventListener("click", function (event) {
+                cajon.addEventListener("click", async function (event) {
                 viewer.IFC.selector.pickIfcItemsByID(
                     0,
                     [parseInt(cajon.textContent)],
                     false
                 );
+                let id=parseInt(cajon.textContent);
+                const props = await viewer.IFC.getProperties(model.modelID, id, true,true);
+                updatePropertyMenu(props);
                 });
             }
             
