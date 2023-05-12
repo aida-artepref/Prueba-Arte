@@ -1188,69 +1188,22 @@ let globalId;
 //     updatePropertyMenu(props);  
 // }
 
-
-// container.onclick = async () => {
-//     const found = await viewer.IFC.selector.pickIfcItem(false);
-//     if (found === null || found === undefined) return;
-//     const expressID = found.id;
-
-//     const props = await viewer.IFC.getProperties(found.modelID, expressID, true, true);
-  
-//     const mats = props.mats;
-//     const psets = props.psets;
-//     const type = props.type;
-//     delete props.mats;
-//     delete props.psets;
-//     delete props.type;
-
-//     for (let pset in psets) {
-//         let properties = psets[pset].HasProperties;
-//         if (psets[pset] !== IfcElementQuantity) {
-//             let ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ,ART_Longitud, ART_Volumen;
-//             for (let property in properties) {
-//                 if (properties[property].Name.value === 'BEP_ART_Pieza') {
-//                     ART_Pieza =  properties[property].NominalValue.value;
-//                 }
-//                 // if (properties[property].Name.value === 'ART_CoordX') {
-//                 //     ART_CoordX =  properties[property].NominalValue.value;
-//                 // }
-//                 // if (properties[property].Name.value === 'ART_CoordY') {
-//                 //     ART_CoordY =  properties[property].NominalValue.value;
-//                 // }
-//                 // if (properties[property].Name.value === 'ART_CoordZ') {
-//                 //     ART_CoordZ = properties[property].NominalValue.value;
-//                 // }
-//                 if (properties[property].Name.value === 'BEP_ART_Longitud') {
-//                     ART_Longitud = properties[property].NominalValue.value;
-//                 }
-//                 if (properties[property].Name.value === 'BEP_ART_Volumen') {
-//                     ART_Volumen = properties[property].NominalValue.value;
-//                 }
-//             }
-//             //muestraNombrePiezaOnClick(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ);
-//             muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen);
-//         }
-//     }
-// };
-
-
 container.onclick = async () => {
     const found = await viewer.IFC.selector.pickIfcItem(false);
     if (found === null || found === undefined) return;
     const expressID = found.id;
-  
+
     let ART_Pieza = null;
     for (const precast of precastElements) {
-      if (precast.expressID === expressID ) {
-        ART_Pieza = precast['ART_Pieza'];
-        ART_Longitud = precast['ART_Longitud'];
-        ART_Volumen = precast['ART_Volumen'];
-        break;
-      }
+        if (precast.expressID === expressID ) {
+            ART_Pieza = precast['ART_Pieza'];
+            ART_Longitud = precast['ART_Longitud'];
+            ART_Volumen = precast['ART_Volumen'];
+            break;
+        }
     }
-  
     muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen);
-  };
+};
 
 function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen) {
     const longitudNum = parseFloat(ART_Longitud);
@@ -1897,9 +1850,7 @@ function generarTabla(expressIDs, camion) {
             celdaSeleccionadaColor(event.target);
             //viewer.IFC.selector.defSelectMat.color = new Color(255, 128, 0);
             viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], false);
-
-            const props = await viewer.IFC.getProperties(model.modelID, id, true,true);
-            //console.log(props);
+            const props = await viewer.IFC.getProperties(model.modelID, id, true,true);;
             updatePropertyMenu(props);
         });
         const fila = document.createElement('tr');
@@ -1914,6 +1865,37 @@ function generarTabla(expressIDs, camion) {
     contenedorTabla.classList.add('contenedor-tabla');
     contenedorTabla.addEventListener("click", function() {
         resaltarTabla(tabla, cabeceraValor);
+    });
+    contenedorTabla.addEventListener("dblclick", function(event) {
+        const target = event.target;
+        let elementoEliminadoTabla;
+        if (target.tagName === 'TD') {
+            elementoEliminadoTabla = target.parentNode.firstChild.textContent;
+            target.parentNode.remove();
+            let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
+            if (indexToRemove !== -1) {
+                elementosOcultos.splice(indexToRemove, 1);
+                globalIds.splice(indexToRemove, 1);
+            }
+            allIDs.push(parseInt(elementoEliminadoTabla));
+        }
+        const expressIDs = [];
+        viewer.IFC.selector.unpickIfcItems();
+        hideAllItems(viewer, allIDs);
+        showAllItems(viewer, expressIDs);
+        // Simula el clic en el elemento
+        const eventoClick = new Event('click', {
+            bubbles: true, 
+            cancelable: true 
+        });
+        contenedorTabla.dispatchEvent(eventoClick);
+
+        const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
+        if (actValorCamion) {
+            actValorCamion.Camion = "";
+            actValorCamion.tipoTransporte = "";
+            actValorCamion.Posicion = "";
+        }
     });
     contenedorTabla.appendChild(tabla);
     thElemento.classList.add('cabecera-tabla');
@@ -2056,7 +2038,7 @@ function posicionesCamion(tabla, cabeceraValor) {
                 });
         
                 cajon.addEventListener("dblclick", function (event) {
-                limpiaPosicion(cajon, tabla);
+                    limpiaPosicion(cajon, tabla);
                 });
         
                 cajon.addEventListener("click", async function (event) {
