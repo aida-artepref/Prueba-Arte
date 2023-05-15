@@ -56,7 +56,6 @@ GUI.input.onchange = async (event) => {
 
 //si el Ifc ya esta cargado por defecto y no selecciona atraves del input
 async function loadModel(url) {
-
     model = await viewer.IFC.loadIfcUrl(url);
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
@@ -73,15 +72,9 @@ async function loadModel(url) {
     viewer.shadows = true;
     await cargaGlobalIdenPrecast();
     await  crearBotonPrecas(); 
-    
-    
-    //addCheckboxListeners() ;
-    
     verNumPrecast();
-    
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
-
 }
 
 //Nave cube
@@ -254,7 +247,7 @@ function cargaGlobalIdenPrecast(){
 //     return html;
 // }
 
-// //evento cambio en los checK tipos de elementos
+// evento cambio en los checK tipos de elementos
 // function addCheckboxListeners() {
 //     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
 //     checkboxes.forEach(function(checkbox) {
@@ -288,36 +281,36 @@ function cargaGlobalIdenPrecast(){
 //     });
     
 // }
+
 function generateCheckboxes(precastElements) {
     // Agrupa los elementos por la primera letra de la propiedad ART_Pieza
     const groupedElements = precastElements.reduce((acc, el) => {
-      if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
+        if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
+            return acc;
+        }
+        const firstLetter = el.ART_Pieza.charAt(0).toUpperCase();
+        if (!acc[firstLetter]) {
+            acc[firstLetter] = [];
+        }
+        acc[firstLetter].push(el);
         return acc;
-      }
-      const firstLetter = el.ART_Pieza.charAt(0).toUpperCase();
-      if (!acc[firstLetter]) {
-        acc[firstLetter] = [];
-      }
-      acc[firstLetter].push(el);
-      return acc;
     }, {});
-  
     const checktiposIfcContainer = document.getElementById('checktiposIfc');
     checktiposIfcContainer.style.display = 'block';
-  
+
     Object.entries(groupedElements).forEach(([artPieza, elements]) => {
         const checkboxContainer = document.createElement('div');
         checkboxContainer.classList.add('checkbox-container');
-    
+        
         const button = document.createElement('button');
         button.classList.add('btnCheck');
         button.setAttribute('data-art-pieza', artPieza);
         button.textContent = artPieza;
         checkboxContainer.appendChild(button);
-    
+        
         const checkboxGroup = document.createElement('div');
         checkboxGroup.classList.add('checkbox-group');
-    
+        
         const checkbox = document.createElement('input');
         checkbox.setAttribute('type', 'checkbox');
         checkbox.setAttribute('checked', 'true');
@@ -379,16 +372,17 @@ function removeLabels(letter) {
         }
     }
 }
+
 async function generateLabels(expressIDs) {
     for (let i = 0; i < precastElements.length; i++) {
         const element = precastElements[i];
-  
         if (expressIDs.includes(element.expressID)) {
             const { ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ } = element;
-            console.log (ART_Pieza+" Nombre" );
-                        console.log (ART_CoordX+" CoordX" );
-                        console.log (ART_CoordY+" CoordY" );
-                        console.log (ART_CoordZ+" CoordZ" );
+            // const ART_Pieza=element.ART_Pieza;
+            // const ART_CoordX=element.ART_CoordX;
+            // const ART_CoordY=element.ART_CoordY;
+            // const ART_CoordZ=element.ART_CoordZ;
+            console.log (ART_Pieza+" Nombre. " +ART_CoordX+" CoordX. "+ART_CoordY+" CoordY. "+ART_CoordZ+" CoordZ ");
             muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ);
         }
     }
@@ -417,8 +411,8 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ) {
             label.textContent = ART_Pieza;
             label.classList.add('pieza-label'); // Agregar una clase para identificar estas etiquetas
             const labelObject = new CSS2DObject(label);
-            labelObject.position.set(parseFloat(ART_CoordX) / 1000, parseFloat(ART_CoordZ) / 1000, (-parseFloat(ART_CoordY) / 1000))
-            scene.add(labelObject)
+            labelObject.position.set(parseFloat(ART_CoordX) / 1000, parseFloat(ART_CoordZ) / 1000, (-parseFloat(ART_CoordY) / 1000));
+            scene.add(labelObject);
         }
     }
 }
@@ -536,6 +530,7 @@ let numT=1;
 let numE = 1; 
 let numA = 1;
 let numC = 1;
+let numTu = 1;
 
 document.getElementById("numCamion").innerHTML = numCamion;
 document.getElementById("numT").innerHTML = numT + " - " + letraTransporte  ;
@@ -551,8 +546,6 @@ function activarBoton(target, numCamActual) {
         }
     });
     targetButton.classList.add('seleccionado');
-    //numCamion=numCamActual;
-
 }
 
 function crearMenuDesplegable(numElementos, target) { // menú desplegable dinámico
@@ -589,6 +582,8 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
             letraTransporte = 'C';
         } else if (botonPadre.id === 'menosE') {
             letraTransporte = 'E';
+        }else if (botonPadre.id === 'menosTu') {
+            letraTransporte = 'Tu';
         }
         document.getElementById("numT").innerHTML = numT + " - " + letraTransporte  ;
 
@@ -640,9 +635,13 @@ function actualizaDesplegables(){
     while (menosC.lastChild) {
         menosC.removeChild(menosC.lastChild);
     }
+    while (menosTu.lastChild) {
+        menosTu.removeChild(menosTu.lastChild);
+    }
     menosE.appendChild(crearMenuDesplegable(numE, 'nuevoCamionEstructura'));
     menosA.appendChild(crearMenuDesplegable(numA, 'nuevoCamionAlveolar'));
     menosC.appendChild(crearMenuDesplegable(numC, 'nuevoCamionCerramiento'));
+    menosTu.appendChild(crearMenuDesplegable(numTu, 'nuevoCamionTubular'));
 }
 
 // evento para desactivar los botones al hacer click en algún lado del documento
@@ -657,6 +656,7 @@ document.addEventListener('click', function(event) {
 const nuevoCamionEstructuraBtn = document.getElementById("nuevoCamionEstructura");
 const nuevoCamionAlveolarBtn = document.getElementById("nuevoCamionAlveolar");
 const nuevoCamionCerramientoBtn = document.getElementById("nuevoCamionCerramiento");
+const nuevoCamionTubularBtn = document.getElementById("nuevoCamionTubular");
 
 // Variable para mantener el botón seleccionado actualmente
 let botonSeleccionado = nuevoCamionEstructuraBtn;
@@ -1061,6 +1061,137 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
+nuevoCamionTubularBtn.addEventListener("click", function() {
+    seleccionarBoton(nuevoCamionTubularBtn);
+    numCamion=buscaNumCamionMaximo();
+    var maxCamion = 0;
+
+    letraTransporte = "Tu";
+    numT = numTu;
+    numLetra = numT + " - Tu";
+    document.getElementById("numT").innerHTML = numLetra;
+
+    for (var i = 0; i < precastElements.length; i++) {
+        if (precastElements[i].Camion > maxCamion) {
+            maxCamion = precastElements[i].Camion;
+        }
+    }
+    maxCamion=parseInt(maxCamion);
+    document.getElementById("numCamion").innerHTML = maxCamion+1;
+    var elementoExistente = precastElements.find(function(elemento) {
+        return elemento.tipoTransporte === numLetra;
+    });
+
+    if (numCamion === maxCamion && elementoExistente !== undefined ) {
+        numCamion++;
+        numTu++;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        letraTransporte = "Tu";
+        numT = numTu;
+        numLetra = numT + " - Tu";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    } else if (numCamion === maxCamion && elementoExistente === undefined) {
+        numCamion=maxCamion+1;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        //numE++;
+        numT = numTu;
+        numLetra = numT + " - Tu";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
+        // numCamion=maxCamion+1;
+        document.getElementById("numCamion").innerHTML = numCamion;
+        numTu++;
+        numT = numTu;
+        numLetra = numT + " - Tu";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    }else if (numCamion !== maxCamion && elementoExistente === undefined ) {
+        numCamion="";
+        numCamion=parseInt(buscaNumCamionMaximo())+1;
+        if (isNaN(numCamion)) {
+            numCamion = 1;
+        }
+        document.getElementById("numCamion").innerHTML = numCamion;
+        numT = numTu;
+        numLetra = numT + " - Tu";
+        document.getElementById("numT").innerHTML = numLetra;
+        funcTablaTransporte(numCamion, numLetra);
+        actualizaDesplegables();
+    } 
+});
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 't' || event.key === 'T') {
+        seleccionarBoton(nuevoCamionCerramientoBtn);
+        numCamion=buscaNumCamionMaximo();
+        var maxCamion = 0;
+
+        letraTransporte = "Tu";
+        numT = numTu;
+        numLetra = numT + " - Tu";
+        document.getElementById("numT").innerHTML = numLetra;
+        document.getElementById("numCamion").innerHTML = numCamion;
+
+        for (var i = 0; i < precastElements.length; i++) {
+            if (precastElements[i].Camion > maxCamion) {
+                maxCamion = precastElements[i].Camion;
+            }
+        }
+        maxCamion=parseInt(maxCamion);
+        
+        var elementoExistente = precastElements.find(function(elemento) {
+            return elemento.tipoTransporte === numLetra;
+        });
+
+        if (numCamion === maxCamion && elementoExistente !== undefined ) {
+            numCamion++;
+            numTu++;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            letraTransporte = "Tu";
+            numT = numTu;
+            numLetra = numT + " - Tu";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        } else if (numCamion === maxCamion && elementoExistente === undefined) {
+            numCamion=maxCamion+1;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            //numE++;
+            numT = numTu;
+            numLetra = numT + " - Tu";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+
+        } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
+            // numCamion=maxCamion+1;
+            document.getElementById("numCamion").innerHTML = numCamion;
+            numTu++;
+            numT = numTu;
+            numLetra = numT + " - Tu";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        }else if (numCamion !== maxCamion && elementoExistente === undefined ) {
+            numCamion="";
+            numCamion=parseInt(buscaNumCamionMaximo())+1;
+            if (isNaN(numCamion)) {
+                numCamion = 1;
+            }
+            document.getElementById("numCamion").innerHTML = numCamion;
+            numT = numTu;
+            numLetra = numT + " - Tu";
+            document.getElementById("numT").innerHTML = numLetra;
+            funcTablaTransporte(numCamion, numLetra);
+            actualizaDesplegables();
+        } 
+    }
+});
 function seleccionarBoton(boton) {
     const botonesTipoCarga = document.querySelectorAll('#tipoCarga button');
     const botonesIconoOjo = document.querySelectorAll('.icono-ojo');
@@ -1069,15 +1200,6 @@ function seleccionarBoton(boton) {
     });
     botonSeleccionado = boton;
     botonSeleccionado.classList.add("seleccionado");
-    
-    // botonesIconoOjo.forEach((botonIcono) => {
-    //     if (botonIcono.style.backgroundColor !== "") {
-    //         botonIcono.style.backgroundColor = "";
-    //         const icono = botonIcono.querySelector('i');
-    //         icono.classList.remove('fa-eye');
-    //         icono.classList.add('fa-eye-slash');
-    //     }
-    // });
 }
 
 // seleccion de botones de la tercera fila - icono
@@ -1114,7 +1236,6 @@ iconosOjo.forEach(boton => {
                 const colorFondo = botonFila1.dataset.color;
                 boton.style.backgroundColor = colorFondo;
                 botonFila1.click();
-                //botonFila1.classList.add('seleccionado');
             }
         ultimoBotonClicadojo = boton;
     }

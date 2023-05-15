@@ -653,7 +653,10 @@ input[type="checkbox"] {
   background-color: #90834c;
 }
 
-#menosE, #menosA, #menosC {
+#nuevoCamionTubular {
+  background-color: #9e9e9e;
+}
+#menosE, #menosA, #menosC, #menosTu {
   height: 5px;
   margin-top: -20px;
   background-color: transparent;
