@@ -128137,7 +128137,12 @@ let globalId;
 
 container.onclick = async () => {
     const found = await viewer.IFC.selector.pickIfcItem(false);
-    if (found === null || found === undefined) return;
+    if (found === null || found === undefined){ 
+        const container=document.getElementById('propiedades-container');
+        container.style.visibility="hidden";
+        viewer.IFC.selector.unpickIfcItems();
+        return;
+    }
     const expressID = found.id;
 
     let ART_Pieza = null;
@@ -128153,6 +128158,8 @@ container.onclick = async () => {
 };
 
 function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen) {
+    const container=document.getElementById('propiedades-container');
+    container.style.visibility="visible";
     const longitudNum = parseFloat(ART_Longitud);
     const volumenNum = parseFloat(ART_Volumen);
     const longitudFormatted = longitudNum.toFixed(2);// Limitar a dos decimales
@@ -128178,7 +128185,44 @@ function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen) {
     propiedadesContainer.innerHTML = ''; // Limpia el contenido existente
     propiedadesContainer.appendChild(propiedadesDiv);
 }
+function muestraPropiedadesExpressId(expressID) {
+    const container=document.getElementById('propiedades-container');
+    container.style.visibility="visible";
+    
+    let ART_Pieza, ART_Longitud, ART_Volumen;
+    for (const precast of precastElements) {
+        if (precast.expressID ===parseInt(expressID) ) {
+            ART_Pieza = precast['ART_Pieza'];
+            ART_Longitud = precast['ART_Longitud'];
+            ART_Volumen = precast['ART_Volumen'];
+            break;
+        }
+    }
+    const longitudNum = parseFloat(ART_Longitud);
+    const volumenNum = parseFloat(ART_Volumen);
+    const longitudFormatted = longitudNum.toFixed(2);// Limitar a dos decimales
+    const volumenFormatted = (volumenNum * 2.5).toFixed(2);
 
+    const propiedadesDiv = document.createElement('div');
+    propiedadesDiv.classList.add('propiedades');
+    
+    const piezaLabel = document.createElement('p');
+    piezaLabel.innerHTML = `Pieza: <strong>${ART_Pieza}</strong>`;
+    
+    const longitudLabel = document.createElement('p');
+    longitudLabel.innerHTML = `Longitud: <strong>${longitudFormatted}</strong>`;
+    
+    const volumenLabel = document.createElement('p');
+    volumenLabel.innerHTML = `Peso: <strong>${volumenFormatted}</strong>`;
+    
+    propiedadesDiv.appendChild(piezaLabel);
+    propiedadesDiv.appendChild(longitudLabel);
+    propiedadesDiv.appendChild(volumenLabel);
+    
+    const propiedadesContainer = document.getElementById('propiedades-container');
+    propiedadesContainer.innerHTML = ''; // Limpia el contenido existente
+    propiedadesContainer.appendChild(propiedadesDiv);
+}
 
 
 // **************************************************
@@ -128793,7 +128837,9 @@ function generarTabla(expressIDs, camion) {
             celdaSeleccionadaColor(event.target);
             //viewer.IFC.selector.defSelectMat.color = new Color(255, 128, 0);
             viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], false);
-            const props = await viewer.IFC.getProperties(model.modelID, id, true,true);            updatePropertyMenu(props);
+            // const props = await viewer.IFC.getProperties(model.modelID, id, true,true);;
+            // updatePropertyMenu(props);
+            muestraPropiedadesExpressId(contenidoCelda);
         });
         const fila = document.createElement('tr');
         fila.appendChild(tdElemento);
