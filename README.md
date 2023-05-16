@@ -39,3 +39,5 @@ let ultimoCajonPulsado = null;
   viewer.IFC.selector.pickIfcItemsByID
 
   viewer.IFC.selector.unpickIfcItems();
+
+
