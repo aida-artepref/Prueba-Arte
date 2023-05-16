@@ -366,9 +366,14 @@ ul, #myUL {
     background-color:rgb(99, 99, 99) !important;
     color:white !important;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.2);
-    color: #fff;
+    
   }
+  .pulsadoFiltro {
+    background-color:rgb(185, 115, 115) !important;
+    color:white !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.2);
   
+}
 
 
   #file-name {

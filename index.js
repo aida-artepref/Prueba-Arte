@@ -78,6 +78,20 @@ async function loadModel(url) {
     divCargas.style.display = "block";
 }
 
+const btnFiltros = document.getElementById('filtraTipos');
+
+btnFiltros.addEventListener('click', function() {
+    const checktiposIfcContainer = document.getElementById('checktiposIfc');
+    if (btnFiltros.classList.contains('pulsadoFiltro')) {
+        btnFiltros.classList.remove('pulsadoFiltro');
+        checktiposIfcContainer.style.display = 'none';
+    } else {
+        btnFiltros.classList.add('pulsadoFiltro');
+        checktiposIfcContainer.style.display = 'block';
+    }
+});
+
+
 //Nave cube
 viewer.container = container;
 const navCube = new NavCube(viewer);
@@ -118,7 +132,9 @@ async function crearBotonPrecasFuisonados(){
         btnCreaPrecastFusionados.remove();
         eliminarElementosAssembly();
         generateCheckboxes(precastElements);
-    });
+        const btnFiltros=document.getElementById('filtraTipos');
+        btnFiltros.style.display="block";
+        });
 }
 
 function eliminarElementosAssembly() {
@@ -190,98 +206,6 @@ function cargaGlobalIdenPrecast(){
         }); 
         
 }
-    
-  //******************************************************************************************************************* */
- /// ---------------estas tres funciones son necesarias para obtener solo las categorias de IFC cargado------------------------
- //-------------extrae todos los tipos de elementos del modelo y los agrupa en un objeto llamado categorias.
-// function setIfcPropertiesContent(ifcProject, viewer, model) {
-//     const ifcClass = getIfcClass(ifcProject);
-//     let uniqueClasses = [...new Set(ifcClass)];
-//     const checkboxesHTML = generateCheckboxes(uniqueClasses);
-//     document.getElementById('checktiposIfc').innerHTML = checkboxesHTML;
-
-//     const btnNota = document.querySelectorAll('.btn-notacion');
-//     btnNota.forEach(function(button) {
-    
-//         const icon = document.createElement('i');
-//         icon.classList.add('fas', 'fa-sticky-note');
-//         button.appendChild(icon);
-
-//         button.addEventListener('click', function(event) {
-//             const checkbox = event.currentTarget.parentElement.querySelector('input[type="checkbox"]');
-//             if (checkbox !== null) {
-//                 const classValue = checkbox.getAttribute('data-class');
-//                 //console.log("Has pulsado el botón : " + classValue);
-//             }
-//         });
-//     });
-// }
-
-//  //recorre el modelo y almacena el tipo de cada elemento en un array typeArray.
-// function getIfcClass(ifcProject) {
-//     let typeArray = [];
-//     return getIfcClass_base(ifcProject, typeArray);
-// }
-
-// //recursivamente  se llama a sí misma para procesar los hijos de cada elemento y agregar su tipo al array.
-// function getIfcClass_base(ifcProject, typeArray) {
-//     const children = ifcProject.children;
-//     if (children.length === 0) {
-//         typeArray.push(ifcProject.type);
-//     } else {
-//         for (const obj of children) {
-//             getIfcClass_base(obj, typeArray);
-//         }
-//     }
-//     return typeArray;
-// }
-
-// // Crea automaticamente los check con las categorias del IFC cargado y  asocia un numero a cada check(dataclass)
-// function generateCheckboxes(uniqueClasses) {
-//     let html = '';
-//     uniqueClasses.forEach(function(uniqueClass) {
-//         html += `<div class="checkbox-container">`;
-//         // html += `<button class="btn-notacion" data-id="${uniqueClass}"> </button>`;
-//         html += `<input type="checkbox" checked data-class="${uniqueClass}">${uniqueClass}`;
-//         html += `</div>`;
-//     });
-//     return html;
-// }
-
-// evento cambio en los checK tipos de elementos
-// function addCheckboxListeners() {
-//     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-//     checkboxes.forEach(function(checkbox) {
-//         checkbox.addEventListener('change', function() {
-//             viewer.IFC.selector.unpickIfcItems();
-//             const isChecked = this.checked;
-//             const tipo = this.getAttribute('data-class');
-//             const matchingIds = [];
-//             for (let i = 0; i < precastElements.length; i++) {
-//                 const element = precastElements[i];
-//                 if (element.ifcType === tipo) {
-//                     matchingIds.push(element.expressID);
-//                 }
-//             }
-//             if (isChecked) {  // si esta checkeado comprueba que no est eya en el transporte, si es asi lo elimina para no volver a mostrarlo
-//                 for(let i=0; i< matchingIds.length; i++){
-//                     const matchingId = matchingIds[i];
-//                     const matchingElement = precastElements.find(el => el.expressID === matchingId);
-                    
-//                     if (matchingElement && matchingElement.Camion !== '' && matchingElement.Camion !== undefined) {
-//                     matchingIds.splice(i, 1);
-//                     i--;
-//                     }
-//                 }
-//                 showAllItems(viewer, matchingIds);
-//             } else {
-//                 hideAllItems(viewer, matchingIds);
-//             }
-//         });
-        
-//     });
-    
-// }
 
 function generateCheckboxes(precastElements) {
     // Agrupa los elementos por la primera letra de la propiedad ART_Pieza
@@ -297,7 +221,7 @@ function generateCheckboxes(precastElements) {
         return acc;
     }, {});
     const checktiposIfcContainer = document.getElementById('checktiposIfc');
-    checktiposIfcContainer.style.display = 'block';
+    checktiposIfcContainer.style.display = 'none';
 
     Object.entries(groupedElements).forEach(([artPieza, elements]) => {
         const checkboxContainer = document.createElement('div');
@@ -333,7 +257,8 @@ function generateCheckboxes(precastElements) {
     }, 0);
     }
 
-function addBotonCheckboxListeners() {
+
+    function addBotonCheckboxListeners() {
     const buttons = document.querySelectorAll('.btnCheck');
     for (let i = 0; i < buttons.length; i++) {
         buttons[i].addEventListener('click', function() {
@@ -383,7 +308,7 @@ async function generateLabels(expressIDs) {
             // const ART_CoordX=element.ART_CoordX;
             // const ART_CoordY=element.ART_CoordY;
             // const ART_CoordZ=element.ART_CoordZ;
-            console.log (ART_Pieza+" Nombre. " +ART_CoordX+" CoordX. "+ART_CoordY+" CoordY. "+ART_CoordZ+" CoordZ ");
+            // console.log (ART_Pieza+" Nombre. " +ART_CoordX+" CoordX. "+ART_CoordY+" CoordY. "+ART_CoordZ+" CoordZ ");
             muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ);
         }
     }
@@ -444,11 +369,7 @@ function addCheckboxListeners() {
 }
 
  ////-----------------------------------------------------------------------------------------------------------------------------------
- // reemplaza cualquier subconjunto anterior con el mismo ID personalizado ('full-model-subset').
- //crear un subconjunto de elementos del modelo especificado por allIDs. 
- //El subconjunto se crea en la misma escena que el modelo original model,
- // y cualquier modelo previamente existente en la escena con el mismo identificador personalizado 'full-model-subset' se elimina antes de agregar el nuevo subconjunto.
- // El subconjunto devuelto es un objeto Three.js que contiene solo los elementos especificados por allIDs.
+
 function getWholeSubset(viewer, model, allIDs) {
 	return viewer.IFC.loader.ifcManager.createSubset({
 		modelID: model.modelID,
@@ -459,24 +380,6 @@ function getWholeSubset(viewer, model, allIDs) {
 		customID: 'full-model-subset',
 	});
 }
-
-// function getWholeSubsetRojo(viewer, model, expressID, subset_name, materialRojo) {
-// 	return viewer.IFC.loader.ifcManager.createSubset({
-//         modelID: model.modelID,
-//         ids: expressID,
-//         material: materialRojo,
-//         applyBVH: true,
-//         scene: viewer.context.getScene(),
-//         removePrevious: true,
-//         customID: subset_name,
-// 		// modelID: model.modelID,
-// 		// ids: allIDs,
-// 		// applyBVH: true,
-// 		// scene: model.parent,
-// 		// removePrevious: true,
-// 		// customID: subset_name,
-// 	});
-// }
 
 //Remplaza un modelo original (model) por un subconjunto previamente creado (subset).
 function replaceOriginalModelBySubset(viewer, model, subset) {
@@ -512,7 +415,7 @@ function showAllItems(viewer, ids) {
 	});
 }
 
-//oculta los elementos del visor pasandole un arry con los ids que deseamos ocultar
+
 function hideAllItems(viewer, ids) {
 	ids.forEach(function(id) {
         viewer.IFC.loader.ifcManager.removeFromSubset(
@@ -523,9 +426,8 @@ function hideAllItems(viewer, ids) {
     }); 
 }
 
-//boton de HTML que pulsandolo crea un nuevo camion
-let numCamion=1;// cuenta los camiones totales, todos E A C
 
+let numCamion=1;
 let letraTransporte = 'E';
 let numT=1;
 let numE = 1; 
@@ -536,7 +438,6 @@ let numTu = 1;
 document.getElementById("numCamion").innerHTML = numCamion;
 document.getElementById("numT").innerHTML = numT + " - " + letraTransporte  ;
 actualizaDesplegables();
-
 
 function activarBoton(target, numCamActual) {
     const targetButton = document.getElementById(target);
@@ -1193,6 +1094,7 @@ document.addEventListener('keydown', function(event) {
         } 
     }
 });
+
 function seleccionarBoton(boton) {
     const botonesTipoCarga = document.querySelectorAll('#tipoCarga button');
     const botonesIconoOjo = document.querySelectorAll('.icono-ojo');
@@ -1460,18 +1362,6 @@ let globalIds=[];
 let globalId;
 
 
-// container.onclick = async()=>{
-//     const divProp = document.querySelector('#main-container');
-//     divProp.style.display = 'block'; //hace visible el div de la tabla en HTML
-//     const found=await viewer.IFC.selector.pickIfcItem(false);
-//     if(found === null || found === undefined) return; //elemento no seleccionado no hace nada
-//     //y para acceder a propiedades de ese elemento, con doble true es recursivo y arrastra todas las props->psets incluidas
-//     const props = await viewer.IFC.getProperties (found.modelID, found.id, true,true);
-//     globalId=props['GlobalId'].value;
-//     //console.log(globalId);
-//     updatePropertyMenu(props);  
-// }
-
 container.onclick = async () => {
     const found = await viewer.IFC.selector.pickIfcItem(false);
     if (found === null || found === undefined){ 
@@ -1522,6 +1412,7 @@ function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen) {
     propiedadesContainer.innerHTML = ''; // Limpia el contenido existente
     propiedadesContainer.appendChild(propiedadesDiv);
 }
+
 function muestraPropiedadesExpressId(expressID) {
     const container=document.getElementById('propiedades-container');
     container.style.visibility="visible";
@@ -1992,7 +1883,7 @@ function obtenerValorCamion(precastElements) {
     
     return Array.from(valoresCamion);
 }
-
+let activeExpressIDs = [];
 function generaBotonesNumCamion(camionesUnicos) {
     viewer.IFC.selector.unpickIfcItems();
     
@@ -2009,7 +1900,8 @@ function generaBotonesNumCamion(camionesUnicos) {
     btnNumCamiones.innerHTML = ""; //limpia el div antes de generar los botones
     agregarBotonCero();
     camionesUnicos.sort((a, b) => a - b); // ordena los nº de camion de menor a mayor
-    
+    const checkboxGroup = document.getElementsByClassName("checkbox-group");
+
     camionesUnicos.forEach(function(camion) {
         const btn = document.createElement("button");
         btn.setAttribute("class","btnNumCamion")
@@ -2024,6 +1916,8 @@ function generaBotonesNumCamion(camionesUnicos) {
                     btn.style.backgroundColor = "#4c7a90";
                 } else if (tipoTransporte.includes("C")) {
                     btn.style.backgroundColor = "#90834c";
+                }else if (tipoTransporte.includes("Tu")) {
+                    btn.style.backgroundColor = "#9e9e9e";
                 }
             }
         });
@@ -2041,6 +1935,9 @@ function generaBotonesNumCamion(camionesUnicos) {
             if (isActive) {
             //, elimina los elementos del visor y desactiva el botón
                 viewer.IFC.selector.unpickIfcItems();
+                activeExpressIDs = activeExpressIDs.filter(
+                    id => !expressIDs.includes(id)
+                );
                 hideAllItems(viewer, expressIDs);
                 btn.classList.remove("active");
                 btn.style.justifyContent = "center";
@@ -2050,6 +1947,7 @@ function generaBotonesNumCamion(camionesUnicos) {
                 posicionCamion.innerHTML = ""; // limpia el contenido previo del div
                 botonesActivos--;
             } else {
+                activeExpressIDs = activeExpressIDs.concat(expressIDs);
                 //  muestra los elementos en tabla en el visor y activa el botón
                 viewer.IFC.selector.unpickIfcItems();
                 hideAllItems(viewer, allIDs);
@@ -2061,10 +1959,44 @@ function generaBotonesNumCamion(camionesUnicos) {
             }
             if (botonesActivos === 0) { // si las cargas están desactivados muestra elementos que faltan por transportar
                 showAllItems(viewer, allIDs);
+                enableCheckboxes();
+            } else {
+                disableCheckboxes();
             }
         });
     });
+
+    function disableCheckboxes() {
+        for (let i = 0; i < checkboxGroup.length; i++) {
+            const checkboxes = checkboxGroup[i].querySelectorAll('input[type="checkbox"]');
+            
+            for (let j = 0; j < checkboxes.length; j++) {
+                checkboxes[j].disabled = true;
+            }
+        }
+        generateLabels(activeExpressIDs);
+    }
+    
+    function enableCheckboxes() {
+        for (let i = 0; i < checkboxGroup.length; i++) {
+            const checkboxes = checkboxGroup[i].querySelectorAll('input[type="checkbox"]');
+            for (let j = 0; j < checkboxes.length; j++) {
+                checkboxes[j].disabled = false;
+            }
+        }
+        removeLabels();
+    }
+
+    function removeLabels() {
+        const labels = document.querySelectorAll('.pieza-label');
+        labels.forEach(function(label) {
+          
+          label.style.visibility = "hidden";
+          
+        });
+      }
 }
+
 
 function agregarBotonCero() {
     viewer.IFC.selector.unpickIfcItems();
@@ -2247,6 +2179,7 @@ function resaltarTabla(tabla, cabeceraValor) {
             t.style.border = "3px solid red";
             tablaResaltada = true;
             posicionesCamion(tabla, cabeceraValor); // argumentos tabla y valor de cabecera a la función posicionesCamion
+            actualizarTablaDerecha();
         } else {
             t.style.border = "1px solid black";
         }
@@ -2293,6 +2226,7 @@ function posicionesCamion(tabla, cabeceraValor) {
     posicionCamion.innerHTML = ""; // limpia el contenido previo del div
 
     const tablaNueva = document.createElement("table");
+    tablaNueva.setAttribute("id", "tabla-izquierda")
     tablaNueva.style.marginTop = "5px";
     tablaNueva.style.marginLeft = "10px";
     tablaNueva.style.borderCollapse = "collapse";
@@ -2360,24 +2294,28 @@ function posicionesCamion(tabla, cabeceraValor) {
         
                 cajon.addEventListener("contextmenu", function (event) {
                 event.preventDefault();
-                if (cajon.innerText === "") {
-                    asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
-                }
+                    if (cajon.innerText === "") {
+                        asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
+                        actualizarTablaDerecha()
+                    }
                 });
         
                 cajon.addEventListener("dblclick", function (event) {
                     limpiaPosicion(cajon, tabla);
+                    actualizarTablaDerecha()
                 });
         
                 cajon.addEventListener("click", async function (event) {
-                viewer.IFC.selector.pickIfcItemsByID(
-                    0,
-                    [parseInt(cajon.textContent)],
-                    false
-                );
-                let id=parseInt(cajon.textContent);
-                const props = await viewer.IFC.getProperties(model.modelID, id, true,true);
-                updatePropertyMenu(props);
+                    viewer.IFC.selector.pickIfcItemsByID(
+                        0,
+                        [parseInt(cajon.textContent)],
+                        false
+                    );
+                    let id=parseInt(cajon.textContent);
+                    const props = await viewer.IFC.getProperties(model.modelID, id, true,true);
+                    updatePropertyMenu(props);
+                    actualizarTablaDerecha()
+
                 });
             }
             
@@ -2391,9 +2329,11 @@ function posicionesCamion(tabla, cabeceraValor) {
         crearTablaDerecha(tabla, cabeceraValor)
 }
 
+
 function crearTablaDerecha(tabla, cabeceraValor) {
     const expressIdByCamion = [];
     const tablaDerecha = document.createElement("table");
+    tablaDerecha.setAttribute("id", "tabla-derecha");
     tablaDerecha.style.marginTop = "5px";
     tablaDerecha.style.marginLeft = "10px";
     tablaDerecha.style.borderCollapse = "collapse";
@@ -2452,24 +2392,7 @@ function crearTablaDerecha(tabla, cabeceraValor) {
         cajon.classList.add("cajon");
         fila.appendChild(cajon);
   
-        cajon.addEventListener("contextmenu", function (event) {
-          event.preventDefault();
-          if (cajon.innerText === "") {
-            asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
-          }
-        });
-  
-        cajon.addEventListener("dblclick", function (event) {
-          limpiaPosicion(cajon, tabla);
-        });
-  
-        cajon.addEventListener("click", function (event) {
-            viewer.IFC.selector.pickIfcItemsByID(
-                0,
-                [parseInt(cajon.textContent)],
-                false
-            );
-            });
+        
         }
         
         tablaDerecha.appendChild(fila);
@@ -2480,6 +2403,38 @@ function crearTablaDerecha(tabla, cabeceraValor) {
     posicionCamion.appendChild(tablaDerecha);
     actualizaCajones(expressIdByCamion);
 }
+
+
+function actualizarTablaDerecha() {
+    const tablaIzquierda = document.getElementById('tabla-izquierda');
+    const tablaDerecha = document.getElementById('tabla-derecha');
+    let pesoTotal = 0;
+  
+    const numFilas = tablaIzquierda.rows.length;
+    const numColumnas = tablaIzquierda.rows[0].cells.length;
+  
+    for (let i = 0; i < numFilas; i++) {
+      for (let j = 0; j < numColumnas; j++) {
+        const cajonIzquierda = tablaIzquierda.rows[i].cells[j];
+        const cajonDerecha = tablaDerecha.rows[i].cells[j];
+        const idCajon = cajonIzquierda.innerText;
+  
+        const elemento = precastElements.find((e) => e.expressID === parseInt(idCajon));
+        if (elemento) {
+          const peso = parseFloat(elemento.ART_Volumen).toFixed(2);
+          cajonDerecha.innerText = peso;
+          pesoTotal += parseFloat(peso);
+        } else {
+          cajonDerecha.innerText = ''; // si no hay elemento, dejar la celda en blanco
+        }
+      }
+    }
+  
+    const cabeceraTablaDerecha = tablaDerecha.getElementsByTagName('th')[0];
+    cabeceraTablaDerecha.innerText = `Peso Total: ${pesoTotal.toFixed(2)}`;
+  }
+    
+
 
 function cambiarIdsTablaA(tabla) {
     const nuevosIds = [1, 2, 9, 10, 3, 4, 11, 12, 5, 6, 13, 14, 7, 8, 15, 16];
