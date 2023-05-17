@@ -2329,7 +2329,7 @@ function posicionesCamion(tabla, cabeceraValor) {
         crearTablaDerecha(tabla, cabeceraValor)
 }
 
-
+let cantidadFilas, cantidadColumnas;
 function crearTablaDerecha(tabla, cabeceraValor) {
     const expressIdByCamion = [];
     const tablaDerecha = document.createElement("table");
@@ -2339,7 +2339,7 @@ function crearTablaDerecha(tabla, cabeceraValor) {
     tablaDerecha.style.borderCollapse = "collapse";
     tablaDerecha.style.border = "2px solid";
     tablaDerecha.style.height = "95%";  
-    let cantidadFilas, cantidadColumnas;
+   
   
     if (cabeceraValor.includes("E")) {
       cantidadFilas = 3;
@@ -2411,9 +2411,9 @@ function actualizarTablaDerecha() {
     let pesoTotal = 0;
   
     const numFilas = tablaIzquierda.rows.length;
-    const numColumnas = tablaIzquierda.rows[0].cells.length;
+    const numColumnas = cantidadColumnas;
   
-    for (let i = 0; i < numFilas; i++) {
+    for (let i = 1; i < numFilas; i++) {
       for (let j = 0; j < numColumnas; j++) {
         const cajonIzquierda = tablaIzquierda.rows[i].cells[j];
         const cajonDerecha = tablaDerecha.rows[i].cells[j];
@@ -2421,7 +2421,9 @@ function actualizarTablaDerecha() {
   
         const elemento = precastElements.find((e) => e.expressID === parseInt(idCajon));
         if (elemento) {
-          const peso = parseFloat(elemento.ART_Volumen).toFixed(2);
+
+          const volumen = parseFloat(elemento.ART_Volumen).toFixed(2);
+          const peso = volumen * 2.5;
           cajonDerecha.innerText = peso;
           pesoTotal += parseFloat(peso);
         } else {
