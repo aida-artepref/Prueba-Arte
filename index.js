@@ -392,18 +392,37 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 }
 
 window.ondblclick = () => hideClickedItem(viewer); //evento dblClic carga al camion elementos
-window.oncontextmenu=()=> hideClickedItemBtnDrch(viewer); //evento btnDrch oculta del visor elemento
+const divNumCamiones = document.getElementById('divNumCamiones');
 
-window.onkeydown = (event) => {  //evento esc, incluye todos los elementos ocultos con el BtnDrch de nuevo al visor
-    if (event.code === 'Escape') {
-        showAllItems(viewer, allIDs);
-        // Buscar los checkbox en elemento con id="checktiposIfc" y los activa
-        const checkboxes = document.querySelectorAll('#checktiposIfc input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = true;
-        });
+let btnsCamionActivo = false;
+for (let i = 0; i < divNumCamiones.children.length; i++) {
+    if (divNumCamiones.children[i].classList.contains("active")) {
+        btnsCamionActivo = true;
+        break;
+    }
+}
+
+window.oncontextmenu = () => {
+    if (!btnsCamionActivo) {
+        hideClickedItemBtnDrch(viewer); // Ocultar elemento del visor
     }
 };
+
+
+
+window.onkeydown = (event) => {  //evento esc, incluye todos los elementos ocultos con el BtnDrch de nuevo al visor
+    if (!btnsCamionActivo) {
+        if (event.code === 'Escape') {
+            showAllItems(viewer, allIDs);
+            // Buscar los checkbox en elemento con id="checktiposIfc" y los activa
+            const checkboxes = document.querySelectorAll('#checktiposIfc input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+        }
+    }
+};
+
 
 function showAllItems(viewer, ids) {
 	viewer.IFC.loader.ifcManager.createSubset({
@@ -1158,9 +1177,6 @@ function generarTablaPorLetra(letra) {
     thead.innerHTML ="<tr><th>expressID</th><th>GlobalId</th><th>Camion</th><th>Tipo</th><th>Volumen</th></tr>";
     table.appendChild(thead);
 
-    //const filteredElements = precastElements.filter((elemento) => elemento.tipoTransporte.includes(letra) );
-    // const filteredElements = precastElements.filter((elemento) => elemento.tipoTransporte.includes(letra));
-    // const filteredElements = precastElements.filter((elemento) => elemento.tipoTransporte.toLowerCase().includes(letra.toLowerCase()));
     const filteredElements = precastElements.filter((elemento) => {
         if (elemento.hasOwnProperty("tipoTransporte")) {
             return elemento.tipoTransporte.includes(letra);
@@ -1636,8 +1652,8 @@ function createSimpleChild(parent, node){
     }
     childNode.onclick = async () => {
         viewer.IFC.selector.pickIfcItemsByID(0,[node.expressID],true);   
-        const props = await viewer.IFC.getProperties (0, node.expressID, true, true);
-        updatePropertyMenu(props);
+        // const props = await viewer.IFC.getProperties (0, node.expressID, true, true);
+        // updatePropertyMenu(props);
     }
 }
 
@@ -1925,6 +1941,7 @@ function generaBotonesNumCamion(camionesUnicos) {
         btnNumCamiones.appendChild(btn);
         btn.addEventListener("click", function() {
             const expressIDs = [];
+            // btnsCamionActivo = true;
             precastElements.forEach(function(precastElement) {
                 if (parseInt(precastElement.Camion) === camion) {
                     expressIDs.push(precastElement.expressID);
@@ -1946,7 +1963,9 @@ function generaBotonesNumCamion(camionesUnicos) {
                 const posicionCamion = document.getElementById("posicionCamion");
                 posicionCamion.innerHTML = ""; // limpia el contenido previo del div
                 botonesActivos--;
+                btnsCamionActivo = false;
             } else {
+                
                 activeExpressIDs = activeExpressIDs.concat(expressIDs);
                 //  muestra los elementos en tabla en el visor y activa el botón
                 viewer.IFC.selector.unpickIfcItems();
@@ -1956,12 +1975,14 @@ function generaBotonesNumCamion(camionesUnicos) {
                 btn.style.color = "red";
                 generarTabla(expressIDs, camion);
                 botonesActivos++;
+                btnsCamionActivo = true;
             }
             if (botonesActivos === 0) { // si las cargas están desactivados muestra elementos que faltan por transportar
                 showAllItems(viewer, allIDs);
                 enableCheckboxes();
             } else {
                 disableCheckboxes();
+                
             }
         });
     });
@@ -2312,9 +2333,10 @@ function posicionesCamion(tabla, cabeceraValor) {
                         false
                     );
                     let id=parseInt(cajon.textContent);
-                    const props = await viewer.IFC.getProperties(model.modelID, id, true,true);
-                    updatePropertyMenu(props);
-                    actualizarTablaDerecha()
+                    //const props = await viewer.IFC.getProperties(model.modelID, id, true,true);
+                    //updatePropertyMenu(props);
+                    muestraPropiedadesExpressId(id);
+                    actualizarTablaDerecha();
 
                 });
             }
@@ -2404,39 +2426,35 @@ function crearTablaDerecha(tabla, cabeceraValor) {
     actualizaCajones(expressIdByCamion);
 }
 
-
 function actualizarTablaDerecha() {
     const tablaIzquierda = document.getElementById('tabla-izquierda');
     const tablaDerecha = document.getElementById('tabla-derecha');
     let pesoTotal = 0;
-  
+
     const numFilas = tablaIzquierda.rows.length;
     const numColumnas = cantidadColumnas;
-  
-    for (let i = 1; i < numFilas; i++) {
-      for (let j = 0; j < numColumnas; j++) {
-        const cajonIzquierda = tablaIzquierda.rows[i].cells[j];
-        const cajonDerecha = tablaDerecha.rows[i].cells[j];
-        const idCajon = cajonIzquierda.innerText;
-  
-        const elemento = precastElements.find((e) => e.expressID === parseInt(idCajon));
-        if (elemento) {
 
-          const volumen = parseFloat(elemento.ART_Volumen).toFixed(2);
-          const peso = volumen * 2.5;
-          cajonDerecha.innerText = peso;
-          pesoTotal += parseFloat(peso);
-        } else {
-          cajonDerecha.innerText = ''; // si no hay elemento, dejar la celda en blanco
+    for (let i = 1; i < numFilas; i++) {
+        for (let j = 0; j < numColumnas; j++) {
+            const cajonIzquierda = tablaIzquierda.rows[i].cells[j];
+            const cajonDerecha = tablaDerecha.rows[i].cells[j];
+            const idCajon = cajonIzquierda.innerText;
+    
+            const elemento = precastElements.find((e) => e.expressID === parseInt(idCajon));
+            if (elemento) {
+
+            const volumen = elemento.ART_Volumen;
+            const peso = parseFloat(volumen * 2.5).toFixed(2);
+            cajonDerecha.innerText = peso;
+            pesoTotal += parseFloat(peso);
+            } else {
+            cajonDerecha.innerText = ''; // si no hay elemento, dejar la celda en blanco
+            }
         }
-      }
-    }
-  
+        }
     const cabeceraTablaDerecha = tablaDerecha.getElementsByTagName('th')[0];
     cabeceraTablaDerecha.innerText = `Peso Total: ${pesoTotal.toFixed(2)}`;
-  }
-    
-
+}
 
 function cambiarIdsTablaA(tabla) {
     const nuevosIds = [1, 2, 9, 10, 3, 4, 11, 12, 5, 6, 13, 14, 7, 8, 15, 16];
