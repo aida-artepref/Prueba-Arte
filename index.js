@@ -1233,6 +1233,34 @@ listaElementos.addEventListener('dblclick', function(event) {
 });
 
 //muestra en HTML a través de una tabla los elemntos no visibles en visor
+// async function listarOcultos(elementosOcultos) {
+//     const itemList = document.querySelector(".item-list-elementos-cargados");
+//     itemList.innerHTML = "";
+//     const table = document.createElement("table");
+//     table.classList.add("table");
+    
+//     const thead = document.createElement("thead");
+//     thead.innerHTML = "<tr><th>expressID</th><th>GlobalId</th><th>Camion</th><th>Tipo</th><th>Volumen</th></tr>";
+//     table.appendChild(thead);
+    
+//     const tbody = document.createElement("tbody");
+    
+//     for (let i = elementosOcultos.length - 1; i >= 0; i--) {  //Muestra los elementos en orden inverso
+//         const id = elementosOcultos[i];
+//         const elemento = precastElements.find(elemento => elemento.expressID === id);
+//         if (!elemento) {
+//             throw new Error(`No se encontró el elemento con expressID = ${id}`);
+//         }
+//         const tr = document.createElement("tr");
+//         tr.classList.add("item-list-elemento");
+//         tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.tipoTransporte}</td><td>${(elemento.Volumen_real)}</td>`;
+//         //tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.Volumen_real.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 9 })}</td>`;
+//         tbody.appendChild(tr);
+//     }
+//     table.appendChild(tbody);
+//     itemList.appendChild(table);
+//     $(table).tablesorter();//para ordenar la tabla si pulsamos en sus encabezados
+// }
 async function listarOcultos(elementosOcultos) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
     itemList.innerHTML = "";
@@ -1240,12 +1268,12 @@ async function listarOcultos(elementosOcultos) {
     table.classList.add("table");
     
     const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>expressID</th><th>GlobalId</th><th>Camion</th><th>Tipo</th><th>Volumen</th></tr>";
+    thead.innerHTML = "<tr><th>expressID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th></tr>";
     table.appendChild(thead);
     
     const tbody = document.createElement("tbody");
     
-    for (let i = elementosOcultos.length - 1; i >= 0; i--) {  //Muestra los elementos en orden inverso
+    for (let i = elementosOcultos.length - 1; i >= 0; i--) {  // Muestra los elementos en orden inverso
         const id = elementosOcultos[i];
         const elemento = precastElements.find(elemento => elemento.expressID === id);
         if (!elemento) {
@@ -1253,14 +1281,18 @@ async function listarOcultos(elementosOcultos) {
         }
         const tr = document.createElement("tr");
         tr.classList.add("item-list-elemento");
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.tipoTransporte}</td><td>${(elemento.Volumen_real)}</td>`;
-        //tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.Volumen_real.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 9 })}</td>`;
+        const peso = (parseFloat(elemento.ART_Volumen) * 2.5).toFixed(2);
+        const altura = parseFloat(elemento.ART_Alto).toFixed(2);
+        const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td><td>${altura}</td><td>${ancho}</td>`;
+
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
     itemList.appendChild(table);
-    $(table).tablesorter();//para ordenar la tabla si pulsamos en sus encabezados
+    $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
 }
+
 
 function hideClickedItem(viewer) {
     const divCargas = document.querySelector('.divCargas');
@@ -1298,8 +1330,6 @@ function hideClickedItem(viewer) {
                     actValorCamion.Posicion="";
                 }
                 listarOcultos(elementosOcultos);
-                //indexOf se utiliza para encontrar el índice del elemento que quieres eliminar.
-                // Si el elemento no se encuentra en el array, indexOf devuelve -1. Por lo tanto, antes de llamar a splice, debes verificar que el elemento exista en el array.
                 let indexToRemove = allIDs.indexOf(id);
                 if (indexToRemove !== -1) {
                     allIDs.splice(indexToRemove, 1);
@@ -1865,11 +1895,8 @@ async function mostrarElementosRestantes(){
     allIDs.splice(0, allIDs.length);
     for (let i = 0; i < precastElements.length; i++) {
         let valorCamion = precastElements[i].Camion;
-        // si la propiedad Camion del objeto actual está vacía
         if (precastElements[i].Camion === undefined || precastElements[i].Camion ==='' ) {
-            // variable expressID = el valor de la propiedad expressID de ese objeto y lo convertimos a número
             const expressID = parseInt(precastElements[i].expressID);
-            // Agregamos el valor al array allIDs
             allIDs.push(expressID);
         }else{
             const expressIDoculto = parseInt(precastElements[i].expressID);
