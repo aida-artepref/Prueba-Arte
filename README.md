@@ -41,3 +41,18 @@ let ultimoCajonPulsado = null;
   viewer.IFC.selector.unpickIfcItems();
 
 
+
+
+
+function calcularPesoTotal(expressIDs) {
+    let pesoTotal = 0;
+    for (const id of expressIDs) {
+      const precastElem = precastElements.find(elem => elem.expressID === id);
+      if (precastElem && precastElem.ART_Volumen) {
+        const volumen = parseFloat(precastElem.ART_Volumen);
+        const peso = parseFloat((volumen * 2.5).toFixed(2));
+        pesoTotal += peso;
+      }
+    }
+    return pesoTotal;
+  }

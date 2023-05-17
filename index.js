@@ -360,7 +360,7 @@ function addCheckboxListeners() {
             }
         });
             if (isChecked) {
-                showAllItems(viewer, matchingIds);
+                showAllItems(viewer, allIDs);
             } else {
                 hideAllItems(viewer, matchingIds);
             }
@@ -2122,11 +2122,23 @@ function showElementsByCamion(viewer, precastElements) {
         }, delay);
       delay += 250; // Esperar un segundo antes de mostrar el siguiente grupo
     });
-     //ocultar la etiqueta después de mostrar todos los elementos
     setTimeout(() => {
         div.style.display = 'none';
     }, delay);
 }
+function calcularPesoTotal(expressIDs) {
+    let pesoTotal = 0;
+    for (const id of expressIDs) {
+      const precastElem = precastElements.find(elem => elem.expressID === id);
+      if (precastElem && precastElem.ART_Volumen) {
+        const volumen = parseFloat(precastElem.ART_Volumen);
+        const peso = parseFloat((volumen * 2.5).toFixed(2));
+        pesoTotal += peso;
+      }
+    }
+    return pesoTotal;
+  }
+  
 
 let contenidoCelda;
 let tablaResaltada = false;
@@ -2134,8 +2146,10 @@ function generarTabla(expressIDs, camion) {
     const divTabla = document.getElementById("datosCamiones");
     const precastElement = precastElements.find(elem => parseInt(elem.Camion) === camion);
     const cabeceraValor = `${camion} * ${precastElement.tipoTransporte}`;
+    const pesoTotal = calcularPesoTotal(expressIDs); // Calcular el peso total de los elementos
+    const cabeceraCompleta = `${cabeceraValor}<br>${pesoTotal}`; // Agregar el peso total a la cabecera
     const thElemento = document.createElement('th');// Cabecera de la tabla
-    thElemento.textContent = cabeceraValor;
+    thElemento.textContent = cabeceraCompleta;
     const filaCabecera = document.createElement('tr');
     filaCabecera.appendChild(thElemento);
     const cabecera = document.createElement('thead');
@@ -2144,7 +2158,6 @@ function generarTabla(expressIDs, camion) {
     expressIDs.forEach(id => {
         const tdElemento = document.createElement('td');
         tdElemento.textContent = id;
-        // Condicion si el elemento está en precastElements y si su propiedad "Posicion" no está vacía
         const precastElem = precastElements.find(elem => elem.expressID === id && elem.Posicion !== "" && elem.Posicion !== undefined);
         if (precastElem) {
             tdElemento.style.backgroundColor = "#BD9BC2"; 
@@ -2155,10 +2168,7 @@ function generarTabla(expressIDs, camion) {
             resaltarTabla(tabla, cabeceraValor);
             tablaResaltada=true;
             celdaSeleccionadaColor(event.target);
-            //viewer.IFC.selector.defSelectMat.color = new Color(255, 128, 0);
             viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], false);
-            // const props = await viewer.IFC.getProperties(model.modelID, id, true,true);;
-            // updatePropertyMenu(props);
             muestraPropiedadesExpressId(contenidoCelda);
         });
         const fila = document.createElement('tr');
@@ -2166,9 +2176,10 @@ function generarTabla(expressIDs, camion) {
         cuerpo.appendChild(fila);
     });
     const tabla = document.createElement('table');// Tabla completa
-    tabla.classList.add('tabla');
+    tabla.classList.add('tabla-estilo');
     tabla.appendChild(cabecera);
     tabla.appendChild(cuerpo);
+
     const contenedorTabla = document.createElement("div");// Contenedor  agrega estilos CSS
     contenedorTabla.classList.add('contenedor-tabla');
     contenedorTabla.addEventListener("click", function() {

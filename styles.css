@@ -213,12 +213,7 @@ ul, #myUL {
     margin-left: 1rem
   }
   
-  /* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
-  /* .active {
-    display: block;
-  } */
 
-/**/
 .item-list-elementos-cargados{
   display: inline-block;
 }
@@ -227,7 +222,7 @@ ul, #myUL {
     position: fixed;
     top:48px;
     left:0px;
-    background-color: rgba(255, 255, 255, 0.767);
+    background-color: rgba(255, 255, 255);
     border: 1px solid #874c8f;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     padding: 1px;
@@ -726,6 +721,29 @@ input[type="checkbox"] {
   height: calc(100% - 15px);
 }
 
+.tabla-estilo {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-estilo th,
+.tabla-estilo td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabla-estilo th {
+  font-weight: bold;
+  background-color: #f2f2f2;
+  white-space: pre-line; /* Permite los saltos de línea */
+  line-height: 1.5; /* Espaciado entre líneas */
+}
+
+
+.tabla-estilo tbody tr:hover {
+  background-color: #f5f5f5;
+}
 .tabla {
   border: 1px solid black;
   border-collapse: collapse;
