@@ -260,8 +260,9 @@ ul, #myUL {
   #reduceDivBtn, #expandDivBtn {
     position: absolute;
     right: -25px;
-    top: calc(50% - 15px);
-    width: 20px;
+    top: 5px;
+    width: 50px !important;
+    height: 10px;
     border-radius: 20px;
     border: 1px solid rgb(63, 63, 63);
     color: #fff;
@@ -274,16 +275,12 @@ ul, #myUL {
     text-align: center;
 }
 
-
-
 #reduceDivBtn::before {
-  content: "\f060";
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  font-size: 16px;
-  display: flex;
-  justify-content: center;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
 }
+
 
 
 #expandDivBtn::before {
@@ -719,11 +716,13 @@ input[type="checkbox"] {
   max-width: 50%;
   overflow-y: auto;
   height: calc(100% - 15px);
+  
 }
 
 .tabla-estilo {
   width: 100%;
   border-collapse: collapse;
+  text-align: center;
 }
 
 .tabla-estilo th,
@@ -731,13 +730,17 @@ input[type="checkbox"] {
   padding: 8px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+  text-align: center;
 }
 
 .tabla-estilo th {
   font-weight: bold;
   background-color: #f2f2f2;
-  white-space: pre-line; /* Permite los saltos de línea */
+  white-space: pre-line; 
   line-height: 1.5; /* Espaciado entre líneas */
+  font-family: "Roboto", sans-serif;
+  font-size: 14px;;
+  text-align: center;
 }
 
 
