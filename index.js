@@ -1297,7 +1297,15 @@ function obtenerExpressIDsDelCamion(numCamion) {
         }
     return expressIDs;
 }
-
+function obtenerExpressIDsDelCamionCSV(numCamion) {
+    const expressIDs = [];
+    for (const elem of precastElements) {
+        if (elem.Camion === numCamion) {
+            expressIDs.push(elem.expressID);
+        }
+    }
+    return expressIDs;
+}
 function hideClickedItem(viewer) {
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
@@ -1801,33 +1809,25 @@ GUI.importer.addEventListener("change", function(e) {
 
 const numCamionElement = document.getElementById("numCamion");
 
-// Crear una instancia de MutationObserver con una función de callback
+
 const observer = new MutationObserver(function (mutationsList) {
-  for (const mutation of mutationsList) {
-    if (mutation.type === "childList" && mutation.target === numCamionElement) {
-      // Llamar a la función de manejo de cambio
-      handleNumCamionChange();
+    for (const mutation of mutationsList) {
+        if (mutation.type === "childList" && mutation.target === numCamionElement) {
+        handleNumCamionChange();
+        }
     }
-  }
 });
-
-// Configurar las opciones de observación
-const config = { childList: true };
-
-// Comenzar a observar los cambios en el elemento
-observer.observe(numCamionElement, config);
+const config = { childList: true };// Configurar las opciones de observación
+observer.observe(numCamionElement, config);//  observa los cambios en el elemento
 
 function handleNumCamionChange() {
-   
     const numCamion = numCamionElement.textContent.trim();
 
-    const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+    const expressIDs = obtenerExpressIDsDelCamionCSV(numCamion);
     const pesoTotal = calcularPesoTotal(expressIDs);
-    const pesoCamionElement = document.getElementById("pesoCamion");
-    pesoCamionElement.textContent = pesoTotal.toString();
+    const pesoCamion = document.getElementById("pesoCamion");
+    pesoCamion.textContent = pesoTotal.toString();
 }
-
-    
 
 function creaTablaTransporte() {
     for (let objeto of precastElements) {
@@ -1896,29 +1896,26 @@ function buscaValoresMax(camionMaximo){
     if (camionMaximo == null || camionMaximo.tipoTransporte == null) {
         return; // Si la variable es null, no hace nada y sale de la función.
     }
-        const tipoTransporte = camionMaximo.tipoTransporte;
-        const partesTipoTransporte = tipoTransporte.split("-");
-        const numCamMax = parseInt(partesTipoTransporte[0].trim());
-        const letraTrans = partesTipoTransporte[1].trim().charAt(0);
-        if (letraTrans=== 'A'){
-            numA=numCamMax;
-            numT=numA;
-        }
-        if (letraTrans=== 'C'){
-            numC=numCamMax;
-            numT=numC;
-        }
-        if (letraTrans==='E'){
-            numE=numCamMax;
-            numT=numE;
-
-            document.getElementById("numT").textContent =  "" ;
+    const tipoTransporte = camionMaximo.tipoTransporte;
+    const partesTipoTransporte = tipoTransporte.split("-");
+    const numCamMax = parseInt(partesTipoTransporte[0].trim());
+    const letraTrans = partesTipoTransporte[1].trim().charAt(0);
+    if (letraTrans=== 'A'){
+        numA=numCamMax;
+        numT=numA;
     }
-    
+    if (letraTrans=== 'C'){
+        numC=numCamMax;
+        numT=numC;
+    }
+    if (letraTrans==='E'){
+        numE=numCamMax;
+        numT=numE;
+        document.getElementById("numT").textContent =  "" ;
+    }
 }
 
 let camionesUnicos=[];
-
 async function mostrarElementosRestantes(){
     allIDs.splice(0, allIDs.length);
     for (let i = 0; i < precastElements.length; i++) {
