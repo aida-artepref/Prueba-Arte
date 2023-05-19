@@ -56,3 +56,14 @@ function calcularPesoTotal(expressIDs) {
     }
     return pesoTotal;
   }
+
+
+  
+    const numCamionElement = document.getElementById("numCamion");
+    const numCamion = numCamionElement.textContent.trim();
+
+    const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+
+    const pesoTotal = calcularPesoTotal(expressIDs);
+    const pesoCamionElement = document.getElementById("pesoCamion");
+    pesoCamionElement.textContent = pesoTotal.toString();

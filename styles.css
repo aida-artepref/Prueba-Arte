@@ -40,7 +40,6 @@
     margin: 0.5rem;
     border: var(--border);
     border-radius: 0.5rem;
-    user-select: none;
     -webkit-user-select: none;
     cursor: pointer;
 }
@@ -795,21 +794,39 @@ td.cajon::before {
   height: 100%;
   opacity: 0;
 }
+#pesoCamion{
+  display:block;
+  color:rgb(0, 0, 0);
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  font-size: 15px;
+}
+#pesoCamionLabel{
+  display:block;
+  color:black;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  font-size: 12px;
 
-
+}
 #numT {
   font-size: 20px;
-  background-color: rgb(209, 151, 161);
+  background-color: rgb(255, 255, 255);
   padding: 10px; 
-margin-right: 30px;
-border: 1px solid #333;
-border-radius: 5px;
-box-shadow:0px 2px 5px rgba(0,0,0,0.5);
-color: black;}
-
+  margin-right: 30px;
+  border: 1px solid #333;
+  border-radius: 0px;
+  /* box-shadow:0px 2px 5px rgba(0,0,0,0.5); */
+  color: black;
+  display:block;
+  margin-bottom: 5px;
+  color:red;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  font-size: 30px;;
+}
 
 #numCamion {
-  color: black;}
+  color: black;
+  
+}
 
 select.seleccionado {
     background-color: rgb(189, 155, 194);

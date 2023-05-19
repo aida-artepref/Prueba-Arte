@@ -390,10 +390,18 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 	items.ifcModels.push(subset);
 	items.pickableIfcModels.push(subset); 
 }
+window.ondblclick = () => {
+    hideClickedItem(viewer);
+    const numCamionElement = document.getElementById("numCamion");
+    const numCamion = numCamionElement.textContent.trim();
+    const expressIDs = obtenerExpressIDsDelCamion(numCamion);  
+    const pesoTotal = calcularPesoTotal(expressIDs);
+    const pesoCamion = document.getElementById("pesoCamion");
+    pesoCamion.textContent = pesoTotal.toString();
+};
 
-window.ondblclick = () => hideClickedItem(viewer); //evento dblClic carga al camion elementos
+   //evento dblClic carga al camion elementos
 const divNumCamiones = document.getElementById('divNumCamiones');
-
 let btnsCamionActivo = false;
 for (let i = 0; i < divNumCamiones.children.length; i++) {
     if (divNumCamiones.children[i].classList.contains("active")) {
@@ -1224,12 +1232,27 @@ listaElementos.addEventListener('dblclick', function(event) {
     const divCheck = document.getElementById("checktiposIfc");
     const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");// Obtener todos los checkbox dentro del div
     checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
+    
+    
+    let numCamion=document.getElementById("numCamion");
     const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
+        if(actValorCamion.Camion===parseInt(numCamion)){
+            const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+            const pesoTotal = calcularPesoTotal(expressIDs);
+            const pesoCamion = document.getElementById("pesoCamion");
+            pesoCamion.textContent =  pesoTotal.toString();
+        }
+    
+        
         if (actValorCamion) {
             actValorCamion.Camion = "";
             actValorCamion.tipoTransporte = "";
             actValorCamion.Posicion = "";
         }
+    const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+    const pesoTotal = calcularPesoTotal(expressIDs);
+    const pesoCamion = document.getElementById("pesoCamion");
+    pesoCamion.textContent =  pesoTotal.toString();
 });
 
 async function listarOcultos(elementosOcultos) {
@@ -1262,6 +1285,17 @@ async function listarOcultos(elementosOcultos) {
     table.appendChild(tbody);
     itemList.appendChild(table);
     $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
+
+}
+
+function obtenerExpressIDsDelCamion(numCamion) {
+    const expressIDs = [];
+    for (const elem of precastElements) {
+        if (elem.Camion === parseInt(numCamion)) {
+            expressIDs.push(elem.expressID);
+        }
+        }
+    return expressIDs;
 }
 
 function hideClickedItem(viewer) {
@@ -1765,6 +1799,36 @@ GUI.importer.addEventListener("change", function(e) {
     
 });
 
+const numCamionElement = document.getElementById("numCamion");
+
+// Crear una instancia de MutationObserver con una función de callback
+const observer = new MutationObserver(function (mutationsList) {
+  for (const mutation of mutationsList) {
+    if (mutation.type === "childList" && mutation.target === numCamionElement) {
+      // Llamar a la función de manejo de cambio
+      handleNumCamionChange();
+    }
+  }
+});
+
+// Configurar las opciones de observación
+const config = { childList: true };
+
+// Comenzar a observar los cambios en el elemento
+observer.observe(numCamionElement, config);
+
+function handleNumCamionChange() {
+   
+    const numCamion = numCamionElement.textContent.trim();
+
+    const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+    const pesoTotal = calcularPesoTotal(expressIDs);
+    const pesoCamionElement = document.getElementById("pesoCamion");
+    pesoCamionElement.textContent = pesoTotal.toString();
+}
+
+    
+
 function creaTablaTransporte() {
     for (let objeto of precastElements) {
         if (objeto.hasOwnProperty('Camion') && objeto.hasOwnProperty('tipoTransporte')) {
@@ -2092,7 +2156,7 @@ function calcularPesoTotal(expressIDs) {
             pesoTotal += peso;
         }
     }
-    return pesoTotal;
+    return pesoTotal.toFixed(2);
 }
 
 let contenidoCelda;
@@ -2104,7 +2168,7 @@ function generarTabla(expressIDs, camion) {
     let pesoTotal = calcularPesoTotal(expressIDs); // Calcular el peso total de los elementos
     const actualizarCabecera = (nuevoPesoTotal) => {
         pesoTotal = nuevoPesoTotal;
-        const cabeceraCompleta = `${cabeceraValor}\nPeso: ${pesoTotal.toFixed(2)}`; // Agregar el nuevo peso total a la cabecera
+        const cabeceraCompleta = `${cabeceraValor}\nPeso: ${pesoTotal}`; // Agregar el nuevo peso total a la cabecera
         thElemento.textContent = cabeceraCompleta;
         
         if (pesoTotal > 25) {
