@@ -309,6 +309,8 @@ async function generateLabels(expressIDs) {
 }
 
 function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
+    console.log(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ);
+
     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
         return;
     } else {
@@ -1210,45 +1212,45 @@ function generarTablaPorLetra(letra) {
 //y vuelve a colocar el valor de la prop Camion ''
 const divCargas = document.querySelector('.divCargas');
 let listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
-listaElementos.addEventListener('dblclick', function(event) {
-    const target = event.target;
-    let elementoEliminadoTabla;
-    if (target.tagName === 'TD') {
-        elementoEliminadoTabla = target.parentNode.firstChild.textContent;
-        target.parentNode.remove();
-        let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
-        if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
-            elementosOcultos.splice(indexToRemove, 1);
-            globalIds.splice(indexToRemove, 1);
-        }
-        allIDs.push(parseInt(elementoEliminadoTabla));
-    }
-    showAllItems(viewer, allIDs);
-    const divCheck = document.getElementById("checktiposIfc");
-    const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");// Obtener todos los checkbox dentro del div
-    checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
+// listaElementos.addEventListener('dblclick', function(event) {
+//     const target = event.target;
+//     let elementoEliminadoTabla;
+//     if (target.tagName === 'TD') {
+//         elementoEliminadoTabla = target.parentNode.firstChild.textContent;
+//         target.parentNode.remove();
+//         let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
+//         if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
+//             elementosOcultos.splice(indexToRemove, 1);
+//             globalIds.splice(indexToRemove, 1);
+//         }
+//         allIDs.push(parseInt(elementoEliminadoTabla));
+//     }
+//     showAllItems(viewer, allIDs);
+//     const divCheck = document.getElementById("checktiposIfc");
+//     const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");// Obtener todos los checkbox dentro del div
+//     checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
     
     
-    let numCamion=document.getElementById("numCamion");
-    const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
-        if(actValorCamion.Camion===parseInt(numCamion)){
-            const expressIDs = obtenerExpressIDsDelCamion(numCamion);
-            const pesoTotal = calcularPesoTotal(expressIDs);
-            const pesoCamion = document.getElementById("pesoCamion");
-            pesoCamion.textContent =  pesoTotal.toString();
-        }
+//     let numCamion=document.getElementById("numCamion");
+//     const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
+//         if(actValorCamion.Camion===parseInt(numCamion)){
+//             const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+//             const pesoTotal = calcularPesoTotal(expressIDs);
+//             const pesoCamion = document.getElementById("pesoCamion");
+//             pesoCamion.textContent =  pesoTotal.toString();
+//         }
     
         
-        if (actValorCamion) {
-            actValorCamion.Camion = "";
-            actValorCamion.tipoTransporte = "";
-            actValorCamion.Posicion = "";
-        }
-    const expressIDs = obtenerExpressIDsDelCamion(numCamion);
-    const pesoTotal = calcularPesoTotal(expressIDs);
-    const pesoCamion = document.getElementById("pesoCamion");
-    pesoCamion.textContent =  pesoTotal.toString();
-});
+//         if (actValorCamion) {
+//             actValorCamion.Camion = "";
+//             actValorCamion.tipoTransporte = "";
+//             actValorCamion.Posicion = "";
+//         }
+//     const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+//     const pesoTotal = calcularPesoTotal(expressIDs);
+//     const pesoCamion = document.getElementById("pesoCamion");
+//     pesoCamion.textContent =  pesoTotal.toString();
+// });
 
 async function listarOcultos(elementosOcultos) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
@@ -2014,13 +2016,14 @@ function generaBotonesNumCamion(camionesUnicos) {
                 generarTabla(expressIDs, camion);
                 botonesActivos++;
                 btnsCamionActivo = true;
+                generateLabels(expressIDs);
             }
             if (botonesActivos === 0) { // si las cargas están desactivados muestra elementos que faltan por transportar
                 showAllItems(viewer, allIDs);
                 enableCheckboxes();
             } else {
                 disableCheckboxes();
-                
+                // generateLabels(expressIDs);
             }
         });
     });
@@ -2033,7 +2036,7 @@ function generaBotonesNumCamion(camionesUnicos) {
                 checkboxes[j].disabled = true;
             }
         }
-        generateLabels(activeExpressIDs);
+        
     }
     
     function enableCheckboxes() {
@@ -2043,17 +2046,7 @@ function generaBotonesNumCamion(camionesUnicos) {
                 checkboxes[j].disabled = false;
             }
         }
-        //removeLabels(activeExpressIDs);
     }
-
-    // function removeLabels() {
-    //     const labels = document.querySelectorAll('.pieza-label');
-    //     labels.forEach(function(label) {
-          
-    //       label.style.visibility = "hidden";
-          
-    //     });
-    //   }
 }
 
 function agregarBotonCero() {
@@ -2222,9 +2215,9 @@ function generarTabla(expressIDs, camion) {
                 }
             }
             allIDs.push(parseInt(elementoEliminadoTabla));
+            removeLabels(elementoEliminadoTabla);
         }
         listarOcultos(elementosOcultos);
-        //const expressIDs = [];
         viewer.IFC.selector.unpickIfcItems();
         hideAllItems(viewer, allIDs);
         showAllItems(viewer, expressIDs);
