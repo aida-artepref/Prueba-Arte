@@ -278,7 +278,7 @@ function generateCheckboxes(precastElements) {
                 });
             if (this.classList.contains('pulsado')) {
                 this.classList.remove('pulsado');
-                removeLabels(letter);
+                removeLabels(visibleIds);
             } else {
                 this.classList.add('pulsado');
                 generateLabels(visibleIds);
@@ -287,14 +287,13 @@ function generateCheckboxes(precastElements) {
     }
 }
 
-
-function removeLabels(letter) {
-    const labels = document.querySelectorAll('.pieza-label'); // Buscar todos los elementos con la clase "pieza-label-item"
+function removeLabels(expressIDs) {
+    const labels = document.querySelectorAll('.pieza-label'); // Buscar todos los elementos con la clase "pieza-label"
     for (let i = 0; i < labels.length; i++) {
         const label = labels[i];
-        const texto = labels[i].textContent.charAt(0);
-        if (texto === letter || texto===""||texto===undefined) {
-            label.style.visibility =  'hidden';
+        const labelID = parseInt(label.id);
+        if (expressIDs.includes(labelID)) {
+            label.style.visibility = 'hidden';
         }
     }
 }
@@ -303,18 +302,13 @@ async function generateLabels(expressIDs) {
     for (let i = 0; i < precastElements.length; i++) {
         const element = precastElements[i];
         if (expressIDs.includes(element.expressID)) {
-            const { ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ } = element;
-            // const ART_Pieza=element.ART_Pieza;
-            // const ART_CoordX=element.ART_CoordX;
-            // const ART_CoordY=element.ART_CoordY;
-            // const ART_CoordZ=element.ART_CoordZ;
-            // console.log (ART_Pieza+" Nombre. " +ART_CoordX+" CoordX. "+ART_CoordY+" CoordY. "+ART_CoordZ+" CoordZ ");
-            muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ);
+            const { ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID } = element;
+            muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
         }
     }
 }
 
-function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ) {
+function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
         return;
     } else {
@@ -325,9 +319,9 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ) {
             const element = elements[i];
     
             if (element.textContent.startsWith(ART_Pieza)) {
-            if (element.style.visibility === 'hidden') {
-                element.style.visibility = 'visible';
-            }
+                if (element.style.visibility === 'hidden') {
+                    element.style.visibility = 'visible';
+                }
             count++;
             }
         }
@@ -335,7 +329,8 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ) {
         if (count === 0) {
             const label = document.createElement('p');
             label.textContent = ART_Pieza;
-            label.classList.add('pieza-label'); // Agregar una clase para identificar estas etiquetas
+            label.classList.add('pieza-label');
+            label.id = expressID;
             const labelObject = new CSS2DObject(label);
             labelObject.position.set(parseFloat(ART_CoordX) / 1000, parseFloat(ART_CoordZ) / 1000, (-parseFloat(ART_CoordY) / 1000));
             scene.add(labelObject);
@@ -1822,7 +1817,6 @@ observer.observe(numCamionElement, config);//  observa los cambios en el element
 
 function handleNumCamionChange() {
     const numCamion = numCamionElement.textContent.trim();
-
     const expressIDs = obtenerExpressIDsDelCamionCSV(numCamion);
     const pesoTotal = calcularPesoTotal(expressIDs);
     const pesoCamion = document.getElementById("pesoCamion");
@@ -1985,7 +1979,6 @@ function generaBotonesNumCamion(camionesUnicos) {
         btnNumCamiones.appendChild(btn);
         btn.addEventListener("click", function() {
             const expressIDs = [];
-            // btnsCamionActivo = true;
             precastElements.forEach(function(precastElement) {
                 if (parseInt(precastElement.Camion) === camion) {
                     expressIDs.push(precastElement.expressID);
@@ -2008,6 +2001,7 @@ function generaBotonesNumCamion(camionesUnicos) {
                 posicionCamion.innerHTML = ""; // limpia el contenido previo del div
                 botonesActivos--;
                 btnsCamionActivo = false;
+                removeLabels(expressIDs);
             } else {
                 
                 activeExpressIDs = activeExpressIDs.concat(expressIDs);
@@ -2049,17 +2043,17 @@ function generaBotonesNumCamion(camionesUnicos) {
                 checkboxes[j].disabled = false;
             }
         }
-        removeLabels();
+        //removeLabels(activeExpressIDs);
     }
 
-    function removeLabels() {
-        const labels = document.querySelectorAll('.pieza-label');
-        labels.forEach(function(label) {
+    // function removeLabels() {
+    //     const labels = document.querySelectorAll('.pieza-label');
+    //     labels.forEach(function(label) {
           
-          label.style.visibility = "hidden";
+    //       label.style.visibility = "hidden";
           
-        });
-      }
+    //     });
+    //   }
 }
 
 function agregarBotonCero() {
