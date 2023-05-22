@@ -269,13 +269,15 @@ function generateCheckboxes(precastElements) {
             const parentText = this.parentNode.textContent.trim();
             let prevEl = null;
             precastElements.forEach(function(el, index) {
-                if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
-                    return ;
-                }
-                if (el.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
-                    visibleIds.push(el.expressID);
+                if (allIDs.includes(el.expressID)) {
+                    if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
+                        return ;
                     }
-                });
+                    if (el.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
+                        visibleIds.push(el.expressID);
+                        }
+                }
+            });
             if (this.classList.contains('pulsado')) {
                 this.classList.remove('pulsado');
                 removeLabels(visibleIds);
@@ -298,18 +300,24 @@ function removeLabels(expressIDs) {
     }
 }
 
+
 async function generateLabels(expressIDs) {
-    for (let i = 0; i < precastElements.length; i++) {
-        const element = precastElements[i];
-        if (expressIDs.includes(element.expressID)) {
+    for (let i = 0; i < expressIDs.length; i++) {
+        const currentExpressID = expressIDs[i];
+        for (let j = 0; j < precastElements.length; j++) {
+            const element = precastElements[j];
+            if (element.expressID === currentExpressID) {
             const { ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID } = element;
             muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
+            break; // Sale del bucle interno una vez que encuentra el elemento
+            }
         }
     }
 }
 
 function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
     console.log(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ);
+    console.log(typeof expressID);
 
     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
         return;
@@ -320,7 +328,7 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
         for (let i = 0; i < elements.length; i++) {
             const element = elements[i];
     
-            if (element.textContent.startsWith(ART_Pieza)) {
+            if (element.textContent.startsWith(ART_Pieza) && element.expressID ===expressID) {
                 if (element.style.visibility === 'hidden') {
                     element.style.visibility = 'visible';
                 }
@@ -1294,6 +1302,7 @@ function obtenerExpressIDsDelCamion(numCamion) {
         }
     return expressIDs;
 }
+
 function obtenerExpressIDsDelCamionCSV(numCamion) {
     const expressIDs = [];
     for (const elem of precastElements) {
@@ -1303,6 +1312,7 @@ function obtenerExpressIDsDelCamionCSV(numCamion) {
     }
     return expressIDs;
 }
+
 function hideClickedItem(viewer) {
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
