@@ -1,4 +1,4 @@
-import { Color, Loader, MeshBasicMaterial, LineBasicMaterial, MeshStandardMaterial } from 'three';
+import { Color, Loader, MeshBasicMaterial, LineBasicMaterial, MeshStandardMaterial, EdgesGeometry, Mesh, BufferGeometry} from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
@@ -19,7 +19,6 @@ document.addEventListener("keydown", function(event) {
 });
 
 viewer.context.renderer.usePostproduction = true;
-// viewer.IFC.selector.defHighlightMat.color = new Color(255, 128, 0);
 viewer.IFC.selector.defSelectMat.color = new Color(127, 255, 0);
 
 const GUI={
@@ -55,9 +54,11 @@ GUI.input.onchange = async (event) => {
     loadModel(url); 
 }
 
-//si el Ifc ya esta cargado por defecto y no selecciona atraves del input
 async function loadModel(url) {
     model = await viewer.IFC.loadIfcUrl(url);
+    const pieces= await viewer.edges.setupModelMaterials(model);
+    viewer.edges.setupModelMaterials(model)
+    //addBordes(model);
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
@@ -66,20 +67,57 @@ async function loadModel(url) {
     const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     //setIfcPropertiesContent(ifcProject, viewer, model);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
-
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
-
     viewer.shadows = true;
     await cargaGlobalIdenPrecast();
     await  crearBotonPrecas(); 
     // verNumPrecast();
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
+    
+   // mergeEdges(model); // Agregar esta línea para fusionar los bordes de los elementos geométricos.
 }
+// let piezasConBordes = {};
+// function addBordes(model) {
+//     const mat = new LineBasicMaterial({ color: 0x525252 });
+
+//     model.traverse((piece) => {
+//         if (piece instanceof Mesh) {
+//             const pieceMat = mat.clone(); // Clonar el material para cada pieza
+//             viewer.edges.createFromMesh(piece.name, piece, pieceMat);
+//             viewer.edges.toggle(piece.name, true);
+//             piezasConBordes[piece.name] = piece;
+//         }
+//     });
+// }
+// function mergeEdges(model) {
+//     const mat = new LineBasicMaterial({ color: 0x525252 });
+//     const mergedGeometry = new BufferGeometry();
+//     model.traverse((piece) => {
+//         if (piece instanceof Mesh) {
+//             const pieceMat = mat.clone();
+//             viewer.edges.createFromMesh(piece.name, piece, pieceMat);
+//             viewer.edges.toggle(piece.name, true);
+//             mergedGeometry.merge(piece.geometry);
+//         }
+//     });
+//     const mergedMesh = new Mesh(mergedGeometry, model.material);
+//     scene.add(mergedMesh);
+// }
+
+// function removeBordes(elementoId) {
+    
+    // const edges = new EdgesGeometry(object.geometry);
+    // const line = new LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffffff }));
+    // // Eliminar bordes
+    // edges.dispose();
+    // line.geometry.dispose();
+    // line.material.dispose();
+    // scene.remove(line);
+//   }
 
 const btnFiltros = document.getElementById('filtraTipos');
-
 btnFiltros.addEventListener('click', function() {
     const checktiposIfcContainer = document.getElementById('checktiposIfc');
     if (btnFiltros.classList.contains('pulsadoFiltro')) {
@@ -90,7 +128,6 @@ btnFiltros.addEventListener('click', function() {
         checktiposIfcContainer.style.display = 'block';
     }
 });
-
 
 //Nave cube
 viewer.container = container;
@@ -300,7 +337,6 @@ function removeLabels(expressIDs) {
     }
 }
 
-
 async function generateLabels(expressIDs) {
     for (let i = 0; i < expressIDs.length; i++) {
         const currentExpressID = expressIDs[i];
@@ -360,12 +396,12 @@ function addCheckboxListeners() {
             if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" ||element.ART_Pieza=== undefined) {
                 return;
             }
-            if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
+            if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza && !element.Camion) {
                 matchingIds.push(element.expressID);
             }
         });
             if (isChecked) {
-                showAllItems(viewer, allIDs);
+                showAllItems(viewer, matchingIds);
             } else {
                 hideAllItems(viewer, matchingIds);
             }
@@ -395,10 +431,11 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 	items.ifcModels.push(subset);
 	items.pickableIfcModels.push(subset); 
 }
+
 window.ondblclick = () => {
     hideClickedItem(viewer);
     const numCamionElement = document.getElementById("numCamion");
-    const numCamion = numCamionElement.textContent.trim();
+    let numCamion = numCamionElement.textContent.trim();
     const expressIDs = obtenerExpressIDsDelCamion(numCamion);  
     const pesoTotal = calcularPesoTotal(expressIDs);
     const pesoCamion = document.getElementById("pesoCamion");
@@ -421,8 +458,6 @@ window.oncontextmenu = () => {
     }
 };
 
-
-
 window.onkeydown = (event) => {  //evento esc, incluye todos los elementos ocultos con el BtnDrch de nuevo al visor
     if (!btnsCamionActivo) {
         if (event.code === 'Escape') {
@@ -436,7 +471,6 @@ window.onkeydown = (event) => {  //evento esc, incluye todos los elementos ocult
     }
 };
 
-
 function showAllItems(viewer, ids) {
 	viewer.IFC.loader.ifcManager.createSubset({
 		modelID: 0,
@@ -446,7 +480,6 @@ function showAllItems(viewer, ids) {
 		customID: 'full-model-subset',
 	});
 }
-
 
 function hideAllItems(viewer, ids) {
 	ids.forEach(function(id) {
@@ -1267,7 +1300,7 @@ async function listarOcultos(elementosOcultos) {
     table.classList.add("table");
     
     const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>expressID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th></tr>";
+    thead.innerHTML = "<tr><th>expressID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
     table.appendChild(thead);
     
     const tbody = document.createElement("tbody");
@@ -1283,7 +1316,8 @@ async function listarOcultos(elementosOcultos) {
         const peso = (parseFloat(elemento.ART_Volumen) * 2.5).toFixed(2);
         const altura = parseFloat(elemento.ART_Alto).toFixed(2);
         const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td><td>${altura}</td><td>${ancho}</td>`;
+        const longitud =parseFloat(elemento.ART_Longitud).toFixed(2);
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td><td>${altura}</td><td>${ancho}</td><td>${longitud}</td>`;
 
         tbody.appendChild(tr);
     }
@@ -1296,7 +1330,7 @@ async function listarOcultos(elementosOcultos) {
 function obtenerExpressIDsDelCamion(numCamion) {
     const expressIDs = [];
     for (const elem of precastElements) {
-        if (elem.Camion === parseInt(numCamion)) {
+        if (elem.Camion === parseInt(numCamion) || elem.Camion===numCamion.toString()) {
             expressIDs.push(elem.expressID);
         }
         }
@@ -1331,11 +1365,13 @@ function hideClickedItem(viewer) {
     for (let i = 0; i < precastElements.length; i++) {
         if (precastElements[i].expressID === id) {
             if (precastElements[i].Camion === '' || precastElements[i].Camion === undefined) {
+                //removeBordes(id);
                 viewer.IFC.loader.ifcManager.removeFromSubset(
                     0,
                     [id],
                     'full-model-subset',
                     );
+                    
                 viewer.IFC.selector.unpickIfcItems();
                 elementosOcultos.push(id);
                 globalIds.push(globalId);// cuando oculto un elemnto su globalId se añade al array globalIds
@@ -2031,9 +2067,13 @@ function generaBotonesNumCamion(camionesUnicos) {
             if (botonesActivos === 0) { // si las cargas están desactivados muestra elementos que faltan por transportar
                 showAllItems(viewer, allIDs);
                 enableCheckboxes();
+                var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(function (checkbox) {
+                    checkbox.checked = true;
+                });
+
             } else {
                 disableCheckboxes();
-                // generateLabels(expressIDs);
             }
         });
     });
@@ -2237,7 +2277,14 @@ function generarTabla(expressIDs, camion) {
             cancelable: true 
         });
         contenedorTabla.dispatchEvent(eventoClick);
-
+        var spanNumCamion = document.getElementById("numCamion");
+        var valorSpanNumCamion = parseInt(spanNumCamion.innerHTML);
+        if(valorSpanNumCamion===camion){
+            const nuevoPesoTotal = calcularPesoTotal(expressIDs);
+            actualizarCabecera(nuevoPesoTotal);
+            const labelPesoList = document.getElementById("pesoCamion");
+            labelPesoList.textContent=nuevoPesoTotal;
+        }
         const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
         if (actValorCamion) {
             actValorCamion.Camion = "";
