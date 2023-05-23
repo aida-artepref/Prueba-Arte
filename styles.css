@@ -228,6 +228,7 @@ ul, #myUL {
     width: auto;
     height: auto;
     text-align: center;
+    z-index: 9999;
     /* overflow: visible; */
   }
   
@@ -351,6 +352,7 @@ ul, #myUL {
     height: auto;  
     background-color: white;
     border-radius: 10px;
+    z-index: 999;
   }
 
   .pulsado {
