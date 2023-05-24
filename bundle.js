@@ -128140,33 +128140,58 @@ let globalId;
 
 container.onclick = async () => {
     const found = await viewer.IFC.selector.pickIfcItem(false);
-    if (found === null || found === undefined){ 
-        const container=document.getElementById('propiedades-container');
-        container.style.visibility="hidden";
-        viewer.IFC.selector.unpickIfcItems();
-        return;
+    if (found === null || found === undefined) {
+      const container = document.getElementById('propiedades-container');
+      container.style.visibility = "hidden";
+      viewer.IFC.selector.unpickIfcItems();
+      return;
     }
     const expressID = found.id;
-
+  
     let ART_Pieza = null;
+    let ART_Longitud = null;
+    let ART_Volumen = null;
+    let ART_Ancho = null;
+  
     for (const precast of precastElements) {
-        if (precast.expressID === expressID ) {
-            ART_Pieza = precast['ART_Pieza'];
-            ART_Longitud = precast['ART_Longitud'];
-            ART_Volumen = precast['ART_Volumen'];
-            break;
-        }
+      if (precast.expressID === expressID) {
+        ART_Pieza = precast['ART_Pieza'];
+        ART_Longitud = precast['ART_Longitud'];
+        ART_Volumen = precast['ART_Volumen'];
+        ART_Ancho = parseFloat(precast['ART_Ancho']).toFixed(2);
+        ART_Ancho = parseFloat(ART_Ancho);
+        break;
+      }
     }
-    muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen);
-};
-
-function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen) {
+  
+    console.log('ART_Pieza:', ART_Pieza, typeof ART_Pieza);
+    console.log('ART_Longitud:', ART_Longitud, typeof ART_Longitud);
+    console.log('ART_Volumen:', ART_Volumen, typeof ART_Volumen);
+    console.log('ART_Ancho:', ART_Ancho, typeof ART_Ancho);
+  
+    muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen, ART_Ancho);
+  };
+  
+  
+function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen, ART_Ancho) {
     const container=document.getElementById('propiedades-container');
     container.style.visibility="visible";
     const longitudNum = parseFloat(ART_Longitud);
     const volumenNum = parseFloat(ART_Volumen);
     const longitudFormatted = longitudNum.toFixed(2);// Limitar a dos decimales
-    const volumenFormatted = (volumenNum * 2.5).toFixed(2);
+    
+    let volumenFormatted;
+
+    if (ART_Ancho === 0.2) {
+        volumenFormatted = (volumenNum * 1.6).toFixed(2);
+    } else if (ART_Ancho === 0.24) {
+        volumenFormatted = (volumenNum * 1.5).toFixed(2);
+    } else if (ART_Ancho === 0.16) {
+        volumenFormatted = (volumenNum * 1.875).toFixed(2);
+    } else {
+        volumenFormatted = (volumenNum * 2.5).toFixed(2);
+    }
+
 
     const propiedadesDiv = document.createElement('div');
     propiedadesDiv.classList.add('propiedades');
