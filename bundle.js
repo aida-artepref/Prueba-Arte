@@ -126775,6 +126775,8 @@ async function loadModel(url) {
     
     // const edges = new EdgesGeometry(object.geometry);
     // const line = new LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffffff }));
+    // scene.add(line);
+
     // // Eliminar bordes
     // edges.dispose();
     // line.geometry.dispose();
@@ -127001,24 +127003,38 @@ function removeLabels(expressIDs) {
     }
 }
 
+// async function generateLabels(expressIDs) {
+//     for (let i = 0; i < expressIDs.length; i++) {
+//         const currentExpressID = expressIDs[i];
+//         for (let j = 0; j < precastElements.length; j++) {
+//             const element = precastElements[j];
+//             if (element.expressID === currentExpressID) {
+//             const { ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID } = element;
+//             muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
+//             break; // Sale del bucle interno una vez que encuentra el elemento
+//             }
+//         }
+//     }
+// }
 async function generateLabels(expressIDs) {
     for (let i = 0; i < expressIDs.length; i++) {
         const currentExpressID = expressIDs[i];
         for (let j = 0; j < precastElements.length; j++) {
             const element = precastElements[j];
             if (element.expressID === currentExpressID) {
-            const { ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID } = element;
-            muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
-            break; // Sale del bucle interno una vez que encuentra el elemento
+                const { ART_Pieza, expressID } = element;
+                let ART_CoordX = element.ART_CoordX || element.ART_cdgX;
+                let ART_CoordY = element.ART_CoordY || element.ART_cdgY;
+                let ART_CoordZ = element.ART_CoordZ || element.ART_cdgZ;
+                muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
+                break; // Sale del bucle interno una vez que encuentra el elemento
             }
         }
     }
 }
 
 function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
-    console.log(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ);
-    console.log(typeof expressID);
-
+   
     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
         return;
     } else {
@@ -127060,7 +127076,7 @@ function addCheckboxListeners() {
             if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" ||element.ART_Pieza=== undefined) {
                 return;
             }
-            if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza && !element.Camion) {
+            if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
                 matchingIds.push(element.expressID);
             }
         });
@@ -128678,10 +128694,11 @@ function generaBotonesNumCamion(camionesUnicos) {
                 var checkboxes = document.querySelectorAll('input[type="checkbox"]');
                 checkboxes.forEach(function (checkbox) {
                     checkbox.checked = true;
-                });
+});
 
             } else {
                 disableCheckboxes();
+                // generateLabels(expressIDs);
             }
         });
     });
