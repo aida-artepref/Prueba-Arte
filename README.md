@@ -67,3 +67,6 @@ function calcularPesoTotal(expressIDs) {
     const pesoTotal = calcularPesoTotal(expressIDs);
     const pesoCamionElement = document.getElementById("pesoCamion");
     pesoCamionElement.textContent = pesoTotal.toString();
+
+
+    #c8c445--Amarillo

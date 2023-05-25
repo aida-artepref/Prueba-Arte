@@ -2290,6 +2290,8 @@ function generarTabla(expressIDs, camion) {
             celdaSeleccionadaColor(event.target);
             viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], false);
             muestraPropiedadesExpressId(contenidoCelda);
+            
+
         });
         const fila = document.createElement('tr');
         fila.appendChild(tdElemento);
@@ -2363,7 +2365,7 @@ function celdaSeleccionadaColor(celdaSeleccionada) {
         if (ultimaCeldaSeleccionada && precastElements.some(elem => elem.expressID === ultimaCeldaSeleccionada.innerText && elem.Posicion)) {
             ultimaCeldaSeleccionada.style.backgroundColor = '#BD9BC2';  
         }
-    }celdaSeleccionada.style.backgroundColor = '#e8cdba';
+    }celdaSeleccionada.style.backgroundColor = '#c8c445';
         ultimaCeldaSeleccionada = celdaSeleccionada;
 }
 
@@ -2488,11 +2490,17 @@ function posicionesCamion(tabla, cabeceraValor) {
                 fila.appendChild(cajon);
         
                 cajon.addEventListener("contextmenu", function (event) {
-                event.preventDefault();
+                    event.preventDefault();
                     if (cajon.innerText === "") {
                         asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
                         actualizarTablaDerecha()
+                        const divElement = document.querySelector('div#datosCamiones div.tabla-estilo[style*="border: 3px solid red;"]');
+                        if (divElement) {
+                            divElement.click();
+                }
+
                     }
+                    
                 });
         
                 cajon.addEventListener("dblclick", function (event) {
@@ -2599,7 +2607,6 @@ function crearTablaDerecha(tabla, cabeceraValor) {
     posicionCamion.appendChild(tablaDerecha);
     actualizaCajones(expressIdByCamion);
 }
-
 function actualizarTablaDerecha() {
     const tablaIzquierda = document.getElementById('tabla-izquierda');
     const tablaDerecha = document.getElementById('tabla-derecha');
@@ -2613,20 +2620,40 @@ function actualizarTablaDerecha() {
             const cajonIzquierda = tablaIzquierda.rows[i].cells[j];
             const cajonDerecha = tablaDerecha.rows[i].cells[j];
             const idCajon = cajonIzquierda.innerText;
-    
+
             const elemento = precastElements.find((e) => e.expressID === parseInt(idCajon));
             if (elemento) {
                 const peso = parseFloat(elemento.ART_Peso);
-                cajonDerecha.innerText = peso.toFixed(2);
+                const pieza = elemento.ART_Pieza;
+
+                const textoPeso = document.createElement('span');
+                textoPeso.style.fontSize = '14px'; 
+                textoPeso.style.fontWeight = 'bold'; 
+                textoPeso.innerText = ` ${peso.toFixed(2)}`;
+
+                const textoPieza = document.createElement('span');
+                textoPieza.style.fontSize = '14px'; 
+                textoPieza.style.fontWeight = 'bold'; 
+                textoPieza.innerText = ` ${pieza}`;
+                cajonDerecha.innerHTML = '';
+                
+                cajonDerecha.style.lineHeight = '0.8'; 
+                cajonDerecha.appendChild(textoPeso);
+                cajonDerecha.appendChild(document.createElement('br')); 
+                cajonDerecha.appendChild(textoPieza);
+
                 pesoTotal += peso;
             } else {
-            cajonDerecha.innerText = ''; // si no hay elemento, dejar la celda en blanco
+                cajonDerecha.innerText = ''; // si no hay elemento, dejar la celda en blanco
             }
         }
-        }
+    }
+
     const cabeceraTablaDerecha = tablaDerecha.getElementsByTagName('th')[0];
     cabeceraTablaDerecha.innerText = `Peso Total: ${pesoTotal.toFixed(2)}`;
 }
+
+
 
 function cambiarIdsTablaA(tabla) {
     const nuevosIds = [1, 2, 9, 10, 3, 4, 11, 12, 5, 6, 13, 14, 7, 8, 15, 16];
