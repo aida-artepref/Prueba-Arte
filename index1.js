@@ -1502,8 +1502,11 @@ container.onclick = async () => {
             break;
         }
     }
+
+
     muestraPropiedades(ART_Pieza, ART_Longitud, ART_Ancho, ART_Alto, ART_Peso);
 };
+
 
 function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Ancho, ART_Alto, ART_Peso) {
     const container = document.getElementById('propiedades-container');
@@ -1599,6 +1602,7 @@ function muestraPropiedadesExpressId(expressID) {
     propiedadesContainer.innerHTML = ''; // Limpia el contenido existente
     propiedadesContainer.appendChild(propiedadesDiv);
 }
+
 // **************************************************
 async function precastPropertiesGlobalId(precast,modelID, precastID){
     const props = await viewer.IFC.getProperties(modelID, precastID, true, false);
@@ -2357,15 +2361,35 @@ function generarTabla(expressIDs, camion) {
     divTabla.appendChild(contenedorTabla);
 }
 
+
 let ultimaCeldaSeleccionada = null;
+
 function celdaSeleccionadaColor(celdaSeleccionada) {
     if (tablaResaltada) {
-        if (ultimaCeldaSeleccionada && precastElements.some(elem => elem.expressID === ultimaCeldaSeleccionada.innerText && elem.Posicion)) {
-            ultimaCeldaSeleccionada.style.backgroundColor = '#BD9BC2';  
+        if (ultimaCeldaSeleccionada && precastElements.some(elem => elem.expressID === obtenerExpressID(ultimaCeldaSeleccionada.innerText))) {
+            const ultimoElemento = precastElements.find(elem => elem.expressID === obtenerExpressID(ultimaCeldaSeleccionada.innerText));
+            ultimaCeldaSeleccionada.style.backgroundColor = ultimoElemento.Posicion ? '#BD9BC2' : '';
         }
-    }celdaSeleccionada.style.backgroundColor = '#e8cdba';
+    }
+
+    if (ultimaCeldaSeleccionada !== celdaSeleccionada) {
+        if (ultimaCeldaSeleccionada) {
+            ultimaCeldaSeleccionada.style.backgroundColor = ''; // Restablece el color original
+        }
+
+        const nuevoExpressID = obtenerExpressID(celdaSeleccionada.innerText);
+        const nuevoElemento = precastElements.find(elem => elem.expressID === nuevoExpressID);
+        celdaSeleccionada.style.backgroundColor = nuevoElemento.Posicion ? '#c8c445' : '#FFD700';
         ultimaCeldaSeleccionada = celdaSeleccionada;
+    }
 }
+
+function obtenerExpressID(textoCelda) {
+    const partes = textoCelda.split('-');
+    const expressID = partes[0].trim();
+    return parseFloat(expressID);
+}
+
 
 function resaltarTabla(tabla, cabeceraValor) {
     const tablas = document.querySelectorAll("#datosCamiones table");

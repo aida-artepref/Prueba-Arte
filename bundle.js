@@ -128152,22 +128152,22 @@ container.onclick = async () => {
 
     let ART_Pieza = null;
     let ART_Longitud = null;
+    let ART_Ancho = null;
 
     for (const precast of precastElements) {
         if (precast.expressID === expressID) {
             ART_Pieza = precast['ART_Pieza'];
             ART_Longitud = precast['ART_Longitud'];
+            ART_Ancho = precast['ART_Ancho'];
+            ART_Alto = precast['ART_Alto'];
             ART_Peso = precast['ART_Peso'];
             break;
         }
     }
-
-
-    muestraPropiedades(ART_Pieza, ART_Longitud, ART_Peso);
+    muestraPropiedades(ART_Pieza, ART_Longitud, ART_Ancho, ART_Alto, ART_Peso);
 };
 
-
-function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Peso) {
+function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Ancho, ART_Alto, ART_Peso) {
     const container = document.getElementById('propiedades-container');
     container.style.visibility = "visible";
 
@@ -128178,7 +128178,19 @@ function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Peso) {
     piezaLabel.innerHTML = `Pieza: <strong>${ART_Pieza}</strong>`;
     
     const longitudLabel = document.createElement('p');
-    longitudLabel.innerHTML = `Longitud: <strong>${ART_Longitud}</strong>`;
+    const longitudNum=parseFloat(ART_Longitud);
+    const longitudFormatted= longitudNum.toFixed(2);
+    longitudLabel.innerHTML = `Longitud: <strong>${longitudFormatted}</strong>`;
+
+    const anchoLabel = document.createElement('p');
+    const anchoNum = parseFloat(ART_Ancho);
+    const anchoFormatted = anchoNum.toFixed(2);
+    anchoLabel.innerHTML = `Ancho: <strong>${anchoFormatted}</strong>`;
+
+    const altoLabel = document.createElement('p');
+    const altoNum = parseFloat(ART_Alto);
+    const altoFormatted = altoNum.toFixed(2);
+    altoLabel.innerHTML = `Alto: <strong>${altoFormatted}</strong>`;
     
     const pesoLabel = document.createElement('p');
     const pesoNum = parseFloat(ART_Peso);
@@ -128187,6 +128199,8 @@ function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Peso) {
     
     propiedadesDiv.appendChild(piezaLabel);
     propiedadesDiv.appendChild(longitudLabel);
+    propiedadesDiv.appendChild(anchoLabel);
+    propiedadesDiv.appendChild(altoLabel);
     propiedadesDiv.appendChild(pesoLabel);
     
     const propiedadesContainer = document.getElementById('propiedades-container');
@@ -128195,24 +128209,22 @@ function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Peso) {
 }
 
 
+
 function muestraPropiedadesExpressId(expressID) {
     const container=document.getElementById('propiedades-container');
     container.style.visibility="visible";
     
-    let ART_Pieza, ART_Longitud, ART_Volumen;
+    let ART_Pieza, ART_Longitud;
     for (const precast of precastElements) {
         if (precast.expressID ===parseInt(expressID) ) {
             ART_Pieza = precast['ART_Pieza'];
             ART_Longitud = precast['ART_Longitud'];
-            ART_Volumen = precast['ART_Volumen'];
+            ART_Ancho = precast['ART_Ancho'];
+            ART_Alto = precast['ART_Alto'];
+            ART_Peso = precast['ART_Peso'];
             break;
         }
     }
-    const longitudNum = parseFloat(ART_Longitud);
-    const volumenNum = parseFloat(ART_Volumen);
-    const longitudFormatted = longitudNum.toFixed(2);// Limitar a dos decimales
-    const volumenFormatted = (volumenNum * 2.5).toFixed(2);
-
     const propiedadesDiv = document.createElement('div');
     propiedadesDiv.classList.add('propiedades');
     
@@ -128220,20 +128232,35 @@ function muestraPropiedadesExpressId(expressID) {
     piezaLabel.innerHTML = `Pieza: <strong>${ART_Pieza}</strong>`;
     
     const longitudLabel = document.createElement('p');
+    const longitudNum=parseFloat(ART_Longitud);
+    const longitudFormatted= longitudNum.toFixed(2);
     longitudLabel.innerHTML = `Longitud: <strong>${longitudFormatted}</strong>`;
+
+    const anchoLabel = document.createElement('p');
+    const anchoNum = parseFloat(ART_Ancho);
+    const anchoFormatted = anchoNum.toFixed(2);
+    anchoLabel.innerHTML = `Ancho: <strong>${anchoFormatted}</strong>`;
+
+    const altoLabel = document.createElement('p');
+    const altoNum = parseFloat(ART_Alto);
+    const altoFormatted = altoNum.toFixed(2);
+    altoLabel.innerHTML = `Alto: <strong>${altoFormatted}</strong>`;
     
-    const volumenLabel = document.createElement('p');
-    volumenLabel.innerHTML = `Peso: <strong>${volumenFormatted}</strong>`;
+    const pesoLabel = document.createElement('p');
+    const pesoNum = parseFloat(ART_Peso);
+    const pesoFormatted = pesoNum.toFixed(2);
+    pesoLabel.innerHTML = `Peso: <strong>${pesoFormatted}</strong>`;
     
     propiedadesDiv.appendChild(piezaLabel);
     propiedadesDiv.appendChild(longitudLabel);
-    propiedadesDiv.appendChild(volumenLabel);
+    propiedadesDiv.appendChild(anchoLabel);
+    propiedadesDiv.appendChild(altoLabel);
+    propiedadesDiv.appendChild(pesoLabel);
     
     const propiedadesContainer = document.getElementById('propiedades-container');
     propiedadesContainer.innerHTML = ''; // Limpia el contenido existente
     propiedadesContainer.appendChild(propiedadesDiv);
 }
-
 // **************************************************
 async function precastPropertiesGlobalId(precast,modelID, precastID){
     const props = await viewer.IFC.getProperties(modelID, precastID, true, false);
@@ -128830,33 +128857,38 @@ function generarTabla(expressIDs, camion) {
     const divTabla = document.getElementById("datosCamiones");
     const precastElement = precastElements.find(elem => parseInt(elem.Camion) === camion);
     const cabeceraValor = `${camion} || ${precastElement.tipoTransporte}`;
-    let pesoTotal = calcularPesoTotal(expressIDs); // Calcular el peso total de los elementos
+    let pesoTotal = calcularPesoTotal(expressIDs); 
+
     const actualizarCabecera = (nuevoPesoTotal) => {
         pesoTotal = nuevoPesoTotal;
-        const cabeceraCompleta = `${cabeceraValor}\nPeso: ${pesoTotal}`; // Agregar el nuevo peso total a la cabecera
+        const cabeceraCompleta = `${cabeceraValor}\nPeso: ${parseFloat(pesoTotal).toFixed(2)}`;
         thElemento.textContent = cabeceraCompleta;
-        
-        if (pesoTotal > 25) {
-          thElemento.style.color = "red"; // Aplicar estilo de color rojo
-        } else {
-          thElemento.style.color = ""; // Eliminar cualquier estilo previo
-        }
+        thElemento.style.color = (pesoTotal > 25) ? "red" : ""; 
     };
-    const thElemento = document.createElement("th"); // Cabecera de la tabla
-    actualizarCabecera(pesoTotal); // Actualizar la cabecera inicial
 
+    const thElemento = document.createElement("th"); 
+    actualizarCabecera(pesoTotal); 
+
+    const tabla = document.createElement('table');
+    tabla.classList.add('tabla-estilo');
+
+    const cabecera = document.createElement('thead');
     const filaCabecera = document.createElement('tr');
     filaCabecera.appendChild(thElemento);
-    const cabecera = document.createElement('thead');
     cabecera.appendChild(filaCabecera);
+
     const cuerpo = document.createElement('tbody');
     expressIDs.forEach(id => {
         const tdElemento = document.createElement('td');
-        tdElemento.textContent = id;
-        const precastElem = precastElements.find(elem => elem.expressID === id && elem.Posicion !== "" && elem.Posicion !== undefined);
-        if (precastElem) {
-            tdElemento.style.backgroundColor = "#BD9BC2"; 
-        }
+    const precastElem = precastElements.find(elem => elem.expressID === id && elem.Posicion !== "" && elem.Posicion !== undefined);
+    if (precastElem) {
+        tdElemento.style.backgroundColor = "#BD9BC2"; 
+    }
+
+    const precastElemPieza = precastElements.find(elem => elem.expressID === id );
+    tdElemento.textContent = `${id} - ${precastElemPieza && precastElemPieza.ART_Pieza ? precastElemPieza.ART_Pieza : ''}`;
+
+    
         tdElemento.addEventListener('contextmenu', async function(event) {
             event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
             contenidoCelda = tdElemento.textContent;
@@ -128870,16 +128902,18 @@ function generarTabla(expressIDs, camion) {
         fila.appendChild(tdElemento);
         cuerpo.appendChild(fila);
     });
-    const tabla = document.createElement('table');// Tabla completa
-    tabla.classList.add('tabla-estilo');
+
+    
     tabla.appendChild(cabecera);
     tabla.appendChild(cuerpo);
 
     const contenedorTabla = document.createElement("div");// Contenedor  agrega estilos CSS
     contenedorTabla.classList.add('contenedor-tabla');
+
     contenedorTabla.addEventListener("click", function() {
         resaltarTabla(tabla, cabeceraValor);
     });
+
     contenedorTabla.addEventListener("dblclick", function(event) {
         const target = event.target;
         let elementoEliminadoTabla;
