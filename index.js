@@ -12,6 +12,8 @@ viewer.clipper.active = true;
 viewer.grid.setGrid(100,100);
 viewer.axes.setAxes();
 
+
+
 document.addEventListener("keydown", function(event) {
     if (event.keyCode === 116) { // keyCode 116 es la tecla F5
       event.preventDefault(); // evita que se procese 
@@ -75,7 +77,7 @@ async function loadModel(url) {
     // verNumPrecast();
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
-    
+
    // mergeEdges(model); // Agregar esta línea para fusionar los bordes de los elementos geométricos.
 }
 // let piezasConBordes = {};
@@ -1329,7 +1331,7 @@ async function listarOcultos(elementosOcultos) {
         }
         const tr = document.createElement("tr");
         tr.classList.add("item-list-elemento");
-        const peso = (parseFloat(elemento.ART_Volumen) * 2.5).toFixed(2);
+        const peso = parseFloat(elemento.ART_Peso).toFixed(2);
         const altura = parseFloat(elemento.ART_Alto).toFixed(2);
         const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
         const longitud =parseFloat(elemento.ART_Longitud).toFixed(2);
@@ -1478,57 +1480,35 @@ let globalId;
 container.onclick = async () => {
     const found = await viewer.IFC.selector.pickIfcItem(false);
     if (found === null || found === undefined) {
-      const container = document.getElementById('propiedades-container');
-      container.style.visibility = "hidden";
-      viewer.IFC.selector.unpickIfcItems();
-      return;
+        const container = document.getElementById('propiedades-container');
+        container.style.visibility = "hidden";
+        viewer.IFC.selector.unpickIfcItems();
+        return;
     }
     const expressID = found.id;
-  
+
     let ART_Pieza = null;
     let ART_Longitud = null;
     let ART_Volumen = null;
     let ART_Ancho = null;
-  
+
     for (const precast of precastElements) {
-      if (precast.expressID === expressID) {
-        ART_Pieza = precast['ART_Pieza'];
-        ART_Longitud = precast['ART_Longitud'];
-        ART_Volumen = precast['ART_Volumen'];
-        ART_Ancho = parseFloat(precast['ART_Ancho']).toFixed(2);
-        ART_Ancho = parseFloat(ART_Ancho);
-        break;
-      }
-    }
-  
-    console.log('ART_Pieza:', ART_Pieza, typeof ART_Pieza);
-    console.log('ART_Longitud:', ART_Longitud, typeof ART_Longitud);
-    console.log('ART_Volumen:', ART_Volumen, typeof ART_Volumen);
-    console.log('ART_Ancho:', ART_Ancho, typeof ART_Ancho);
-  
-    muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen, ART_Ancho);
-  };
-  
-  
-function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen, ART_Ancho) {
-    const container=document.getElementById('propiedades-container');
-    container.style.visibility="visible";
-    const longitudNum = parseFloat(ART_Longitud);
-    const volumenNum = parseFloat(ART_Volumen);
-    const longitudFormatted = longitudNum.toFixed(2);// Limitar a dos decimales
-    
-    let volumenFormatted;
-
-    if (ART_Ancho === 0.2) {
-        volumenFormatted = (volumenNum * 1.6).toFixed(2);
-    } else if (ART_Ancho === 0.24) {
-        volumenFormatted = (volumenNum * 1.5).toFixed(2);
-    } else if (ART_Ancho === 0.16) {
-        volumenFormatted = (volumenNum * 1.875).toFixed(2);
-    } else {
-        volumenFormatted = (volumenNum * 2.5).toFixed(2);
+        if (precast.expressID === expressID) {
+            ART_Pieza = precast['ART_Pieza'];
+            ART_Longitud = precast['ART_Longitud'];
+            ART_Peso = precast['ART_Peso'];
+            break;
+        }
     }
 
+
+    muestraPropiedades(ART_Pieza, ART_Longitud, ART_Peso);
+};
+
+
+function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Peso) {
+    const container = document.getElementById('propiedades-container');
+    container.style.visibility = "visible";
 
     const propiedadesDiv = document.createElement('div');
     propiedadesDiv.classList.add('propiedades');
@@ -1537,19 +1517,22 @@ function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Volumen, ART_Ancho) {
     piezaLabel.innerHTML = `Pieza: <strong>${ART_Pieza}</strong>`;
     
     const longitudLabel = document.createElement('p');
-    longitudLabel.innerHTML = `Longitud: <strong>${longitudFormatted}</strong>`;
+    longitudLabel.innerHTML = `Longitud: <strong>${ART_Longitud}</strong>`;
     
-    const volumenLabel = document.createElement('p');
-    volumenLabel.innerHTML = `Peso: <strong>${volumenFormatted}</strong>`;
+    const pesoLabel = document.createElement('p');
+    const pesoNum = parseFloat(ART_Peso);
+    const pesoFormatted = pesoNum.toFixed(2);
+    pesoLabel.innerHTML = `Peso: <strong>${pesoFormatted}</strong>`;
     
     propiedadesDiv.appendChild(piezaLabel);
     propiedadesDiv.appendChild(longitudLabel);
-    propiedadesDiv.appendChild(volumenLabel);
+    propiedadesDiv.appendChild(pesoLabel);
     
     const propiedadesContainer = document.getElementById('propiedades-container');
     propiedadesContainer.innerHTML = ''; // Limpia el contenido existente
     propiedadesContainer.appendChild(propiedadesDiv);
 }
+
 
 function muestraPropiedadesExpressId(expressID) {
     const container=document.getElementById('propiedades-container');
@@ -2226,14 +2209,14 @@ function calcularPesoTotal(expressIDs) {
     let pesoTotal = 0;
     for (const id of expressIDs) {
         const precastElem = precastElements.find(elem => elem.expressID === id);
-        if (precastElem && precastElem.ART_Volumen) {
-            const volumen = parseFloat(precastElem.ART_Volumen);
-            const peso = parseFloat((volumen * 2.5).toFixed(2));
+        if (precastElem && precastElem.ART_Peso) {
+            const peso = parseFloat(precastElem.ART_Peso);
             pesoTotal += peso;
         }
     }
     return pesoTotal.toFixed(2);
 }
+
 
 let contenidoCelda;
 let tablaResaltada = false;
@@ -2600,11 +2583,9 @@ function actualizarTablaDerecha() {
     
             const elemento = precastElements.find((e) => e.expressID === parseInt(idCajon));
             if (elemento) {
-
-            const volumen = elemento.ART_Volumen;
-            const peso = parseFloat(volumen * 2.5).toFixed(2);
-            cajonDerecha.innerText = peso;
-            pesoTotal += parseFloat(peso);
+                const peso = parseFloat(elemento.ART_Peso);
+                cajonDerecha.innerText = peso.toFixed(2);
+                pesoTotal += peso;
             } else {
             cajonDerecha.innerText = ''; // si no hay elemento, dejar la celda en blanco
             }
