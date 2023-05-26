@@ -1271,45 +1271,6 @@ function generarTablaPorLetra(letra) {
 //y vuelve a colocar el valor de la prop Camion ''
 const divCargas = document.querySelector('.divCargas');
 let listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
-// listaElementos.addEventListener('dblclick', function(event) {
-//     const target = event.target;
-//     let elementoEliminadoTabla;
-//     if (target.tagName === 'TD') {
-//         elementoEliminadoTabla = target.parentNode.firstChild.textContent;
-//         target.parentNode.remove();
-//         let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
-//         if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
-//             elementosOcultos.splice(indexToRemove, 1);
-//             globalIds.splice(indexToRemove, 1);
-//         }
-//         allIDs.push(parseInt(elementoEliminadoTabla));
-//     }
-//     showAllItems(viewer, allIDs);
-//     const divCheck = document.getElementById("checktiposIfc");
-//     const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");// Obtener todos los checkbox dentro del div
-//     checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
-    
-    
-//     let numCamion=document.getElementById("numCamion");
-//     const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
-//         if(actValorCamion.Camion===parseInt(numCamion)){
-//             const expressIDs = obtenerExpressIDsDelCamion(numCamion);
-//             const pesoTotal = calcularPesoTotal(expressIDs);
-//             const pesoCamion = document.getElementById("pesoCamion");
-//             pesoCamion.textContent =  pesoTotal.toString();
-//         }
-    
-        
-//         if (actValorCamion) {
-//             actValorCamion.Camion = "";
-//             actValorCamion.tipoTransporte = "";
-//             actValorCamion.Posicion = "";
-//         }
-//     const expressIDs = obtenerExpressIDsDelCamion(numCamion);
-//     const pesoTotal = calcularPesoTotal(expressIDs);
-//     const pesoCamion = document.getElementById("pesoCamion");
-//     pesoCamion.textContent =  pesoTotal.toString();
-// });
 
 async function listarOcultos(elementosOcultos) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
@@ -2352,6 +2313,8 @@ function generarTabla(expressIDs, camion) {
             actValorCamion.Camion = "";
             actValorCamion.tipoTransporte = "";
             actValorCamion.Posicion = "";
+            actValorCamion.numTransporte = "";
+            actValorCamion.letraTransporte = "";
         }
         const nuevoPesoTotal = calcularPesoTotal(expressIDs);
         actualizarCabecera(nuevoPesoTotal);
@@ -2362,14 +2325,34 @@ function generarTabla(expressIDs, camion) {
 }
 
 let ultimaCeldaSeleccionada = null;
+
 function celdaSeleccionadaColor(celdaSeleccionada) {
-    if (tablaResaltada) {
-        if (ultimaCeldaSeleccionada && precastElements.some(elem => elem.expressID === ultimaCeldaSeleccionada.innerText && elem.Posicion)) {
-            ultimaCeldaSeleccionada.style.backgroundColor = '#BD9BC2';  
+    if (ultimaCeldaSeleccionada) {
+        const ultimoContenidoCelda = ultimaCeldaSeleccionada.textContent;
+        const elementoAnterior = precastElements.find(elem => parseInt(ultimoContenidoCelda.split(' ')[0]) === elem.expressID);
+        if (elementoAnterior) {
+            if (elementoAnterior.Posicion) {
+                ultimaCeldaSeleccionada.style.backgroundColor = '#BD9BC2'; // Morado
+            } else {
+                ultimaCeldaSeleccionada.style.backgroundColor = ''; // Sin color de fondo
+            }
         }
-    }celdaSeleccionada.style.backgroundColor = '#c8c445';
-        ultimaCeldaSeleccionada = celdaSeleccionada;
+    }
+    const contenidoCelda = celdaSeleccionada.textContent;
+    const tienePosicion = precastElements.some(elem => parseInt(contenidoCelda.split(' ')[0]) === elem.expressID && elem.Posicion);
+    const isRightClick = event.button === 2; 
+    if (tienePosicion) {
+        if (isRightClick) {
+            celdaSeleccionada.style.backgroundColor = '#c8c445'; 
+        } else {
+            celdaSeleccionada.style.backgroundColor = '#BD9BC2';
+        }
+    } else {
+        celdaSeleccionada.style.backgroundColor = '#c8c445'; 
+    }
+    ultimaCeldaSeleccionada = celdaSeleccionada;
 }
+
 
 function resaltarTabla(tabla, cabeceraValor) {
     const tablas = document.querySelectorAll("#datosCamiones table");
@@ -2513,11 +2496,8 @@ function posicionesCamion(tabla, cabeceraValor) {
                         false
                     );
                     let id=parseInt(cajon.textContent);
-                    //const props = await viewer.IFC.getProperties(model.modelID, id, true,true);
-                    //updatePropertyMenu(props);
                     muestraPropiedadesExpressId(id);
                     actualizarTablaDerecha();
-
                 });
             }
             
@@ -2683,7 +2663,7 @@ function limpiaPosicion(cajon, tabla){
     const celdas = tabla.getElementsByTagName("td");
 
     for (let i = 0; i < celdas.length; i++) {
-        if (celdas[i].textContent === contenidoCelda) {
+        if (celdas[i].textContent.includes(contenidoCelda)) {
             celdas[i].style.background = "";
         }
     }
