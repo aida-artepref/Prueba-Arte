@@ -1919,7 +1919,7 @@ observer.observe(numCamionElement, config);//  observa los cambios en el element
 
 function handleNumCamionChange() {
     const numCamion = numCamionElement.textContent.trim();
-    const expressIDs = obtenerExpressIDsDelCamionCSV(numCamion);
+    const expressIDs = obtenerExpressIDsDelCamionCSV(parseInt(numCamion));
     const pesoTotal = calcularPesoTotal(expressIDs);
     const pesoCamion = document.getElementById("pesoCamion");
     pesoCamion.textContent = pesoTotal.toString();
