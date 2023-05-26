@@ -128032,6 +128032,7 @@ function obtenerExpressIDsDelCamionCSV(numCamion) {
 function hideClickedItem(viewer) {
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
+    let generarCamionesUnicos = true;
     const result = viewer.context.castRayIfc();
     if (!result) return;
     const manager = viewer.IFC.loader.ifcManager;
@@ -128071,18 +128072,21 @@ function hideClickedItem(viewer) {
                     allIDs.splice(indexToRemove, 1);
                 } 
             } else {
-                
-                alert("El elemento "+precastElements[i].expressID+"  "+ precastElements[i].ifcType +" ya está cargado en el camion: "+precastElements[i].Camion);
-                document.getElementById("datosCamiones").innerHTML = "";
-                document.getElementById("posicionCamion").innerHTML = "";
-                hideAllItems(viewer, elementosOcultos);
-                showAllItems ( viewer, allIDs);
+                generarCamionesUnicos = false;
+                break;
+                // alert("El elemento "+precastElements[i].expressID+"  "+ precastElements[i].ifcType +" ya está cargado en el camion: "+precastElements[i].Camion);
+                // document.getElementById("datosCamiones").innerHTML = "";
+                // document.getElementById("posicionCamion").innerHTML = "";
+                // hideAllItems(viewer, elementosOcultos);
+                // showAllItems ( viewer, allIDs);
             }
             break; 
         }
     }
-    camionesUnicos = obtenerValorCamion(precastElements);
-    generaBotonesNumCamion(camionesUnicos);
+    if (generarCamionesUnicos) {
+        camionesUnicos = obtenerValorCamion(precastElements);
+        generaBotonesNumCamion(camionesUnicos);
+    }
 }
 
 //Elimina de visor un elemento pulsado con boton derecho
