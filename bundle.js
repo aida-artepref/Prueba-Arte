@@ -128897,8 +128897,6 @@ function generarTabla(expressIDs, camion) {
             celdaSeleccionadaColor(event.target);
             viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], false);
             muestraPropiedadesExpressId(contenidoCelda);
-            
-
         });
         const fila = document.createElement('tr');
         fila.appendChild(tdElemento);
@@ -129101,11 +129099,7 @@ function posicionesCamion(tabla, cabeceraValor) {
                     if (cajon.innerText === "") {
                         asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
                         actualizarTablaDerecha();
-                        const divElement = document.querySelector('div#datosCamiones div.tabla-estilo[style*="border: 3px solid red;"]');
-                        if (divElement) {
-                            divElement.click();
-                }
-
+                        simularEventoClic();
                     }
                     
                 });
@@ -129140,6 +129134,14 @@ function posicionesCamion(tabla, cabeceraValor) {
         crearTablaDerecha(tabla, cabeceraValor);
 }
 
+function simularEventoClic() {
+    var elementoClic = document.querySelector('.tabla-estilo[style="border: 3px solid red;"]');
+    
+    if (elementoClic) {
+      elementoClic.click(); // Simula el evento de clic en el elemento
+    }
+}
+
 let cantidadFilas, cantidadColumnas;
 function crearTablaDerecha(tabla, cabeceraValor) {
     const expressIdByCamion = [];
@@ -129150,25 +129152,24 @@ function crearTablaDerecha(tabla, cabeceraValor) {
     tablaDerecha.style.borderCollapse = "collapse";
     tablaDerecha.style.border = "2px solid";
     tablaDerecha.style.height = "95%";  
-   
-  
+
     if (cabeceraValor.includes("E")) {
-      cantidadFilas = 3;
-      cantidadColumnas = 5;
-      tablaDerecha.style.borderColor = "#874c8f";
+        cantidadFilas = 3;
+        cantidadColumnas = 5;
+        tablaDerecha.style.borderColor = "#874c8f";
     } else if (cabeceraValor.includes("A")) {
-      cantidadFilas = 4;
-      cantidadColumnas = 4;
-      tablaDerecha.style.borderColor = "#4c7a90";
+        cantidadFilas = 4;
+        cantidadColumnas = 4;
+        tablaDerecha.style.borderColor = "#4c7a90";
     } else if (cabeceraValor.includes("C")) {
-      cantidadFilas = 1;
-      cantidadColumnas = 13;
-      tablaDerecha.style.borderColor = "#90834c";
+        cantidadFilas = 1;
+        cantidadColumnas = 13;
+        tablaDerecha.style.borderColor = "#90834c";
     } else {// Si el cabeceraValor no incluye ninguna de las letras especificadas
-      console.error("CabeceraValor no válido");
-      return;
+        console.error("CabeceraValor no válido");
+        return;
     }
-  const cabeceraFila = document.createElement("tr");
+    const cabeceraFila = document.createElement("tr");
     const cabeceraCajon = document.createElement("th");
     cabeceraCajon.setAttribute("colspan", cantidadColumnas);
     cabeceraCajon.style.textAlign = "center";
@@ -129177,33 +129178,31 @@ function crearTablaDerecha(tabla, cabeceraValor) {
     cabeceraFila.appendChild(cabeceraCajon);
     tablaDerecha.appendChild(cabeceraFila);
     for (let i = 0; i < cantidadFilas; i++) {
-      const fila = document.createElement("tr");
-      if (cantidadFilas === 1) {
-        fila.style.height = "95%";
-      }
-      for (let j = 0; j < cantidadColumnas; j++) {
-        const cajon = document.createElement("td");
-  
-        if (cantidadFilas === 4) {
-          cajon.style.height = "38px";
-  
-          if (j === 1) {
-            cajon.style.borderRight = "3px solid #4c7a90"; // borde derecho
-          }
-        }
+        const fila = document.createElement("tr");
         if (cantidadFilas === 1) {
-          if (j === 6) {
-            cajon.style.borderRight = "3px solid #90834c"; // borde derecho
-            cajon.style.borderLeft = "3px solid #90834c";
-          }
+            fila.style.height = "95%";
+        }
+        for (let j = 0; j < cantidadColumnas; j++) {
+            const cajon = document.createElement("td");
+    
+            if (cantidadFilas === 4) {
+            cajon.style.height = "38px";
+    
+            if (j === 1) {
+                cajon.style.borderRight = "3px solid #4c7a90"; // borde derecho
+            }
+            }
+            if (cantidadFilas === 1) {
+            if (j === 6) {
+                cajon.style.borderRight = "3px solid #90834c"; // borde derecho
+                cajon.style.borderLeft = "3px solid #90834c";
+            }
         }
         const idCajon = i * cantidadColumnas + j + 1;
         cajon.setAttribute("id", idCajon);
         cajon.setAttribute("data-id", idCajon);
         cajon.classList.add("cajon");
         fila.appendChild(cajon);
-  
-        
         }
         
         tablaDerecha.appendChild(fila);
