@@ -126786,51 +126786,44 @@ async function loadModel(url) {
     // scene.remove(line);
 //   }
 
+
 const btnBuscar = document.getElementById('buscarButton');
+let isButtonClicked = false;
+
 btnBuscar.addEventListener('click',  async function() {
-    const elementoBuscado = prompt('¿Qué elemento deseas buscar?');
+    isButtonClicked = !isButtonClicked;
+    if (isButtonClicked) {
 
-    if (elementoBuscado) {
-        console.log('Elemento buscado:', elementoBuscado);
+        btnBuscar.style.backgroundColor = 'gray';
 
-        const elementosEncontrados = [];
-        for (let i = 0; i < precastElements.length; i++) {
-            if (precastElements[i].ART_Pieza === elementoBuscado) {
-                elementosEncontrados.push(precastElements[i]);
+        let elementoBuscado = prompt('¿Qué elemento deseas buscar?');
+
+        if (elementoBuscado) {
+            elementoBuscado = elementoBuscado.toUpperCase();
+            console.log('Elemento buscado:', elementoBuscado);
+
+            const elementosEncontrados = [];
+            for (let i = 0; i < precastElements.length; i++) {
+                if (precastElements[i].ART_Pieza === elementoBuscado) {
+                    elementosEncontrados.push(precastElements[i]);
+                }
             }
+            const expressIDs = elementosEncontrados.map(elemento => elemento.expressID);
+
+        console.log(expressIDs);
+        hideAllItems(viewer, idsTotal);
+            showAllItems(viewer, expressIDs);
+
+        } else {
+            btnBuscar.style.backgroundColor = 'transparent';
+            console.log('Búsqueda cancelada');
         }
-        const expressIDs = elementosEncontrados.map(elemento => elemento.expressID);
-
-        new MeshLambertMaterial({
-            transparent: true,
-            opacity: 0.6,
-            color: 0xFF0000, 
-            depthTest: false,
-        });
-        
-        changeColorByExpressID(expressIDs);
-
-    } else {
-        console.log('Búsqueda cancelada');
+    }else {
+        hideAllItems(viewer, idsTotal);
+        showAllItems(viewer, allIDs);
+        btnBuscar.style.backgroundColor = 'transparent';
     }
 });
-
-
-async function changeColorByExpressID(expressIDs, material) {
-    const modelID = model.modelID;
-    const manager = viewer.IFC.loader.ifcManager;
-    const subset = getWholeSubset(viewer, model, expressIDs);
-    manager.removeSubset(modelID, subset.material, subset.customID);
-
-    const highlightColor = new MeshLambertMaterial({transparent: true, opacity: 0.6, color: 0xFF0000, depthTest: false});
-    const config = {
-        modelID: modelID,
-        ids: expressIDs,
-        removePrevious: true,
-        material: highlightColor,
-    };
-    manager.createSubset(config);
-}
 
 
 
@@ -126876,17 +126869,17 @@ async function crearBotonPrecasFuisonados(){
         btnFiltros.style.display="block";
         const divFiltros = document.getElementById('checktiposIfc');
 
-btnFiltros.addEventListener('click', function() {
-  if (btnFiltros.classList.contains('active')) {
-    btnFiltros.classList.remove('active');
-    btnFiltros.style.backgroundColor = 'transparent';
-    divFiltros.style.display = 'none';
-  } else {
-    btnFiltros.classList.add('active');
-    btnFiltros.style.backgroundColor = 'gray';
-    divFiltros.style.display = 'block';
-  }
-});
+        btnFiltros.addEventListener('click', function() {
+        if (btnFiltros.classList.contains('active')) {
+            btnFiltros.classList.remove('active');
+            btnFiltros.style.backgroundColor = 'transparent';
+            divFiltros.style.display = 'none';
+        } else {
+            btnFiltros.classList.add('active');
+            btnFiltros.style.backgroundColor = 'gray';
+            divFiltros.style.display = 'block';
+        }
+        });
 
         const btnBuscar=document.getElementById('buscarButton');
         btnBuscar.style.display="block";
