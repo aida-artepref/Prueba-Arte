@@ -120,57 +120,52 @@ async function loadModel(url) {
     // line.material.dispose();
     // scene.remove(line);
 //   }
-// const btnBuscar = document.getElementById('buscarButton');
-// btnBuscar.addEventListener('click',  async function() {
-//   const elementoBuscado = prompt('¿Qué elemento deseas buscar?');
 
-//   if (elementoBuscado) {
-//     console.log('Elemento buscado:', elementoBuscado);
+const btnBuscar = document.getElementById('buscarButton');
+btnBuscar.addEventListener('click',  async function() {
+    const elementoBuscado = prompt('¿Qué elemento deseas buscar?');
 
-//     // Crear un array para almacenar los elementos encontrados
-//     const elementosEncontrados = [];
+    if (elementoBuscado) {
+        console.log('Elemento buscado:', elementoBuscado);
 
-//     // Recorrer el array precastElements y encontrar los elementos que coinciden con elementoBuscado
-//     for (let i = 0; i < precastElements.length; i++) {
-//       if (precastElements[i].ART_Pieza === elementoBuscado) {
-//         elementosEncontrados.push(precastElements[i]);
-//       }
-//     }
-//     console.log(elementosEncontrados);
-//     const expressIDs = elementosEncontrados.map(elemento => elemento.expressID);
+        const elementosEncontrados = [];
+        for (let i = 0; i < precastElements.length; i++) {
+            if (precastElements[i].ART_Pieza === elementoBuscado) {
+                elementosEncontrados.push(precastElements[i]);
+            }
+        }
+        const expressIDs = elementosEncontrados.map(elemento => elemento.expressID);
 
-//     const highlightColor = new MeshLambertMaterial({
-//         transparent: true,
-//         opacity: 0.6,
-//         color: 0x000000, // Color verde (puedes ajustarlo según tus preferencias)
-//         depthTest: false,
-//       });
-    
-//     // Resaltar los elementos encontrados por sus expressIDs
-//     changeColorByExpressID(elementosEncontrados, highlightColor);
+        const highlightColor = new MeshLambertMaterial({
+            transparent: true,
+            opacity: 0.6,
+            color: 0xFF0000, 
+            depthTest: false,
+        });
+        
+        changeColorByExpressID(expressIDs, highlightColor);
 
-   
-//   } else {
-//     console.log('Búsqueda cancelada');
-//   }
-// });
+    } else {
+        console.log('Búsqueda cancelada');
+    }
+});
 
-// function changeColorByExpressID(elementosEncontrados, material) {
-//     const expressIDs = elementosEncontrados.map(elemento => elemento.expressID);
-//     console.log("expressIDs: "+expressIDs);
-//     // Crear un subconjunto con todos los expressIDs encontrados y el nuevo material de resaltado
-//     const subset = viewer.IFC.loader.ifcManager.createSubset({
-//       modelID: model.modelID,
-//       ids: expressIDs,
-//       material: material,
-//       scene: model.parent,
-//       removePrevious: true,
-//       customID: 'highlighted-subset',
-//     });
-  
-//     // Reemplazar el modelo original por el subconjunto
-//     replaceOriginalModelBySubset(viewer, model, subset);
-//   }
+
+async function changeColorByExpressID(expressIDs, material) {
+    const modelID = model.modelID;
+    const manager = viewer.IFC.loader.ifcManager;
+    const subset = getWholeSubset(viewer, model, expressIDs);
+    manager.removeSubset(modelID, subset.material, subset.customID);
+
+    const highlightColor = new MeshLambertMaterial({transparent: true, opacity: 0.6, color: 0xFF0000, depthTest: false});
+    const config = {
+        modelID: modelID,
+        ids: expressIDs,
+        removePrevious: true,
+        material: highlightColor,
+    };
+    manager.createSubset(config);
+}
 
 
 
@@ -198,15 +193,13 @@ async function crearBotonPrecasFuisonados(){
     // Crea un nuevo botón
     var btnCreaPrecastFusionados= document.createElement("button");
     btnCreaPrecastFusionados.classList.add("button");
-    // Agrega un ID y una clase al nuevo botón
     btnCreaPrecastFusionados.id = "btnCreaPrecastFusionados";
     btnCreaPrecastFusionados.className;
     btnCreaPrecastFusionados.textContent = "Fusiona";// Agrega el texto que deseas que aparezca en el botón
 
-    // Obtiene una referencia al último botón existente
+    //  referencia al último botón existente
     var ultimoBoton = document.querySelector(".button-container .button:last-of-type");
 
-    // Inserta el nuevo botón justo después del último botón existente
     var contenedorBotones = document.querySelector(".button-container");
     contenedorBotones.insertBefore(btnCreaPrecastFusionados, ultimoBoton.nextSibling);
     btnCreaPrecastFusionados.addEventListener("click", async function() {
@@ -216,6 +209,20 @@ async function crearBotonPrecasFuisonados(){
         generateCheckboxes(precastElements);
         const btnFiltros=document.getElementById('filtraTipos');
         btnFiltros.style.display="block";
+        const divFiltros = document.getElementById('checktiposIfc');
+
+btnFiltros.addEventListener('click', function() {
+  if (btnFiltros.classList.contains('active')) {
+    btnFiltros.classList.remove('active');
+    btnFiltros.style.backgroundColor = 'transparent';
+    divFiltros.style.display = 'none';
+  } else {
+    btnFiltros.classList.add('active');
+    btnFiltros.style.backgroundColor = 'gray';
+    divFiltros.style.display = 'block';
+  }
+});
+
         const btnBuscar=document.getElementById('buscarButton');
         btnBuscar.style.display="block";
         });
@@ -227,15 +234,12 @@ function eliminarElementosAssembly() {
 }
 
 async function crearBotonPrecas(){
-    // Crea un nuevo botón
     var btnCreaPrecast = document.createElement("button");
     btnCreaPrecast.classList.add("button");
     // Agrega un ID y una clase al nuevo botón
     btnCreaPrecast.id = "btnCreaPrecast";
     btnCreaPrecast.className;
-    btnCreaPrecast.textContent = "Añade Prop";// Agrega el texto que deseas que aparezca en el botón
-
-    // Obtiene una referencia al último botón existente
+    btnCreaPrecast.textContent = "Añade Prop";
     var ultimoBoton = document.querySelector(".button-container .button:last-of-type");
 
     // Inserta el nuevo botón justo después del último botón existente
