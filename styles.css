@@ -355,6 +355,28 @@ ul, #myUL {
     z-index: 999;
   }
 
+  #inputARTP {
+    top: 5%;
+    right: 150px;
+    height: 50px;
+    overflow: hidden;
+    transition: height 0.3s ease;
+  }
+  
+
+  #infoBuscados {
+    height: 100px; /* Ajusta la altura según tus necesidades */
+    overflow-y: auto;
+  }
+  #infoContainer {
+    height: auto;
+    display: none;
+  }
+  
+  #infoContainer.activeInfo {
+    display: block;
+  }
+  
   .pulsado {
     background-color:rgb(99, 99, 99) !important;
     color:white !important;
@@ -543,11 +565,8 @@ button {
 #posicionCamion {
   width: 50%; 
   height: 200px;
-<<<<<<< HEAD
-  overflow: auto;
-  display: flex;
-=======
->>>>>>> main
+overflow: auto;
+display: flex;
 }
 #posicionCamion table {
   height: 75% ;

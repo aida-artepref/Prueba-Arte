@@ -124,43 +124,132 @@ async function loadModel(url) {
 
 const btnBuscar = document.getElementById('buscarButton');
 let isButtonClicked = false;
+const divInputText= document.getElementById("inputARTP");
+const inputText = document.querySelector("#inputARTP input[type='text']");
+const checkBox = document.getElementById('checkLabels'); 
 
-btnBuscar.addEventListener('click',  async function() {
+btnBuscar.addEventListener('click', async function() {
     isButtonClicked = !isButtonClicked;
     if (isButtonClicked) {
-
+        divInputText.style.display = "block";
         btnBuscar.style.backgroundColor = 'gray';
+    } else {
+        hideAllItems(viewer, idsTotal);
+        showAllItems(viewer, allIDs);
+        btnBuscar.style.backgroundColor = 'transparent';
+        divInputText.style.display = "none";
+        inputText.value="";
+        removeLabels(expressIDsInput);
+        expressIDsInput=[];
+        return;
+    }
+});
 
-        let elementoBuscado = prompt('¿Qué elemento deseas buscar?');
-
+let expressIDsInput;
+inputText.addEventListener('change', function() {
+    if (isButtonClicked ) {
+        const elementoBuscado = inputText.value.trim().toUpperCase();
         if (elementoBuscado) {
-            elementoBuscado = elementoBuscado.toUpperCase();
-            console.log('Elemento buscado:', elementoBuscado);
-
             const elementosEncontrados = [];
             for (let i = 0; i < precastElements.length; i++) {
                 if (precastElements[i].ART_Pieza === elementoBuscado) {
                     elementosEncontrados.push(precastElements[i]);
                 }
             }
-            const expressIDs = elementosEncontrados.map(elemento => elemento.expressID);
-
-        console.log(expressIDs);
-        hideAllItems(viewer, idsTotal);
-            showAllItems(viewer, expressIDs);
-
+            expressIDsInput = elementosEncontrados.map(elemento => elemento.expressID);
+            hideAllItems(viewer, idsTotal);
+            showAllItems(viewer, expressIDsInput);
+            if (checkBox.checked) {
+                generateLabels(expressIDsInput);
+            } else{
+                removeLabels(expressIDsInput);
+            }
         } else {
             btnBuscar.style.backgroundColor = 'transparent';
-            console.log('Búsqueda cancelada');
+            hideAllItems(viewer, idsTotal);
+            showAllItems(viewer, allIDs);
+            removeLabels(expressIDs);
         }
-    }else{
-        hideAllItems(viewer, idsTotal);
-        showAllItems(viewer, allIDs);
-        btnBuscar.style.backgroundColor = 'transparent';
     }
 });
 
+checkBox.addEventListener('change', function() {
+    const textoInput = inputText.value.trim();
+    if (textoInput) {
+        const checkBox = document.getElementById('checkLabels'); 
+        if (checkBox.checked) {
+            generateLabels(expressIDsInput);
+        } else {
+            removeLabels(expressIDsInput);
+        }
+    }
+});
 
+// const mostrarInfoCheckbox = document.getElementById('mostrarInfo');
+const infoBuscadosList = document.getElementById('infoBuscados');
+const inputARTP = document.getElementById('inputARTP');
+const infoContainer = document.getElementById('infoContainer');
+
+
+// mostrarInfoCheckbox.addEventListener('change', function() {
+//     if (mostrarInfoCheckbox.checked) {
+//         infoContainer.classList.add('activeInfo');
+//         inputARTP.style.height = `80px`;
+//     } else {
+//         infoContainer.classList.remove('activeInfo');
+//         inputARTP.style.height = '250px';
+//         generarListaInfo(expressIDsInput);
+//     }
+// });
+
+
+function generarListaInfo(expressIDsInput) {
+    const infoBuscadosList = document.getElementById('infoBuscados');
+    infoBuscadosList.innerHTML = ''; 
+    const textoInput = inputText.value.trim();
+    if (textoInput) {
+        const tabla = document.createElement('table');
+        const thead = document.createElement('thead');
+        const tbody = document.createElement('tbody');
+        const cabeceraRow = document.createElement('tr');
+        const cabeceraExpressID = document.createElement('th');
+        const cabeceraARTPieza = document.createElement('th');
+        const cabeceraCamion = document.createElement('th');
+        
+        cabeceraExpressID.textContent = 'expressID';
+        cabeceraARTPieza.textContent = 'ART_Pieza';
+        cabeceraCamion.textContent = 'Camion';
+        
+        cabeceraRow.appendChild(cabeceraExpressID);
+        cabeceraRow.appendChild(cabeceraARTPieza);
+        cabeceraRow.appendChild(cabeceraCamion);
+        
+        thead.appendChild(cabeceraRow);
+        tabla.appendChild(thead);
+        tabla.appendChild(tbody);
+        infoBuscadosList.appendChild(tabla);
+        
+        expressIDsInput.forEach(expressID => {
+            const elementoEncontrado = precastElements.find(elemento => elemento.expressID === expressID);
+            if (elementoEncontrado) {
+                const fila = document.createElement('tr');
+                const celdaExpressID = document.createElement('td');
+                const celdaARTPieza = document.createElement('td');
+                const celdaCamion = document.createElement('td');
+                
+                celdaExpressID.textContent = elementoEncontrado.expressID;
+                celdaARTPieza.textContent = elementoEncontrado.ART_Pieza;
+                celdaCamion.textContent = elementoEncontrado.Camion;
+                
+                fila.appendChild(celdaExpressID);
+                fila.appendChild(celdaARTPieza);
+                fila.appendChild(celdaCamion);
+                
+                tbody.appendChild(fila);
+            }
+        });
+    }
+}
 
 //Nave cube
 viewer.container = container;
@@ -175,12 +264,6 @@ closeBtn.addEventListener('click', function() {
     mainContainer.style.display = 'none';
 });
 
-// function verNumPrecast(){
-//     var divNumPrecast = document.createElement("div"); // se crea el div que va  a mostrar la info del num de elementos en precastElements
-//     divNumPrecast.innerHTML =  precastElements.length; //muestra cantidad elementos en HTML
-//     divNumPrecast.classList.add("divNumPrecast"); //estilo al div
-//     document.body.appendChild(divNumPrecast);
-// }
 
 async function crearBotonPrecasFuisonados(){
     // Crea un nuevo botón
@@ -381,19 +464,6 @@ function removeLabels(expressIDs) {
     }
 }
 
-// async function generateLabels(expressIDs) {
-//     for (let i = 0; i < expressIDs.length; i++) {
-//         const currentExpressID = expressIDs[i];
-//         for (let j = 0; j < precastElements.length; j++) {
-//             const element = precastElements[j];
-//             if (element.expressID === currentExpressID) {
-//             const { ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID } = element;
-//             muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
-//             break; // Sale del bucle interno una vez que encuentra el elemento
-//             }
-//         }
-//     }
-// }
 async function generateLabels(expressIDs) {
     for (let i = 0; i < expressIDs.length; i++) {
         const currentExpressID = expressIDs[i];
@@ -412,16 +482,13 @@ async function generateLabels(expressIDs) {
 }
 
 function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
-   
     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
         return;
     } else {
         const elements = document.getElementsByTagName('p');
         let count = 0;
-    
         for (let i = 0; i < elements.length; i++) {
             const element = elements[i];
-    
             if (element.textContent.startsWith(ART_Pieza) && element.expressID ===expressID) {
                 if (element.style.visibility === 'hidden') {
                     element.style.visibility = 'visible';
@@ -429,7 +496,6 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
             count++;
             }
         }
-    
         if (count === 0) {
             const label = document.createElement('p');
             label.textContent = ART_Pieza;
@@ -454,8 +520,10 @@ function addCheckboxListeners() {
             if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" ||element.ART_Pieza=== undefined) {
                 return;
             }
-            if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
-                matchingIds.push(element.expressID);
+            if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza ) {
+                if (!element.hasOwnProperty('Camion') || element.Camion === "") {
+                    matchingIds.push(element.expressID);
+                }
             }
         });
             if (isChecked) {
