@@ -558,14 +558,20 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 	items.pickableIfcModels.push(subset); 
 }
 
-window.ondblclick = () => {
-    hideClickedItem(viewer);
-    const numCamionElement = document.getElementById("numCamion");
-    let numCamion = numCamionElement.textContent.trim();
-    const expressIDs = obtenerExpressIDsDelCamion(numCamion);  
-    const pesoTotal = calcularPesoTotal(expressIDs);
-    const pesoCamion = document.getElementById("pesoCamion");
-    pesoCamion.textContent = pesoTotal.toString();
+window.ondblclick = async () => {
+    const found = await viewer.IFC.selector.pickIfcItem(false);
+    const id=found.id;
+    const foundElement = precastElements.find(element => element.expressID === id);
+    if (foundElement.ifcType !== "IFCBUILDINGELEMENTPROXY") {
+        hideClickedItem(viewer);
+
+        const numCamionElement = document.getElementById("numCamion");
+        let numCamion = numCamionElement.textContent.trim();
+        const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+        const pesoTotal = calcularPesoTotal(expressIDs);
+        const pesoCamion = document.getElementById("pesoCamion");
+        pesoCamion.textContent = pesoTotal.toString();
+    }
 };
 
    //evento dblClic carga al camion elementos
