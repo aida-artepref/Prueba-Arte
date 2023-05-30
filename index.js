@@ -1427,7 +1427,7 @@ function obtenerExpressIDsDelCamion(numCamion) {
 function obtenerExpressIDsDelCamionCSV(numCamion) {
     const expressIDs = [];
     for (const elem of precastElements) {
-        if (elem.Camion === numCamion) {
+        if (elem.Camion == numCamion || elem.Camion.toString() === numCamion.toString()) {
             expressIDs.push(elem.expressID);
         }
     }
@@ -1988,7 +1988,7 @@ observer.observe(numCamionElement, config);//  observa los cambios en el element
 
 function handleNumCamionChange() {
     const numCamion = numCamionElement.textContent.trim();
-    const expressIDs = obtenerExpressIDsDelCamionCSV(parseInt(numCamion));
+    const expressIDs = obtenerExpressIDsDelCamionCSV(numCamion);
     const pesoTotal = calcularPesoTotal(expressIDs);
     const pesoCamion = document.getElementById("pesoCamion");
     pesoCamion.textContent = pesoTotal.toString();
