@@ -355,11 +355,15 @@ ul, #myUL {
     z-index: 999;
   }
 
- 
+  .resultado-no-encontrado {
+    margin-top: 8px;
+    color: red;
+}
+
   #inputARTP {
     top: 5%;
     right: 150px;
-    height: 50px;
+    height: 55px;
     overflow: hidden;
     transition: height 0.3s ease;
     display: none;

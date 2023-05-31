@@ -134,21 +134,32 @@ btnBuscar.addEventListener('click', async function() {
         divInputText.style.display = "block";
         btnBuscar.style.backgroundColor = 'gray';
     } else {
-        hideAllItems(viewer, idsTotal);
-        showAllItems(viewer, allIDs);
+        if (numBusquedas!==0){
+            hideAllItems(viewer, idsTotal);
+            showAllItems(viewer, allIDs);
+        }
+        
         btnBuscar.style.backgroundColor = 'transparent';
         divInputText.style.display = "none";
         inputText.value="";
         removeLabels(expressIDsInput);
         expressIDsInput=[];
+        numBusquedas=0;
+        const infoBusquedas = document.getElementById("infoBusquedas");
+        infoBusquedas.querySelector("p").textContent ="";
         return;
     }
 });
 
+let numBusquedas=0;
 let expressIDsInput;
 inputText.addEventListener('change', function() {
+    const infoBusquedas = document.getElementById("infoBusquedas");
+        infoBusquedas.querySelector("p").textContent ="";
+        removeLabels(expressIDsInput);
     if (isButtonClicked ) {
         const elementoBuscado = inputText.value.trim().toUpperCase();
+        numBusquedas++;
         if (elementoBuscado) {
             const elementosEncontrados = [];
             for (let i = 0; i < precastElements.length; i++) {
@@ -157,8 +168,14 @@ inputText.addEventListener('change', function() {
                 }
             }
             expressIDsInput = elementosEncontrados.map(elemento => elemento.expressID);
-            hideAllItems(viewer, idsTotal);
-            showAllItems(viewer, expressIDsInput);
+            if (elementosEncontrados.length > 0){
+                hideAllItems(viewer, idsTotal);
+                showAllItems(viewer, expressIDsInput);
+            }else{
+                const infoBusquedas = document.getElementById("infoBusquedas");
+                infoBusquedas.querySelector("p").textContent = "No existe el elemento: " + elementoBuscado;
+            }
+            
             if (checkBox.checked) {
                 generateLabels(expressIDsInput);
             } else{
@@ -168,7 +185,8 @@ inputText.addEventListener('change', function() {
             btnBuscar.style.backgroundColor = 'transparent';
             hideAllItems(viewer, idsTotal);
             showAllItems(viewer, allIDs);
-            removeLabels(expressIDs);
+            removeLabels(expressIDsInput);
+            divInputText.style.display = "none";
         }
     }
 });
@@ -1386,6 +1404,46 @@ function generarTablaPorLetra(letra) {
 const divCargas = document.querySelector('.divCargas');
 let listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
 
+// async function listarOcultos(elementosOcultos) {
+//     const itemList = document.querySelector(".item-list-elementos-cargados");
+//     itemList.innerHTML = "";
+//     const table = document.createElement("table");
+//     table.classList.add("table");
+    
+//     const thead = document.createElement("thead");
+//     thead.innerHTML = "<tr><th>expressID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
+//     table.appendChild(thead);
+    
+//     const tbody = document.createElement("tbody");
+    
+//     for (let i = elementosOcultos.length - 1; i >= 0; i--) {  // Muestra los elementos en orden inverso
+//         const id = elementosOcultos[i];
+//         const elemento = precastElements.find(elemento => elemento.expressID === id);
+//         if (!elemento) {
+//             throw new Error(`No se encontró el elemento con expressID = ${id}`);
+//         }
+//         const tr = document.createElement("tr");
+//         tr.classList.add("item-list-elemento");
+//         const peso = parseFloat(elemento.ART_Peso).toFixed(2);
+//         const altura = parseFloat(elemento.ART_Alto).toFixed(2);
+//         const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
+//         const longitud =parseFloat(elemento.ART_Longitud).toFixed(2);
+
+//         if (altura > 2.53) {
+//             tr.style.color = "red";
+//         }
+//         if (longitud > 14) {
+//             tr.style.color = "red";
+//         }
+//         tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td><td>${altura}</td><td>${ancho}</td><td>${longitud}</td>`;
+
+//         tbody.appendChild(tr);
+//     }
+//     table.appendChild(tbody);
+//     itemList.appendChild(table);
+//     $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
+
+// }
 async function listarOcultos(elementosOcultos) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
     itemList.innerHTML = "";
@@ -1409,16 +1467,34 @@ async function listarOcultos(elementosOcultos) {
         const peso = parseFloat(elemento.ART_Peso).toFixed(2);
         const altura = parseFloat(elemento.ART_Alto).toFixed(2);
         const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
-        const longitud =parseFloat(elemento.ART_Longitud).toFixed(2);
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td><td>${altura}</td><td>${ancho}</td><td>${longitud}</td>`;
-
+        const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
+        
+        const alturaCell = document.createElement("td");
+        alturaCell.classList.add("altura");
+        if (parseFloat(altura) > 2.53) {
+            alturaCell.style.color = "red";
+        }
+        alturaCell.textContent = altura;
+        
+        const longitudCell = document.createElement("td");
+        longitudCell.classList.add("longitud");
+        if (parseFloat(longitud) > 14) {
+            longitudCell.style.color = "red";
+        }
+        longitudCell.textContent = longitud;
+        
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
+        tr.appendChild(alturaCell);
+        tr.innerHTML += `<td>${ancho}</td>`;
+        tr.appendChild(longitudCell);
+        
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
     itemList.appendChild(table);
     $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
-
 }
+
 
 function obtenerExpressIDsDelCamion(numCamion) {
     const expressIDs = [];
@@ -1433,7 +1509,7 @@ function obtenerExpressIDsDelCamion(numCamion) {
 function obtenerExpressIDsDelCamionCSV(numCamion) {
     const expressIDs = [];
     for (const elem of precastElements) {
-        if (elem.Camion == numCamion || elem.Camion.toString() === numCamion.toString()) {
+        if (elem.Camion == numCamion || elem.Camion === numCamion.toString()) {
             expressIDs.push(elem.expressID);
         }
     }
