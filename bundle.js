@@ -127463,6 +127463,9 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'E' || event.key === 'e') {
+        if (document.activeElement.tagName.toLowerCase() === 'input' && document.activeElement.type === 'text') {
+            return; // No hacer nada si el <input> tiene el foco
+        }
         seleccionarBoton(nuevoCamionEstructuraBtn);
         numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
@@ -127585,6 +127588,9 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
 });
 
 document.addEventListener('keydown', function(event) {
+    if (document.activeElement.tagName.toLowerCase() === 'input' && document.activeElement.type === 'text') {
+        return; // No hacer nada si el <input> tiene el foco
+    }
     if (event.key === 'a' || event.key === 'A') {
         seleccionarBoton(nuevoCamionAlveolarBtn);
         numCamion=buscaNumCamionMaximo();
@@ -127714,6 +127720,9 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
 });
 
 document.addEventListener('keydown', function(event) {
+    if (document.activeElement.tagName.toLowerCase() === 'input' && document.activeElement.type === 'text') {
+        return; // No hacer nada si el <input> tiene el foco
+    }
     if (event.key === 'c' || event.key === 'C') {
         seleccionarBoton(nuevoCamionCerramientoBtn);
         numCamion=buscaNumCamionMaximo();
@@ -127846,6 +127855,9 @@ nuevoCamionTubularBtn.addEventListener("click", function() {
 });
 
 document.addEventListener('keydown', function(event) {
+    if (document.activeElement.tagName.toLowerCase() === 'input' && document.activeElement.type === 'text') {
+        return; // No hacer nada si el <input> tiene el foco
+    }
     if (event.key === 't' || event.key === 'T') {
         seleccionarBoton(nuevoCamionCerramientoBtn);
         numCamion=buscaNumCamionMaximo();

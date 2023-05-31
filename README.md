@@ -70,3 +70,14 @@ function calcularPesoTotal(expressIDs) {
 
 
     #c8c445--Amarillo
+
+
+    const divElement = document.querySelector('div#datosCamiones div.tabla-estilo[style*="border: 3px solid red;"]');
+                        if (divElement) {
+                            divElement.click();
+
+                            
+
+const checktiposIfcContainer = document.getElementById('checktiposIfc');
+checktiposIfcContainer.style.display = 'block';
+
