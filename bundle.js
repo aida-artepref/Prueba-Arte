@@ -127955,7 +127955,7 @@ function generarTablaPorLetra(letra) {
     const table = document.createElement("table");
     table.classList.add("table");
     const thead = document.createElement("thead");
-    thead.innerHTML ="<tr><th>expressID</th><th>GlobalId</th><th>Camion</th><th>Tipo</th><th>Volumen</th></tr>";
+    thead.innerHTML ="<tr><th>expressID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
     table.appendChild(thead);
 
     const filteredElements = precastElements.filter((elemento) => {
@@ -127974,7 +127974,7 @@ function generarTablaPorLetra(letra) {
         }
         const tr = document.createElement("tr");
         tr.classList.add("item-list-elemento");
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.tipoTransporte}</td><td>${elemento.Volumen_real}</td>`;
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${parseFloat(elemento.ART_Peso).toFixed(2)}</td><td>${parseFloat(elemento.ART_Alto).toFixed(2)}</td><td>${parseFloat(elemento.ART_Ancho).toFixed(2)}</td><td>${parseFloat(elemento.ART_Longitud).toFixed(2)}</td>`;
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
@@ -128453,7 +128453,12 @@ function exportCSVmethod(){
     const link = document.createElement('a');
     link.setAttribute('id', 'enlaceDescarga');
     link.setAttribute('href', objUrl);
-    link.setAttribute('download', 'File.csv');
+    const fileNameLabel = document.getElementById('file-name');
+    const fileName = fileNameLabel.textContent.trim();
+    const fileNameWithoutExtension = fileName.split(/\.ifc/i)[0];
+
+    
+    link.setAttribute('download', fileNameWithoutExtension + '.csv');
     link.textContent = 'Click to Download';
     document.querySelector(".toolbar").append(link);
 
@@ -128566,7 +128571,7 @@ function creaTablaTransporte() {
 let transporteA = [];
 let transporteC = [];
 let transporteE = [];
-
+let transporteTu = [];
 function clasificarPorTipoTransporte() {
     for (let i = 0; i < precastElements.length; i++) {
         const tipoTransporte = precastElements[i].tipoTransporte;
@@ -128583,13 +128588,16 @@ function clasificarPorTipoTransporte() {
             case "E":
             transporteE.push(precastElements[i]);
             break;
-            // default:
-            // break;
+            
+            case "Tu":
+            transporteE.push(precastElements[i]);
+            break;
         }
     }
     buscaMaxTransporte(transporteA);
     buscaMaxTransporte(transporteC);
     buscaMaxTransporte(transporteE);
+    buscaMaxTransporte(transporteTu);
 
 }
 
@@ -128625,6 +128633,10 @@ function buscaValoresMax(camionMaximo){
         numC=numCamMax;
         numT=numC;
     }
+    // if (letraTrans=== 'Tu'){
+    //     numTu=numCamMax;
+    //     numT=numTu;
+    // }
     if (letraTrans==='E'){
         numE=numCamMax;
         numT=numE;
@@ -128745,8 +128757,7 @@ function generaBotonesNumCamion(camionesUnicos) {
                 var checkboxes = document.querySelectorAll('input[type="checkbox"]');
                 checkboxes.forEach(function (checkbox) {
                     checkbox.checked = true;
-});
-
+                });
             } else {
                 disableCheckboxes();
                 // generateLabels(expressIDs);
@@ -128777,15 +128788,11 @@ function generaBotonesNumCamion(camionesUnicos) {
 
 function agregarBotonCero() {
     viewer.IFC.selector.unpickIfcItems();
-    
     const btnCero = document.createElement("button");
     btnCero.setAttribute("class","btnNumCamion");
-    
     divNumCamiones.appendChild(btnCero);
-
     const iconoPlay = document.createElement("i");
     iconoPlay.setAttribute("class", "fas fa-play");
-
     btnCero.appendChild(iconoPlay);
 
     btnCero.addEventListener("click", function() {
@@ -128799,7 +128806,6 @@ function agregarBotonCero() {
         } else {
             hideAllItems(viewer, idsTotal);
             const botones = document.querySelectorAll('#divNumCamiones button');
-
             botones.forEach(function(boton) {
                 boton.classList.remove('active');
                 boton.style.border = '1px solid white';
@@ -128816,7 +128822,6 @@ function agregarBotonCero() {
 }
 
 function showElementsByCamion(viewer, precastElements) {
-    // Crear el div y el label
     const label = document.createElement("label");
     const div = document.createElement("div");
     div.setAttribute("id", "divNumCamion");
@@ -129024,18 +129029,18 @@ function resaltarTabla(tabla, cabeceraValor) {
         }
     });
     //actualiza coloreando celdas, para ver los elementos que ya estan asignados en el transporte
-    for (let i = 0; i < tabla.rows.length; i++) {// recorre las filas de la tabla
-         for (let j = 0; j < tabla.rows[i].cells.length; j++) { // recorre las celdas de cada fila 
-            let valorCelda = tabla.rows[i].cells[j].innerText;// Obtiene el valor de la celda actual
-            for (let k = 0; k < precastElements.length; k++) { // recorrer el array precastElements 
-                let expressID = precastElements[k].expressID; // obtiene el valor de la propiedad expressID del objeto actual
-                let posicion = precastElements[k].Posicion; // obtener el valor de la propiedad Posicion del objeto actual 
-                if (valorCelda == expressID && posicion) {// cuando el valor de la celda coincide con el valor de la propiedad expressID y hay algún valor en la propiedad Posicion 
-                    tabla.rows[i].cells[j].style.backgroundColor = `#BD9BC2`; // Cambiar el fondo de la celda a gris 
+    for (let i = 0; i < tabla.rows.length; i++) {
+        for (let j = 0; j < tabla.rows[i].cells.length; j++) { 
+            let valorCelda = tabla.rows[i].cells[j].innerText;
+            for (let k = 0; k < precastElements.length; k++) { 
+                let expressID = precastElements[k].expressID; 
+                let posicion = precastElements[k].Posicion; 
+                if (valorCelda == expressID && posicion) {
+                    tabla.rows[i].cells[j].style.backgroundColor = `#BD9BC2`; 
                     break; 
                 } 
-                if (valorCelda == expressID && posicion==="") {// cuando el valor de la celda coincide con el valor de la propiedad expressID y hay algún valor en la propiedad Posicion 
-                    tabla.rows[i].cells[j].style.backgroundColor = ``; // Cambiar el fondo de la celda a gris 
+                if (valorCelda == expressID && posicion==="") {
+                    tabla.rows[i].cells[j].style.backgroundColor = ``; 
                     break; 
                 }
             } 
@@ -129097,9 +129102,7 @@ function posicionesCamion(tabla, cabeceraValor) {
     cabeceraCajon.innerText = cabeceraValor;
     cabeceraFila.appendChild(cabeceraCajon);
     tablaNueva.appendChild(cabeceraFila);
-
     
-
     for (let i = 0; i < tabla.rows.length; i++) {
         let valorCelda = tabla.rows[i].innerText;
         expressIdByCamion.push(parseInt(valorCelda));
@@ -129130,7 +129133,7 @@ function posicionesCamion(tabla, cabeceraValor) {
                 cajon.setAttribute("data-id", idCajon);
                 cajon.classList.add("cajon");
                 fila.appendChild(cajon);
-        
+                
                 cajon.addEventListener("contextmenu", function (event) {
                     event.preventDefault();
                     if (cajon.innerText === "") {
@@ -129140,12 +129143,12 @@ function posicionesCamion(tabla, cabeceraValor) {
                     }
                     
                 });
-        
+                
                 cajon.addEventListener("dblclick", function (event) {
                     limpiaPosicion(cajon, tabla);
                     actualizarTablaDerecha();
                 });
-        
+                
                 cajon.addEventListener("click", async function (event) {
                     viewer.IFC.selector.pickIfcItemsByID(
                         0,
@@ -129157,7 +129160,6 @@ function posicionesCamion(tabla, cabeceraValor) {
                     actualizarTablaDerecha();
                 });
             }
-            
             tablaNueva.appendChild(fila);
         }
         if (cabeceraValor.includes("A")) {
@@ -129170,9 +129172,8 @@ function posicionesCamion(tabla, cabeceraValor) {
 
 function simularEventoClic() {
     var elementoClic = document.querySelector('.tabla-estilo[style="border: 3px solid red;"]');
-    
     if (elementoClic) {
-      elementoClic.click(); // Simula el evento de clic en el elemento
+        elementoClic.click();
     }
 }
 
@@ -129223,12 +129224,12 @@ function crearTablaDerecha(tabla, cabeceraValor) {
             cajon.style.height = "38px";
     
             if (j === 1) {
-                cajon.style.borderRight = "3px solid #4c7a90"; // borde derecho
+                cajon.style.borderRight = "3px solid #4c7a90"; 
             }
             }
             if (cantidadFilas === 1) {
             if (j === 6) {
-                cajon.style.borderRight = "3px solid #90834c"; // borde derecho
+                cajon.style.borderRight = "3px solid #90834c"; 
                 cajon.style.borderLeft = "3px solid #90834c";
             }
         }
@@ -129247,6 +129248,7 @@ function crearTablaDerecha(tabla, cabeceraValor) {
     posicionCamion.appendChild(tablaDerecha);
     actualizaCajones(expressIdByCamion);
 }
+
 function actualizarTablaDerecha() {
     const tablaIzquierda = document.getElementById('tabla-izquierda');
     const tablaDerecha = document.getElementById('tabla-derecha');
@@ -129265,22 +129267,38 @@ function actualizarTablaDerecha() {
             if (elemento) {
                 const peso = parseFloat(elemento.ART_Peso);
                 const pieza = elemento.ART_Pieza;
+                const longitud = parseFloat(elemento.ART_Longitud);
+                const ancho = parseFloat(elemento.ART_Ancho);
 
                 const textoPeso = document.createElement('span');
-                textoPeso.style.fontSize = '14px'; 
+                textoPeso.style.fontSize = '12px'; 
                 textoPeso.style.fontWeight = 'bold'; 
-                textoPeso.innerText = ` ${peso.toFixed(2)}`;
+                textoPeso.innerText = ` P: ${peso.toFixed(2)}`;
 
                 const textoPieza = document.createElement('span');
-                textoPieza.style.fontSize = '14px'; 
+                textoPieza.style.fontSize = '12px'; 
                 textoPieza.style.fontWeight = 'bold'; 
                 textoPieza.innerText = ` ${pieza}`;
                 cajonDerecha.innerHTML = '';
+
+                const textoLongitud = document.createElement('span');
+                textoLongitud.style.fontSize = '12px';
+                textoLongitud.style.fontWeight = 'bold';
+                textoLongitud.innerText = `L: ${longitud.toFixed(2)}`;
+
+                const textoAncho = document.createElement('span');
+                textoAncho.style.fontSize = '12px';
+                textoAncho.style.fontWeight = 'bold';
+                textoAncho.innerText = `A: ${ancho.toFixed(2)}`;
                 
                 cajonDerecha.style.lineHeight = '0.8'; 
                 cajonDerecha.appendChild(textoPeso);
                 cajonDerecha.appendChild(document.createElement('br')); 
                 cajonDerecha.appendChild(textoPieza);
+                cajonDerecha.appendChild(document.createElement('br'));
+                cajonDerecha.appendChild(textoLongitud);
+                cajonDerecha.appendChild(document.createElement('br'));
+                cajonDerecha.appendChild(textoAncho);
 
                 pesoTotal += peso;
             } else {
@@ -129292,7 +129310,6 @@ function actualizarTablaDerecha() {
     const cabeceraTablaDerecha = tablaDerecha.getElementsByTagName('th')[0];
     cabeceraTablaDerecha.innerText = `Peso Total: ${pesoTotal.toFixed(2)}`;
 }
-
 
 
 function cambiarIdsTablaA(tabla) {
@@ -129347,21 +129364,15 @@ function actualizaCajones(expressIdByCamion) {
 
 function asignaIdCelda(cajon, contenidoCelda, expressIdByCamion) {
     if (!expressIdByCamion.includes(parseInt(contenidoCelda))) {
-        // El contenidoCelda no está incluido en el array expressIdByCamion
         return;
     }
-
-    // let valorExiste = false;
     let cajones = document.querySelectorAll(".cajon");
     for (let i = 0; i < cajones.length; i++) {
         if (cajones[i] !== cajon && cajones[i].innerText === contenidoCelda) {
-            // El valor ya está en otro cajón, lo eliminamos antes de asignarlo al cajón actual
             cajones[i].innerText = "";
             break;
         }
     }
-
-
     cajon.innerText = contenidoCelda;
     ultimoCajonPulsado = cajon;
 
