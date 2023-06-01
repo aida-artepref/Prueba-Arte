@@ -133,6 +133,7 @@ btnBuscar.addEventListener('click', async function() {
     if (isButtonClicked) {
         divInputText.style.display = "block";
         btnBuscar.style.backgroundColor = 'gray';
+        inputText.focus();
     } else {
         if (numBusquedas!==0){
             hideAllItems(viewer, idsTotal);
@@ -170,6 +171,15 @@ inputText.addEventListener('change', function() {
             expressIDsInput = elementosEncontrados.map(elemento => elemento.expressID);
             if (elementosEncontrados.length > 0){
                 hideAllItems(viewer, idsTotal);
+                const modelCopy = new Mesh(
+                    model.geometry,
+                    new MeshLambertMaterial({
+                        transparent: true,
+                        opacity: 0.1,
+                        color: 0x77aaff,
+                    })
+                );
+                scene.add(modelCopy);
                 showAllItems(viewer, expressIDsInput);
             }else{
                 const infoBusquedas = document.getElementById("infoBusquedas");
@@ -187,9 +197,11 @@ inputText.addEventListener('change', function() {
             showAllItems(viewer, allIDs);
             removeLabels(expressIDsInput);
             divInputText.style.display = "none";
+            scene.remove(modelCopy);
         }
     }
 });
+
 
 checkBox.addEventListener('change', function() {
     const textoInput = inputText.value.trim();
@@ -525,6 +537,39 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
         }
     }
 }
+// function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
+//     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
+//         return;
+//     } else {
+//         const elements = document.getElementsByTagName('p');
+//         let count = 0;
+//         for (let i = 0; i < elements.length; i++) {
+//             const element = elements[i];
+//             if (element.textContent.startsWith(ART_Pieza) && element.expressID === expressID) {
+//                 if (element.style.visibility === 'hidden') {
+//                     element.style.visibility = 'visible';
+//                 }
+//                 count++;
+//             }
+//         }
+//         if (count === 0) {
+//             const label = document.createElement('p');
+//             label.textContent = ART_Pieza;
+//             label.classList.add('pieza-label');
+//             label.id = expressID;
+//             const labelObject = new CSS2DObject(label);
+
+//             // Factor de escala basado en la diferencia de alturas de los contenedores padres
+//             const containerHeightRatio = 967 / 773;
+//             const scaledCoordX = parseFloat(ART_CoordX) / 1000;
+//             const scaledCoordY = -parseFloat(ART_CoordY) * containerHeightRatio / 1000;
+//             const scaledCoordZ = parseFloat(ART_CoordZ) * containerHeightRatio/ 1000;
+
+//             labelObject.position.set(scaledCoordX, scaledCoordZ, scaledCoordY);
+//             scene.add(labelObject);
+//         }
+//     }
+// }
 
 function addCheckboxListeners() {
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
