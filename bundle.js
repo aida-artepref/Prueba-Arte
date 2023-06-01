@@ -126734,6 +126734,7 @@ async function loadModel(url) {
     await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     //setIfcPropertiesContent(ifcProject, viewer, model);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
+    
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
     viewer.shadows = true;
@@ -126813,59 +126814,74 @@ btnBuscar.addEventListener('click', async function() {
         numBusquedas=0;
         const infoBusquedas = document.getElementById("infoBusquedas");
         infoBusquedas.querySelector("p").textContent ="";
+        if (modelCopy) {
+            scene.remove(modelCopy); 
+            modelCopy = null;
+        }
         return;
     }
 });
 
-let numBusquedas=0;
+let numBusquedas = 0;
 let expressIDsInput;
+let modelCopy = null; 
+
 inputText.addEventListener('change', function() {
     const infoBusquedas = document.getElementById("infoBusquedas");
-        infoBusquedas.querySelector("p").textContent ="";
-        removeLabels(expressIDsInput);
-    if (isButtonClicked ) {
+    infoBusquedas.querySelector("p").textContent = "";
+    removeLabels(expressIDsInput);
+
+    if (isButtonClicked) {
         const elementoBuscado = inputText.value.trim().toUpperCase();
         numBusquedas++;
+
         if (elementoBuscado) {
-            const elementosEncontrados = [];
-            for (let i = 0; i < precastElements.length; i++) {
-                if (precastElements[i].ART_Pieza === elementoBuscado) {
-                    elementosEncontrados.push(precastElements[i]);
-                }
+        const elementosEncontrados = [];
+        for (let i = 0; i < precastElements.length; i++) {
+            if (precastElements[i].ART_Pieza === elementoBuscado) {
+            elementosEncontrados.push(precastElements[i]);
             }
-            expressIDsInput = elementosEncontrados.map(elemento => elemento.expressID);
-            if (elementosEncontrados.length > 0){
-                hideAllItems(viewer, idsTotal);
-                const modelCopy = new Mesh(
-                    model.geometry,
-                    new MeshLambertMaterial({
-                        transparent: true,
-                        opacity: 0.1,
-                        color: 0x77aaff,
-                    })
-                );
-                scene.add(modelCopy);
-                showAllItems(viewer, expressIDsInput);
-            }else {
-                const infoBusquedas = document.getElementById("infoBusquedas");
-                infoBusquedas.querySelector("p").textContent = "No existe el elemento: " + elementoBuscado;
-            }
-            
-            if (checkBox.checked) {
-                generateLabels(expressIDsInput);
-            } else {
-                removeLabels(expressIDsInput);
-            }
-        } else {
-            btnBuscar.style.backgroundColor = 'transparent';
+        }
+        expressIDsInput = elementosEncontrados.map(elemento => elemento.expressID);
+
+        if (elementosEncontrados.length > 0) {
             hideAllItems(viewer, idsTotal);
-            showAllItems(viewer, allIDs);
+
+            if (modelCopy) {
+            scene.remove(modelCopy); 
+            }
+
+            modelCopy = new Mesh(
+            model.geometry,
+            new MeshLambertMaterial({
+                transparent: true,
+                opacity: 0.1,
+                color: 0x77aaff,
+            })
+            );
+            scene.add(modelCopy);
+            showAllItems(viewer, expressIDsInput);
+        } else {
+            const infoBusquedas = document.getElementById("infoBusquedas");
+            infoBusquedas.querySelector("p").textContent = "No existe el elemento: " + elementoBuscado;
+        }
+        if (checkBox.checked) {
+            generateLabels(expressIDsInput);
+        } else {
             removeLabels(expressIDsInput);
-            divInputText.style.display = "none";
-            scene.remove(modelCopy);
+        }
+        } else {
+        btnBuscar.style.backgroundColor = 'transparent';
+        hideAllItems(viewer, idsTotal);
+        showAllItems(viewer, allIDs);
+        removeLabels(expressIDsInput);
+        divInputText.style.display = "none";
+
+        
         }
     }
 });
+
 
 
 checkBox.addEventListener('change', function() {
@@ -126935,7 +126951,10 @@ async function crearBotonPrecasFuisonados(){
 
         const btnBuscar=document.getElementById('buscarButton');
         btnBuscar.style.display="block";
+        const ifcCompleto=document.getElementById('ifcCompleto');
+        ifcCompleto.style.display="block";
         });
+        
 }
 
 function eliminarElementosAssembly() {
@@ -127250,11 +127269,11 @@ for (let i = 0; i < divNumCamiones.children.length; i++) {
     }
 }
 
-window.oncontextmenu = () => {
-    if (!btnsCamionActivo) {
-        hideClickedItemBtnDrch(viewer); // Ocultar elemento del visor
-    }
-};
+// window.oncontextmenu = () => {
+//     if (!btnsCamionActivo) {
+//         hideClickedItemBtnDrch(viewer); // Ocultar elemento del visor
+//     }
+// };
 
 window.onkeydown = (event) => {  //evento esc, incluye todos los elementos ocultos con el BtnDrch de nuevo al visor
     if (!btnsCamionActivo) {
@@ -127904,7 +127923,7 @@ document.addEventListener('keydown', function(event) {
         return; // No hacer nada si el <input> tiene el foco
     }
     if (event.key === 't' || event.key === 'T') {
-        seleccionarBoton(nuevoCamionCerramientoBtn);
+        seleccionarBoton(nuevoCamionTubularBtn);
         numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
 
@@ -128237,18 +128256,18 @@ function hideClickedItem(viewer) {
 }
 
 //Elimina de visor un elemento pulsado con boton derecho
-function hideClickedItemBtnDrch(viewer) {
-    const result = viewer.context.castRayIfc();
-        if (!result) return;
-        const manager = viewer.IFC.loader.ifcManager;
-        const id = manager.getExpressId(result.object.geometry, result.faceIndex);
-        viewer.IFC.loader.ifcManager.removeFromSubset(
-            0,
-            [id],
-            'full-model-subset',
-        );
-        viewer.IFC.selector.unpickIfcItems();
-}
+// function hideClickedItemBtnDrch(viewer) {
+//     const result = viewer.context.castRayIfc();
+//         if (!result) return;
+//         const manager = viewer.IFC.loader.ifcManager;
+//         const id = manager.getExpressId(result.object.geometry, result.faceIndex);
+//         viewer.IFC.loader.ifcManager.removeFromSubset(
+//             0,
+//             [id],
+//             'full-model-subset',
+//         );
+//         viewer.IFC.selector.unpickIfcItems();
+// }
 
 // **************************************************
 const reduceDivBtn = document.createElement("button");
