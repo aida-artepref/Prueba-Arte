@@ -342,7 +342,7 @@ ul, #myUL {
   }
   .divCheck {
     position: fixed;
-    bottom: 35%;
+    top: 18%;
     right:10px;
     background-color:rgba(255, 255, 255, 0.267);
     border: 1px solid rgb(126, 126, 126);
@@ -362,7 +362,7 @@ ul, #myUL {
 
   #inputARTP {
     top: 5%;
-    right: 150px;
+    right: 130px;
     height: 55px;
     overflow: hidden;
     transition: height 0.3s ease;
@@ -371,7 +371,7 @@ ul, #myUL {
   
 
   #infoBuscados {
-    height: 100px; /* Ajusta la altura según tus necesidades */
+    height: 100px; 
     overflow-y: auto;
   }
   #infoContainer {
@@ -429,7 +429,7 @@ ul, #myUL {
   }
 
   ul {
-    max-height: 500px;
+    max-height: 400px;
     overflow-y: auto;
     font-size: 0.95rem;
   }
@@ -450,7 +450,7 @@ ul, #myUL {
   position: fixed;
   display: flex;
   flex-direction: column;
-  top: 630px; 
+  top: 570px; 
   right: 5px;
   padding: 10px;
   background-color: rgba(255, 255, 255, 0.7);
@@ -485,7 +485,7 @@ button {
 }
 
 .btnNumCamion {
-  padding: 10px;
+  padding: 5px;
   background-color: rgba(110, 109, 109, 0.5);
   color: white;
   border-radius: 5px;
@@ -513,7 +513,7 @@ button {
 #divNumCamiones {
   position: fixed;
   bottom: 20%;
-  left: 20%;
+  left: 35%;
   height: auto;
   width: 80%; 
   padding: 5px;
@@ -591,7 +591,7 @@ th, td {
 .checkbox-container {
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 1px;
 }
 
 
