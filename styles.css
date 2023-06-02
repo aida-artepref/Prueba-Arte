@@ -242,7 +242,7 @@ ul, #myUL {
   .titleCargas span {
     color: #e20a17;
     font-weight: bold;
-    padding-right: 20px;
+    
 }
   
   .titleCargas button {
@@ -513,7 +513,7 @@ button {
 #divNumCamiones {
   position: fixed;
   bottom: 20%;
-  left: 35%;
+  left: 25%;
   height: auto;
   width: 80%; 
   padding: 5px;
@@ -851,9 +851,20 @@ td.cajon::before {
   font-size: 30px;;
 }
 
+#numCamionContainer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  grid-column: 1 / -1 ; 
+}
+
+
 #numCamion {
-  color: black;
-  
+  color: red;
+  font-size: 20px;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+
+
 }
 
 select.seleccionado {

@@ -126674,8 +126674,8 @@ const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 const scene = viewer.context.scene.scene;
 viewer.clipper.active = true;
-viewer.grid.setGrid(100,100);
-viewer.axes.setAxes();
+// viewer.grid.setGrid(100,100);
+// viewer.axes.setAxes();
 
 
 
@@ -126786,7 +126786,30 @@ async function loadModel(url) {
     // line.material.dispose();
     // scene.remove(line);
 //   }
-
+let modelCopyCompleto = null; 
+const btnIfcCompleto=document.getElementById('ifcCompleto');
+let ifcCompletoClicked = false;
+btnIfcCompleto.addEventListener('click', async function(){
+    ifcCompletoClicked=!ifcCompletoClicked;
+    if(ifcCompletoClicked){
+        btnIfcCompleto.style.background='gray';
+        if (modelCopyCompleto) {
+            scene.remove(modelCopyCompleto); 
+        }
+        modelCopyCompleto = new Mesh(
+        model.geometry,
+            new MeshLambertMaterial({
+                transparent: true,
+                opacity: 0.5,
+                color: 0x54a2c4,
+            })
+        );
+        scene.add(modelCopyCompleto);
+    }else {
+        btnIfcCompleto.style.background='';
+        scene.remove(modelCopyCompleto); 
+    }
+});
 
 const btnBuscar = document.getElementById('buscarButton');
 let isButtonClicked = false;
@@ -126830,54 +126853,47 @@ inputText.addEventListener('change', function() {
     const infoBusquedas = document.getElementById("infoBusquedas");
     infoBusquedas.querySelector("p").textContent = "";
     removeLabels(expressIDsInput);
-
     if (isButtonClicked) {
         const elementoBuscado = inputText.value.trim().toUpperCase();
         numBusquedas++;
-
         if (elementoBuscado) {
-        const elementosEncontrados = [];
-        for (let i = 0; i < precastElements.length; i++) {
-            if (precastElements[i].ART_Pieza === elementoBuscado) {
-            elementosEncontrados.push(precastElements[i]);
+            const elementosEncontrados = [];
+            for (let i = 0; i < precastElements.length; i++) {
+                if (precastElements[i].ART_Pieza === elementoBuscado) {
+                    elementosEncontrados.push(precastElements[i]);
+                }
             }
-        }
-        expressIDsInput = elementosEncontrados.map(elemento => elemento.expressID);
-
-        if (elementosEncontrados.length > 0) {
-            hideAllItems(viewer, idsTotal);
-
-            if (modelCopy) {
-            scene.remove(modelCopy); 
+            expressIDsInput = elementosEncontrados.map(elemento => elemento.expressID);
+            if (elementosEncontrados.length > 0) {
+                hideAllItems(viewer, idsTotal);
+                if (modelCopy) {
+                    scene.remove(modelCopy); 
+                }
+                modelCopy = new Mesh(
+                model.geometry,
+                    new MeshLambertMaterial({
+                        transparent: true,
+                        opacity: 0.1,
+                        color: 0x77aaff,
+                    })
+                );
+                scene.add(modelCopy);
+                showAllItems(viewer, expressIDsInput);
+            } else {
+                const infoBusquedas = document.getElementById("infoBusquedas");
+                infoBusquedas.querySelector("p").textContent = "No existe el elemento: " + elementoBuscado;
             }
-
-            modelCopy = new Mesh(
-            model.geometry,
-            new MeshLambertMaterial({
-                transparent: true,
-                opacity: 0.1,
-                color: 0x77aaff,
-            })
-            );
-            scene.add(modelCopy);
-            showAllItems(viewer, expressIDsInput);
-        } else {
-            const infoBusquedas = document.getElementById("infoBusquedas");
-            infoBusquedas.querySelector("p").textContent = "No existe el elemento: " + elementoBuscado;
-        }
-        if (checkBox.checked) {
-            generateLabels(expressIDsInput);
-        } else {
-            removeLabels(expressIDsInput);
-        }
+            if (checkBox.checked) {
+                generateLabels(expressIDsInput);
+            } else {
+                removeLabels(expressIDsInput);
+            }
         } else {
         btnBuscar.style.backgroundColor = 'transparent';
         hideAllItems(viewer, idsTotal);
         showAllItems(viewer, allIDs);
         removeLabels(expressIDsInput);
         divInputText.style.display = "none";
-
-        
         }
     }
 });
@@ -127249,7 +127265,8 @@ window.ondblclick = async () => {
     const foundElement = precastElements.find(element => element.expressID === id);
     if (foundElement.ifcType !== "IFCBUILDINGELEMENTPROXY") {
         hideClickedItem(viewer);
-
+        let idString =id.toString();
+        removeLabels(idString);
         const numCamionElement = document.getElementById("numCamion");
         let numCamion = numCamionElement.textContent.trim();
         const expressIDs = obtenerExpressIDsDelCamion(numCamion);
@@ -128049,7 +128066,7 @@ function generarTablaPorLetra(letra) {
     const table = document.createElement("table");
     table.classList.add("table");
     const thead = document.createElement("thead");
-    thead.innerHTML ="<tr><th>expressID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
+    thead.innerHTML ="<tr><th>ID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
     table.appendChild(thead);
 
     const filteredElements = precastElements.filter((elemento) => {
@@ -128130,7 +128147,7 @@ async function listarOcultos(elementosOcultos) {
     table.classList.add("table");
     
     const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>expressID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
+    thead.innerHTML = "<tr><th>ID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
     table.appendChild(thead);
     
     const tbody = document.createElement("tbody");
