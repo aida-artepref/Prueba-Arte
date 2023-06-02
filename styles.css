@@ -484,6 +484,15 @@ button {
   font-size: 15px;
 }
 
+.separator {
+  width: 1px;
+  height: 50px; 
+  background-color: #535353; 
+  display: inline-block;
+  margin-right: 8px; 
+  margin-left: 8px; 
+}
+
 .btnNumCamion {
   padding: 5px;
   background-color: rgba(110, 109, 109, 0.5);
@@ -513,7 +522,7 @@ button {
 #divNumCamiones {
   position: fixed;
   bottom: 20%;
-  left: 25%;
+  left: 426px;
   height: auto;
   width: 80%; 
   padding: 5px;
@@ -861,10 +870,8 @@ td.cajon::before {
 
 #numCamion {
   color: red;
-  font-size: 20px;
+  font-size: 30px;
   font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-
-
 }
 
 select.seleccionado {

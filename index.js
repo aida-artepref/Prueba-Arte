@@ -721,7 +721,13 @@ function hideAllItems(viewer, ids) {
         );
     }); 
 }
-
+function hideAllItem(viewer, id) {
+        viewer.IFC.loader.ifcManager.removeFromSubset(
+            0,
+            [id],
+            'full-model-subset',
+        );
+}
 
 let numCamion=1;
 let letraTransporte = 'E';
@@ -1496,47 +1502,73 @@ function generarTablaPorLetra(letra) {
 //y vuelve a colocar el valor de la prop Camion ''
 const divCargas = document.querySelector('.divCargas');
 let listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
+listaElementos.addEventListener('dblclick', function(event) {
+    const target = event.target;
+    let elementoEliminadoTabla;
+    if (target.tagName === 'TD') {
+        elementoEliminadoTabla = target.parentNode.firstChild.textContent;
+        target.parentNode.remove();
+        let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
+        if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
+            elementosOcultos.splice(indexToRemove, 1);
+            globalIds.splice(indexToRemove, 1);
+        }
+        allIDs.push(parseInt(elementoEliminadoTabla));
+        if (document.querySelector(".btnNumCamion.active")) {
+            removeLabels(elementoEliminadoTabla);
+            hideAllItem(viewer, parseInt(elementoEliminadoTabla));
 
-// async function listarOcultos(elementosOcultos) {
-//     const itemList = document.querySelector(".item-list-elementos-cargados");
-//     itemList.innerHTML = "";
-//     const table = document.createElement("table");
-//     table.classList.add("table");
+
+            ///esto lo debe realizar solo con condicion if
+            // si ya hay una tabla 
+            //ANTES DAR INSTRUCCION EN GENERAR TABLA QUE LE PONGA EL ID con el num CAMION
+            const objetoEncontrado = precastElements.find((elemento) => elemento.expressID === parseInt(elementoEliminadoTabla));
+            const objetoEncontradoCamion=objetoEncontrado.Camion;
+
+            eliminarTabla(objetoEncontradoCamion);
+            const expressIDs = [];
+
+            precastElements.forEach((elemento) => {
+                if (elemento.Camion === objetoEncontradoCamion) {
+                    expressIDs.push(elemento.expressID);
+                }
+            });
+            const expressIDsNuevaTabla = expressIDs.filter((elemento) => elemento !== parseInt(elementoEliminadoTabla));
+
+            generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion)
+
+
+        }
+        else {
+            showAllItems(viewer, allIDs);
+            const divCheck = document.getElementById("checktiposIfc");
+            const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");// Obtener todos los checkbox dentro del div
+            checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
+        }
+    }
+    let numCamion=document.getElementById("numCamion");
+    const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
+        if(actValorCamion.Camion===parseInt(numCamion)){
+            const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+            const pesoTotal = calcularPesoTotal(expressIDs);
+            const pesoCamion = document.getElementById("pesoCamion");
+            pesoCamion.textContent =  pesoTotal.toString();
+        }
     
-//     const thead = document.createElement("thead");
-//     thead.innerHTML = "<tr><th>expressID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
-//     table.appendChild(thead);
-    
-//     const tbody = document.createElement("tbody");
-    
-//     for (let i = elementosOcultos.length - 1; i >= 0; i--) {  // Muestra los elementos en orden inverso
-//         const id = elementosOcultos[i];
-//         const elemento = precastElements.find(elemento => elemento.expressID === id);
-//         if (!elemento) {
-//             throw new Error(`No se encontró el elemento con expressID = ${id}`);
-//         }
-//         const tr = document.createElement("tr");
-//         tr.classList.add("item-list-elemento");
-//         const peso = parseFloat(elemento.ART_Peso).toFixed(2);
-//         const altura = parseFloat(elemento.ART_Alto).toFixed(2);
-//         const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
-//         const longitud =parseFloat(elemento.ART_Longitud).toFixed(2);
+        
+        if (actValorCamion) {
+            actValorCamion.Camion = "";
+            actValorCamion.tipoTransporte = "";
+            actValorCamion.Posicion = "";
+        }
+    const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+    const pesoTotal = calcularPesoTotal(expressIDs);
+    const pesoCamion = document.getElementById("pesoCamion");
+    pesoCamion.textContent =  pesoTotal.toString();
+});
 
-//         if (altura > 2.53) {
-//             tr.style.color = "red";
-//         }
-//         if (longitud > 14) {
-//             tr.style.color = "red";
-//         }
-//         tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td><td>${altura}</td><td>${ancho}</td><td>${longitud}</td>`;
 
-//         tbody.appendChild(tr);
-//     }
-//     table.appendChild(tbody);
-//     itemList.appendChild(table);
-//     $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
 
-// }
 async function listarOcultos(elementosOcultos) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
     itemList.innerHTML = "";
@@ -1564,14 +1596,14 @@ async function listarOcultos(elementosOcultos) {
         
         const alturaCell = document.createElement("td");
         alturaCell.classList.add("altura");
-        if (parseFloat(altura) > 2.53) {
+        if (parseFloat(altura) > 2.60) {
             alturaCell.style.color = "red";
         }
         alturaCell.textContent = altura;
         
         const longitudCell = document.createElement("td");
         longitudCell.classList.add("longitud");
-        if (parseFloat(longitud) > 14) {
+        if (parseFloat(longitud) > 13.60) {
             longitudCell.style.color = "red";
         }
         longitudCell.textContent = longitud;
@@ -2502,6 +2534,11 @@ let tablaResaltada = false;
 function generarTabla(expressIDs, camion) {
     const divTabla = document.getElementById("datosCamiones");
     const precastElement = precastElements.find(elem => parseInt(elem.Camion) === camion);
+    // if(!precastElement.tipoTransporte || typeof precastElement.tipoTransporte === "undefined"){
+    //     showAllItems(viewer, allIDs);
+    //     return;
+    // }
+
     const cabeceraValor = `${camion} || ${precastElement.tipoTransporte}`;
     let pesoTotal = calcularPesoTotal(expressIDs); 
 
