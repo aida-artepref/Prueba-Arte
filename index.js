@@ -1519,24 +1519,33 @@ listaElementos.addEventListener('dblclick', function(event) {
             hideAllItem(viewer, parseInt(elementoEliminadoTabla));
 
 
-            ///esto lo debe realizar solo con condicion if
-            // si ya hay una tabla 
-            //ANTES DAR INSTRUCCION EN GENERAR TABLA QUE LE PONGA EL ID con el num CAMION
-            const objetoEncontrado = precastElements.find((elemento) => elemento.expressID === parseInt(elementoEliminadoTabla));
-            const objetoEncontradoCamion=objetoEncontrado.Camion;
+            
+                const objetoEncontrado = precastElements.find((elemento) => elemento.expressID === parseInt(elementoEliminadoTabla));
+                const objetoEncontradoCamion=objetoEncontrado.Camion;
+            if(document.querySelector(".tabla-estilo").id === objetoEncontradoCamion.toString()){
+                eliminarTabla(objetoEncontradoCamion);
+                const expressIDs = [];
 
-            eliminarTabla(objetoEncontradoCamion);
-            const expressIDs = [];
+                precastElements.forEach((elemento) => {
+                    if (elemento.Camion === objetoEncontradoCamion) {
+                        expressIDs.push(elemento.expressID);
+                    }
+                });
+                const expressIDsNuevaTabla = expressIDs.filter((elemento) => elemento !== parseInt(elementoEliminadoTabla));
 
-            precastElements.forEach((elemento) => {
-                if (elemento.Camion === objetoEncontradoCamion) {
-                    expressIDs.push(elemento.expressID);
+                const nuevaTabla = generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
+                if (nuevaTabla) {
+                    nuevaTabla.addEventListener('click', function() {
+                        // resaltarTabla(nuevaTabla, )
+                    });
+                    const eventoClick = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    nuevaTabla.dispatchEvent(new Event('click'));
                 }
-            });
-            const expressIDsNuevaTabla = expressIDs.filter((elemento) => elemento !== parseInt(elementoEliminadoTabla));
-
-            generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion)
-
+            }
 
         }
         else {
@@ -1546,7 +1555,7 @@ listaElementos.addEventListener('dblclick', function(event) {
             checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
         }
     }
-    let numCamion=document.getElementById("numCamion");
+    let numCamion=parseInt(document.getElementById("numCamion").textContent);
     const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
         if(actValorCamion.Camion===parseInt(numCamion)){
             const expressIDs = obtenerExpressIDsDelCamion(numCamion);
@@ -2172,7 +2181,12 @@ GUI.importer.addEventListener("change", function(e) {
     });
 
     readCsvFile.then(() => {
-
+        precastElements.forEach(dato => {
+            if (dato.Camion) {
+                dato.Camion = parseInt(dato.Camion, 10); 
+            }
+            
+        });
         mostrarElementosRestantes();
         clasificarPorTipoTransporte();
         actualizaDesplegables();
@@ -2554,6 +2568,7 @@ function generarTabla(expressIDs, camion) {
 
     const tabla = document.createElement('table');
     tabla.classList.add('tabla-estilo');
+    tabla.id = camion;
 
     const cabecera = document.createElement('thead');
     const filaCabecera = document.createElement('tr');
