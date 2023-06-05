@@ -146,6 +146,30 @@ btnIfcCompleto.addEventListener('click', async function(){
     }
 })
 
+let expressIDsUniones = []; 
+
+const btnFiltrarUnion = document.getElementById('filtraUniones');
+let isButtonClickedUniones = false;
+
+btnFiltrarUnion.addEventListener('click', async function() {
+    isButtonClickedUniones = !isButtonClickedUniones;
+    if (isButtonClickedUniones) {
+        btnFiltrarUnion.style.backgroundColor = 'gray';
+
+        if (expressIDsUniones.length === 0) {
+            const filteredElements = precastElements.filter(obj => obj.ifcType === 'IFCBUILDINGELEMENTPROXY');
+            expressIDsUniones = filteredElements.map(obj => obj.expressID);
+        }
+
+        hideAllItems(viewer, expressIDsUniones);
+    } else {
+        btnFiltrarUnion.style.backgroundColor = 'transparent';
+        showAllItems(viewer, expressIDsUniones);
+    }
+});
+
+
+
 const btnBuscar = document.getElementById('buscarButton');
 let isButtonClicked = false;
 const divInputText= document.getElementById("inputARTP");
@@ -349,6 +373,9 @@ async function crearBotonPrecasFuisonados(){
         btnFiltros.style.display="block";
         const divFiltros = document.getElementById('checktiposIfc');
 
+        const btnFiltrosUnion=document.getElementById('filtraUniones');
+        btnFiltrosUnion.style.display="block";
+
         btnFiltros.addEventListener('click', function() {
         if (btnFiltros.classList.contains('active')) {
             btnFiltros.classList.remove('active');
@@ -474,6 +501,7 @@ function generateCheckboxes(precastElements) {
     
         const checkboxLabel = document.createElement('label');
         checkboxLabel.textContent = `${artPieza} (${elements.length})`;
+
         checkboxGroup.appendChild(checkboxLabel);
     
         checkboxContainer.appendChild(checkboxGroup);
