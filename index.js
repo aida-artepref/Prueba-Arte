@@ -1532,19 +1532,20 @@ listaElementos.addEventListener('dblclick', function(event) {
                     }
                 });
                 const expressIDsNuevaTabla = expressIDs.filter((elemento) => elemento !== parseInt(elementoEliminadoTabla));
-
-                const nuevaTabla = generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
-                if (nuevaTabla) {
-                    nuevaTabla.addEventListener('click', function() {
-                        resaltarTablaNueva(nuevaTabla )
-                    });
+                generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
+                // const nuevaTabla = generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
+                // console.log (nuevaTabla);
+                // if (nuevaTabla) {
+                //     nuevaTabla.addEventListener('click', function() {
+                //         resaltarTablaNueva(nuevaTabla )
+                //     });
                     // const eventoClick = new MouseEvent('click', {
                     //     bubbles: true,
                     //     cancelable: true,
                     //     view: window
                     // });
                     // nuevaTabla.dispatchEvent(new Event('click'));
-                }
+                // }
             }
 
         }
