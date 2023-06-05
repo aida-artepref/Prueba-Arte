@@ -1536,14 +1536,14 @@ listaElementos.addEventListener('dblclick', function(event) {
                 const nuevaTabla = generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
                 if (nuevaTabla) {
                     nuevaTabla.addEventListener('click', function() {
-                        // resaltarTabla(nuevaTabla, )
+                        resaltarTablaNueva(nuevaTabla )
                     });
-                    const eventoClick = new MouseEvent('click', {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window
-                    });
-                    nuevaTabla.dispatchEvent(new Event('click'));
+                    // const eventoClick = new MouseEvent('click', {
+                    //     bubbles: true,
+                    //     cancelable: true,
+                    //     view: window
+                    // });
+                    // nuevaTabla.dispatchEvent(new Event('click'));
                 }
             }
 
@@ -2726,6 +2726,37 @@ function resaltarTabla(tabla, cabeceraValor) {
     }
 }
 
+function resaltarTablaNueva(tabla) {
+    const tablas = document.querySelectorAll("#datosCamiones table");
+    tablas.forEach(t => {
+        if (t === tabla) {
+            t.style.border = "3px solid red";
+            tablaResaltada = true;
+            posicionesCamion(tabla, cabeceraValor); // argumentos tabla y valor de cabecera a la función posicionesCamion
+            actualizarTablaDerecha();
+        } else {
+            t.style.border = "1px solid black";
+        }
+    });
+    //actualiza coloreando celdas, para ver los elementos que ya estan asignados en el transporte
+    for (let i = 0; i < tabla.rows.length; i++) {
+        for (let j = 0; j < tabla.rows[i].cells.length; j++) { 
+            let valorCelda = tabla.rows[i].cells[j].innerText;
+            for (let k = 0; k < precastElements.length; k++) { 
+                let expressID = precastElements[k].expressID; 
+                let posicion = precastElements[k].Posicion; 
+                if (valorCelda == expressID && posicion) {
+                    tabla.rows[i].cells[j].style.backgroundColor = `#BD9BC2`; 
+                    break; 
+                } 
+                if (valorCelda == expressID && posicion==="") {
+                    tabla.rows[i].cells[j].style.backgroundColor = ``; 
+                    break; 
+                }
+            } 
+        } 
+    }
+}
 function eliminarTabla(camion) {
     const divTabla = document.getElementById("datosCamiones");
     const thElements = divTabla.getElementsByTagName("th");
