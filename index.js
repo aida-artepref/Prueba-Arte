@@ -1554,7 +1554,7 @@ listaElementos.addEventListener('dblclick', function(event) {
             let tablaConEstilo = false; 
 
             elementosTabla.forEach(tabla => {
-                if (tabla.id === idCorrecto) {
+                if (tabla.getAttribute('data-id') === idCorrecto) {
                     if (tabla.style.border === "3px solid red") {
                         tablaConEstilo = true; 
                     }
@@ -2588,7 +2588,7 @@ function generarTabla(expressIDs, camion) {
     actualizarCabecera(pesoTotal); 
     const tabla = document.createElement('table');
     tabla.classList.add('tabla-estilo');
-    // tabla.id = camion;
+    tabla.setAttribute('data-id', camion);
     const cabecera = document.createElement('thead');
     const filaCabecera = document.createElement('tr');
     filaCabecera.appendChild(thElemento);
