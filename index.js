@@ -135,7 +135,7 @@ btnIfcCompleto.addEventListener('click', async function(){
         model.geometry,
             new MeshLambertMaterial({
                 transparent: true,
-                opacity: 0.5,
+                opacity: 0.4,
                 color: 0x54a2c4,
             })
         );
@@ -1551,9 +1551,13 @@ listaElementos.addEventListener('dblclick', function(event) {
 
             const elementosTabla = document.querySelectorAll(".tabla-estilo");
             const idCorrecto = objetoEncontradoCamion.toString();
+            let tablaConEstilo = false; 
 
             elementosTabla.forEach(tabla => {
                 if (tabla.id === idCorrecto) {
+                    if (tabla.style.border === "3px solid red") {
+                        tablaConEstilo = true; 
+                    }
                     eliminarTabla(objetoEncontradoCamion);
                     const expressIDs = [];
                     precastElements.forEach((elemento) => {
@@ -1563,19 +1567,11 @@ listaElementos.addEventListener('dblclick', function(event) {
                     });
                     const expressIDsNuevaTabla = expressIDs.filter((elemento) => elemento !== parseInt(elementoEliminadoTabla));
                     generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
-                    // const nuevaTabla = generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
-                    // console.log (nuevaTabla);
-                    // if (nuevaTabla) {
-                    //     nuevaTabla.addEventListener('click', function() {
-                    //         resaltarTablaNueva(nuevaTabla )
-                    //     });
-                        // const eventoClick = new MouseEvent('click', {
-                        //     bubbles: true,
-                        //     cancelable: true,
-                        //     view: window
-                        // });
-                        // nuevaTabla.dispatchEvent(new Event('click'));
-                    // }
+                    if(tablaConEstilo === true){
+                        const divPosicionesCamion = document.getElementById("posicionCamion");
+                        divPosicionesCamion.innerHTML = "";
+                        tablaConEstilo = false;
+                    }
                 }
             });
 
@@ -2592,7 +2588,7 @@ function generarTabla(expressIDs, camion) {
     actualizarCabecera(pesoTotal); 
     const tabla = document.createElement('table');
     tabla.classList.add('tabla-estilo');
-    tabla.id = camion;
+    // tabla.id = camion;
     const cabecera = document.createElement('thead');
     const filaCabecera = document.createElement('tr');
     filaCabecera.appendChild(thElemento);
@@ -2863,7 +2859,7 @@ function posicionesCamion(tabla, cabeceraValor) {
                     if (cajon.innerText === "") {
                         asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
                         actualizarTablaDerecha();
-                        simularEventoClic();
+                        // simularEventoClic();
                     }
                     
                 });
