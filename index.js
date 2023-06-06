@@ -1545,36 +1545,39 @@ listaElementos.addEventListener('dblclick', function(event) {
         if (document.querySelector(".btnNumCamion.active")) {
             removeLabels(elementoEliminadoTabla);
             hideAllItem(viewer, parseInt(elementoEliminadoTabla));
-
-
             
-                const objetoEncontrado = precastElements.find((elemento) => elemento.expressID === parseInt(elementoEliminadoTabla));
-                const objetoEncontradoCamion=objetoEncontrado.Camion;
-            if(document.querySelector(".tabla-estilo").id === objetoEncontradoCamion.toString()){
-                eliminarTabla(objetoEncontradoCamion);
-                const expressIDs = [];
+            const objetoEncontrado = precastElements.find((elemento) => elemento.expressID === parseInt(elementoEliminadoTabla));
+            const objetoEncontradoCamion=objetoEncontrado.Camion;
 
-                precastElements.forEach((elemento) => {
-                    if (elemento.Camion === objetoEncontradoCamion) {
-                        expressIDs.push(elemento.expressID);
-                    }
-                });
-                const expressIDsNuevaTabla = expressIDs.filter((elemento) => elemento !== parseInt(elementoEliminadoTabla));
-                generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
-                // const nuevaTabla = generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
-                // console.log (nuevaTabla);
-                // if (nuevaTabla) {
-                //     nuevaTabla.addEventListener('click', function() {
-                //         resaltarTablaNueva(nuevaTabla )
-                //     });
-                    // const eventoClick = new MouseEvent('click', {
-                    //     bubbles: true,
-                    //     cancelable: true,
-                    //     view: window
-                    // });
-                    // nuevaTabla.dispatchEvent(new Event('click'));
-                // }
-            }
+            const elementosTabla = document.querySelectorAll(".tabla-estilo");
+            const idCorrecto = objetoEncontradoCamion.toString();
+
+            elementosTabla.forEach(tabla => {
+                if (tabla.id === idCorrecto) {
+                    eliminarTabla(objetoEncontradoCamion);
+                    const expressIDs = [];
+                    precastElements.forEach((elemento) => {
+                        if (elemento.Camion === objetoEncontradoCamion) {
+                            expressIDs.push(elemento.expressID);
+                        }
+                    });
+                    const expressIDsNuevaTabla = expressIDs.filter((elemento) => elemento !== parseInt(elementoEliminadoTabla));
+                    generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
+                    // const nuevaTabla = generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
+                    // console.log (nuevaTabla);
+                    // if (nuevaTabla) {
+                    //     nuevaTabla.addEventListener('click', function() {
+                    //         resaltarTablaNueva(nuevaTabla )
+                    //     });
+                        // const eventoClick = new MouseEvent('click', {
+                        //     bubbles: true,
+                        //     cancelable: true,
+                        //     view: window
+                        // });
+                        // nuevaTabla.dispatchEvent(new Event('click'));
+                    // }
+                }
+            });
 
         }
         else {
@@ -2577,33 +2580,23 @@ let tablaResaltada = false;
 function generarTabla(expressIDs, camion) {
     const divTabla = document.getElementById("datosCamiones");
     const precastElement = precastElements.find(elem => parseInt(elem.Camion) === camion);
-    // if(!precastElement.tipoTransporte || typeof precastElement.tipoTransporte === "undefined"){
-    //     showAllItems(viewer, allIDs);
-    //     return;
-    // }
-
     const cabeceraValor = `${camion} || ${precastElement.tipoTransporte}`;
     let pesoTotal = calcularPesoTotal(expressIDs); 
-
     const actualizarCabecera = (nuevoPesoTotal) => {
         pesoTotal = nuevoPesoTotal;
         const cabeceraCompleta = `${cabeceraValor}\nPeso: ${parseFloat(pesoTotal).toFixed(2)}`;
         thElemento.textContent = cabeceraCompleta;
         thElemento.style.color = (pesoTotal > 25) ? "red" : ""; 
     };
-
     const thElemento = document.createElement("th"); 
     actualizarCabecera(pesoTotal); 
-
     const tabla = document.createElement('table');
     tabla.classList.add('tabla-estilo');
     tabla.id = camion;
-
     const cabecera = document.createElement('thead');
     const filaCabecera = document.createElement('tr');
     filaCabecera.appendChild(thElemento);
     cabecera.appendChild(filaCabecera);
-
     const cuerpo = document.createElement('tbody');
     expressIDs.forEach(id => {
         const tdElemento = document.createElement('td');
@@ -2611,11 +2604,8 @@ function generarTabla(expressIDs, camion) {
     if (precastElem) {
         tdElemento.style.backgroundColor = "#BD9BC2"; 
     }
-
     const precastElemPieza = precastElements.find(elem => elem.expressID === id );
     tdElemento.textContent = `${id} - ${precastElemPieza && precastElemPieza.ART_Pieza ? precastElemPieza.ART_Pieza : ''}`;
-
-    
         tdElemento.addEventListener('contextmenu', async function(event) {
             event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
             contenidoCelda = tdElemento.textContent;
@@ -2629,18 +2619,14 @@ function generarTabla(expressIDs, camion) {
         fila.appendChild(tdElemento);
         cuerpo.appendChild(fila);
     });
-
     
     tabla.appendChild(cabecera);
     tabla.appendChild(cuerpo);
-
     const contenedorTabla = document.createElement("div");// Contenedor  agrega estilos CSS
     contenedorTabla.classList.add('contenedor-tabla');
-
     contenedorTabla.addEventListener("click", function() {
         resaltarTabla(tabla, cabeceraValor);
     });
-
     contenedorTabla.addEventListener("dblclick", function(event) {
         const target = event.target;
         let elementoEliminadoTabla;
