@@ -478,6 +478,37 @@ function cargaGlobalIdenPrecast(){
         
 }
 
+function addBotonCheckboxListeners() {
+    const buttons = document.querySelectorAll('.btnCheck');
+    for (let i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener('click', function() {
+            const letter = this.dataset.artPieza;
+            const isChecked = this.checked;
+            const artPieza = this.getAttribute('data-art-pieza');
+            const visibleIds = [];
+            const parentText = this.parentNode.textContent.trim();
+            let prevEl = null;
+            precastElements.forEach(function(el, index) {
+                if (allIDs.includes(el.expressID)) {
+                    if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
+                        return ;
+                    }
+                    if (el.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
+                        visibleIds.push(el.expressID);
+                        }
+                }
+            });
+            if (this.classList.contains('pulsado')) {
+                this.classList.remove('pulsado');
+                removeLabels(visibleIds);
+            } else {
+                this.classList.add('pulsado');
+                generateLabels(visibleIds);
+            }
+        });
+    }
+}
+
 // function generateCheckboxes(precastElements) {
 //     // Agrupa los elementos por la primera letra de la propiedad ART_Pieza
 //     const groupedElements = precastElements.reduce((acc, el) => {
@@ -530,41 +561,78 @@ function cargaGlobalIdenPrecast(){
 //     }
 
 
-    function addBotonCheckboxListeners() {
-    const buttons = document.querySelectorAll('.btnCheck');
-    for (let i = 0; i < buttons.length; i++) {
-        buttons[i].addEventListener('click', function() {
-            const letter = this.dataset.artPieza;
-            const isChecked = this.checked;
-            const artPieza = this.getAttribute('data-art-pieza');
-            const visibleIds = [];
-            const parentText = this.parentNode.textContent.trim();
-            let prevEl = null;
-            precastElements.forEach(function(el, index) {
-                if (allIDs.includes(el.expressID)) {
-                    if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
-                        return ;
-                    }
-                    if (el.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
-                        visibleIds.push(el.expressID);
-                        }
-                }
-            });
-            if (this.classList.contains('pulsado')) {
-                this.classList.remove('pulsado');
-                removeLabels(visibleIds);
-            } else {
-                this.classList.add('pulsado');
-                generateLabels(visibleIds);
-            }
-        });
-    }
-}
 
-let checkboxLabelsMap = new Map();
+// let checkboxLabelsMap = new Map();
+// let groupedElements;
+// function generateCheckboxes(precastElements) {
+//     groupedElements = precastElements.reduce((acc, el) => {
+//         if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" || el.ART_Pieza === undefined) {
+//             return acc;
+//         }
+//         const firstLetter = el.ART_Pieza.charAt(0).toUpperCase();
+//         if (!acc[firstLetter]) {
+//             acc[firstLetter] = [];
+//         }
+//         acc[firstLetter].push(el);
+//         return acc;
+//     }, {});
+
+//     const checktiposIfcContainer = document.getElementById('checktiposIfc');
+//     checktiposIfcContainer.style.display = 'none';
+
+//     Object.entries(groupedElements).forEach(([artPieza, elements]) => {
+//         const checkboxContainer = document.createElement('div');
+//         checkboxContainer.classList.add('checkbox-container');
+
+//         const button = document.createElement('button');
+//         button.classList.add('btnCheck');
+//         button.setAttribute('data-art-pieza', artPieza);
+//         button.textContent = artPieza;
+//         checkboxContainer.appendChild(button);
+
+//         const checkboxGroup = document.createElement('div');
+//         checkboxGroup.classList.add('checkbox-group');
+
+//         const checkbox = document.createElement('input');
+//         checkbox.setAttribute('type', 'checkbox');
+//         checkbox.setAttribute('checked', 'true');
+//         checkbox.setAttribute('data-art-pieza', artPieza);
+//         checkbox.style.marginLeft = '8px';
+//         checkboxGroup.appendChild(checkbox);
+
+//         const checkboxLabel = document.createElement('label');
+//         checkboxLabel.textContent = `${artPieza} (${elements.length})`;
+//         checkboxGroup.appendChild(checkboxLabel);
+
+//         const piezasCargadasLabel = document.createElement('label');
+//         piezasCargadasLabel.setAttribute('data-art-pieza', artPieza);
+//         checkboxGroup.appendChild(piezasCargadasLabel);
+
+//         checkboxLabelsMap.set(artPieza, {
+//             checkboxLabel,
+//             piezasCargadasLabel
+//         });
+
+//         checkboxContainer.appendChild(checkboxGroup);
+//         checktiposIfcContainer.appendChild(checkboxContainer);
+//     });
+
+//     // Insertar piezasCargadasLabel después de crear todos los elementos checkbox
+//     const checkboxGroups = document.querySelectorAll('.checkbox-group');
+//     checkboxGroups.forEach(checkboxGroup => {
+//         const piezasCargadasLabel = document.createElement('label');
+//         piezasCargadasLabel.classList.add('piezas-cargadas-label');
+//         checkboxGroup.appendChild(piezasCargadasLabel);
+//     });
+
+//     setTimeout(() => {
+//         addCheckboxListeners();
+//         addBotonCheckboxListeners();
+//     }, 0);
+// }
 let groupedElements;
 function generateCheckboxes(precastElements) {
-    groupedElements = precastElements.reduce((acc, el) => {
+     groupedElements = precastElements.reduce((acc, el) => {
         if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" || el.ART_Pieza === undefined) {
             return acc;
         }
@@ -603,19 +671,15 @@ function generateCheckboxes(precastElements) {
         checkboxLabel.textContent = `${artPieza} (${elements.length})`;
         checkboxGroup.appendChild(checkboxLabel);
 
-        const piezasCargadasLabel = document.createElement('label');
-        checkboxGroup.appendChild(piezasCargadasLabel);
-        
-        checkboxLabelsMap.set(artPieza, {
-            checkboxLabel,
-            piezasCargadasLabel
-        });
+        const elementsWithCamion = elements.filter(el => el.Camion !== undefined && el.Camion !== "");
+        const missingCamionCount = elements.length - elementsWithCamion.length;
+
+        const missingCamionLabel = document.createElement('label');
+        missingCamionLabel.textContent = ` / ${missingCamionCount}`;
+        checkboxGroup.appendChild(missingCamionLabel);
 
         checkboxContainer.appendChild(checkboxGroup);
         checktiposIfcContainer.appendChild(checkboxContainer);
-        
-checkboxGroup.appendChild(piezasCargadasLabel);
-
     });
 
     setTimeout(() => {
@@ -623,6 +687,26 @@ checkboxGroup.appendChild(piezasCargadasLabel);
         addBotonCheckboxListeners();
     }, 0);
 }
+
+function updateMissingCamionCount() {
+    const checkboxGroups = document.getElementsByClassName('checkbox-group');
+  
+    Array.from(checkboxGroups).forEach((checkboxGroup) => {
+      const artPieza = checkboxGroup.querySelector('input[type="checkbox"]').getAttribute('data-art-pieza');
+      const elements = groupedElements[artPieza];
+  
+      const elementsWithCamion = elements.filter(el => el.Camion !== undefined && el.Camion !== "");
+      const missingCamionCount = elements.length - elementsWithCamion.length;
+  
+      const missingCamionLabel = checkboxGroup.querySelector('label:last-child');
+  
+      if (missingCamionLabel) {
+        missingCamionLabel.textContent = ` / ${missingCamionCount}`;
+      }
+    });
+  }
+ 
+
 
 function updateLoadedPiecesLabel(elements, artPieza) {
     const checkboxData = checkboxLabelsMap.get(artPieza);
@@ -634,7 +718,7 @@ function updateLoadedPiecesLabel(elements, artPieza) {
 }
 
 function countLoadedPieces(elements) {
-    const loadedPieces = elements.filter(element => elementosOcultos.includes(element.expressID));
+    const loadedPieces = elements.filter(element => element.Camion !== undefined && element.Camion !== '');
     return loadedPieces.length;
 }
 
@@ -1694,6 +1778,7 @@ listaElementos.addEventListener('dblclick', function(event) {
     const pesoTotal = calcularPesoTotal(expressIDs);
     const pesoCamion = document.getElementById("pesoCamion");
     pesoCamion.textContent =  pesoTotal.toString();
+    updateMissingCamionCount();
 });
 
 
@@ -1821,14 +1906,15 @@ async function listarOcultos(elementosOcultos) {
     }
     styleElement.innerHTML = styleSheet;
     document.head.appendChild(styleElement);
+    updateMissingCamionCount();
     // Actualizar las etiquetas de piezas cargadas para cada grupo de elementos
-    const checkboxGroups = document.querySelectorAll('.checkbox-group');
-    checkboxGroups.forEach(checkboxGroup => {
-        const artPieza = checkboxGroup.querySelector('input').getAttribute('data-art-pieza');
-        const elements = groupedElements[artPieza];
-        const piezasCargadasLabel = checkboxGroup.querySelector('.piezas-cargadas-label');
-        updateLoadedPiecesLabel(elements, piezasCargadasLabel);
-    });
+    // const checkboxGroups = document.querySelectorAll('.checkbox-group');
+    // checkboxGroups.forEach(checkboxGroup => {
+    //     const artPieza = checkboxGroup.querySelector('input').getAttribute('data-art-pieza');
+    //     const elements = groupedElements[artPieza];
+    //     const piezasCargadasLabel = checkboxGroup.querySelector('.piezas-cargadas-label');
+    //     updateLoadedPiecesLabel(elements, piezasCargadasLabel);
+    // });
 
 }
 
@@ -2827,6 +2913,7 @@ function generarTabla(expressIDs, camion) {
             }
             allIDs.push(parseInt(elementoEliminadoTabla));
             removeLabels(elementoEliminadoTabla);
+            updateMissingCamionCount();
         }
         listarOcultos(elementosOcultos);
         viewer.IFC.selector.unpickIfcItems();
@@ -2860,6 +2947,7 @@ function generarTabla(expressIDs, camion) {
     contenedorTabla.appendChild(tabla);
     thElemento.classList.add('cabecera-tabla');
     divTabla.appendChild(contenedorTabla);
+   
 }
 
 let ultimaCeldaSeleccionada = null;
