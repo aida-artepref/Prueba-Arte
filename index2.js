@@ -1,4 +1,4 @@
-import { Color, Loader, MeshBasicMaterial, LineBasicMaterial, MeshStandardMaterial, EdgesGeometry, Mesh, BufferGeometry} from 'three';
+import { Color, Loader, MeshBasicMaterial, LineBasicMaterial, MeshStandardMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
@@ -121,17 +121,153 @@ async function loadModel(url) {
     // scene.remove(line);
 //   }
 
-const btnFiltros = document.getElementById('filtraTipos');
-btnFiltros.addEventListener('click', function() {
-    const checktiposIfcContainer = document.getElementById('checktiposIfc');
-    if (btnFiltros.classList.contains('pulsadoFiltro')) {
-        btnFiltros.classList.remove('pulsadoFiltro');
-        checktiposIfcContainer.style.display = 'none';
+
+const btnBuscar = document.getElementById('buscarButton');
+let isButtonClicked = false;
+const divInputText= document.getElementById("inputARTP");
+const inputText = document.querySelector("#inputARTP input[type='text']");
+const checkBox = document.getElementById('checkLabels'); 
+
+btnBuscar.addEventListener('click', async function() {
+    isButtonClicked = !isButtonClicked;
+    if (isButtonClicked) {
+        divInputText.style.display = "block";
+        btnBuscar.style.backgroundColor = 'gray';
     } else {
-        btnFiltros.classList.add('pulsadoFiltro');
-        checktiposIfcContainer.style.display = 'block';
+        if (numBusquedas!==0){
+            hideAllItems(viewer, idsTotal);
+            showAllItems(viewer, allIDs);
+        }
+        
+        btnBuscar.style.backgroundColor = 'transparent';
+        divInputText.style.display = "none";
+        inputText.value="";
+        removeLabels(expressIDsInput);
+        expressIDsInput=[];
+        numBusquedas=0;
+        const infoBusquedas = document.getElementById("infoBusquedas");
+        infoBusquedas.querySelector("p").textContent ="";
+        return;
     }
 });
+
+let numBusquedas=0;
+let expressIDsInput;
+inputText.addEventListener('change', function() {
+    const infoBusquedas = document.getElementById("infoBusquedas");
+        infoBusquedas.querySelector("p").textContent ="";
+        removeLabels(expressIDsInput);
+    if (isButtonClicked ) {
+        const elementoBuscado = inputText.value.trim().toUpperCase();
+        numBusquedas++;
+        if (elementoBuscado) {
+            const elementosEncontrados = [];
+            for (let i = 0; i < precastElements.length; i++) {
+                if (precastElements[i].ART_Pieza === elementoBuscado) {
+                    elementosEncontrados.push(precastElements[i]);
+                }
+            }
+            expressIDsInput = elementosEncontrados.map(elemento => elemento.expressID);
+            if (elementosEncontrados.length > 0){
+                hideAllItems(viewer, idsTotal);
+                showAllItems(viewer, expressIDsInput);
+            }else{
+                const infoBusquedas = document.getElementById("infoBusquedas");
+                infoBusquedas.querySelector("p").textContent = "No existe el elemento: " + elementoBuscado;
+            }
+            
+            if (checkBox.checked) {
+                generateLabels(expressIDsInput);
+            } else{
+                removeLabels(expressIDsInput);
+            }
+        } else {
+            btnBuscar.style.backgroundColor = 'transparent';
+            hideAllItems(viewer, idsTotal);
+            showAllItems(viewer, allIDs);
+            removeLabels(expressIDsInput);
+            divInputText.style.display = "none";
+        }
+    }
+});
+
+checkBox.addEventListener('change', function() {
+    const textoInput = inputText.value.trim();
+    if (textoInput) {
+        const checkBox = document.getElementById('checkLabels'); 
+        if (checkBox.checked) {
+            generateLabels(expressIDsInput);
+        } else {
+            removeLabels(expressIDsInput);
+        }
+    }
+});
+
+// const mostrarInfoCheckbox = document.getElementById('mostrarInfo');
+const infoBuscadosList = document.getElementById('infoBuscados');
+const inputARTP = document.getElementById('inputARTP');
+const infoContainer = document.getElementById('infoContainer');
+
+
+// mostrarInfoCheckbox.addEventListener('change', function() {
+//     if (mostrarInfoCheckbox.checked) {
+//         infoContainer.classList.add('activeInfo');
+//         inputARTP.style.height = `80px`;
+//     } else {
+//         infoContainer.classList.remove('activeInfo');
+//         inputARTP.style.height = '250px';
+//         generarListaInfo(expressIDsInput);
+//     }
+// });
+
+
+function generarListaInfo(expressIDsInput) {
+    const infoBuscadosList = document.getElementById('infoBuscados');
+    infoBuscadosList.innerHTML = ''; 
+    const textoInput = inputText.value.trim();
+    if (textoInput) {
+        const tabla = document.createElement('table');
+        const thead = document.createElement('thead');
+        const tbody = document.createElement('tbody');
+        const cabeceraRow = document.createElement('tr');
+        const cabeceraExpressID = document.createElement('th');
+        const cabeceraARTPieza = document.createElement('th');
+        const cabeceraCamion = document.createElement('th');
+        
+        cabeceraExpressID.textContent = 'expressID';
+        cabeceraARTPieza.textContent = 'ART_Pieza';
+        cabeceraCamion.textContent = 'Camion';
+        
+        cabeceraRow.appendChild(cabeceraExpressID);
+        cabeceraRow.appendChild(cabeceraARTPieza);
+        cabeceraRow.appendChild(cabeceraCamion);
+        
+        thead.appendChild(cabeceraRow);
+        tabla.appendChild(thead);
+        tabla.appendChild(tbody);
+        infoBuscadosList.appendChild(tabla);
+        
+        expressIDsInput.forEach(expressID => {
+            const elementoEncontrado = precastElements.find(elemento => elemento.expressID === expressID);
+            if (elementoEncontrado) {
+                const fila = document.createElement('tr');
+                const celdaExpressID = document.createElement('td');
+                const celdaARTPieza = document.createElement('td');
+                const celdaCamion = document.createElement('td');
+                
+                celdaExpressID.textContent = elementoEncontrado.expressID;
+                celdaARTPieza.textContent = elementoEncontrado.ART_Pieza;
+                celdaCamion.textContent = elementoEncontrado.Camion;
+                
+                fila.appendChild(celdaExpressID);
+                fila.appendChild(celdaARTPieza);
+                fila.appendChild(celdaCamion);
+                
+                tbody.appendChild(fila);
+            }
+        });
+    }
+}
 
 //Nave cube
 viewer.container = container;
@@ -146,26 +282,18 @@ closeBtn.addEventListener('click', function() {
     mainContainer.style.display = 'none';
 });
 
-// function verNumPrecast(){
-//     var divNumPrecast = document.createElement("div"); // se crea el div que va  a mostrar la info del num de elementos en precastElements
-//     divNumPrecast.innerHTML =  precastElements.length; //muestra cantidad elementos en HTML
-//     divNumPrecast.classList.add("divNumPrecast"); //estilo al div
-//     document.body.appendChild(divNumPrecast);
-// }
 
 async function crearBotonPrecasFuisonados(){
     // Crea un nuevo botón
     var btnCreaPrecastFusionados= document.createElement("button");
     btnCreaPrecastFusionados.classList.add("button");
-    // Agrega un ID y una clase al nuevo botón
     btnCreaPrecastFusionados.id = "btnCreaPrecastFusionados";
     btnCreaPrecastFusionados.className;
     btnCreaPrecastFusionados.textContent = "Fusiona";// Agrega el texto que deseas que aparezca en el botón
 
-    // Obtiene una referencia al último botón existente
+    //  referencia al último botón existente
     var ultimoBoton = document.querySelector(".button-container .button:last-of-type");
 
-    // Inserta el nuevo botón justo después del último botón existente
     var contenedorBotones = document.querySelector(".button-container");
     contenedorBotones.insertBefore(btnCreaPrecastFusionados, ultimoBoton.nextSibling);
     btnCreaPrecastFusionados.addEventListener("click", async function() {
@@ -175,6 +303,22 @@ async function crearBotonPrecasFuisonados(){
         generateCheckboxes(precastElements);
         const btnFiltros=document.getElementById('filtraTipos');
         btnFiltros.style.display="block";
+        const divFiltros = document.getElementById('checktiposIfc');
+
+        btnFiltros.addEventListener('click', function() {
+        if (btnFiltros.classList.contains('active')) {
+            btnFiltros.classList.remove('active');
+            btnFiltros.style.backgroundColor = 'transparent';
+            divFiltros.style.display = 'none';
+        } else {
+            btnFiltros.classList.add('active');
+            btnFiltros.style.backgroundColor = 'gray';
+            divFiltros.style.display = 'block';
+        }
+        });
+
+        const btnBuscar=document.getElementById('buscarButton');
+        btnBuscar.style.display="block";
         });
 }
 
@@ -184,15 +328,12 @@ function eliminarElementosAssembly() {
 }
 
 async function crearBotonPrecas(){
-    // Crea un nuevo botón
     var btnCreaPrecast = document.createElement("button");
     btnCreaPrecast.classList.add("button");
     // Agrega un ID y una clase al nuevo botón
     btnCreaPrecast.id = "btnCreaPrecast";
     btnCreaPrecast.className;
-    btnCreaPrecast.textContent = "Añade Prop";// Agrega el texto que deseas que aparezca en el botón
-
-    // Obtiene una referencia al último botón existente
+    btnCreaPrecast.textContent = "Añade Prop";
     var ultimoBoton = document.querySelector(".button-container .button:last-of-type");
 
     // Inserta el nuevo botón justo después del último botón existente
@@ -341,19 +482,6 @@ function removeLabels(expressIDs) {
     }
 }
 
-// async function generateLabels(expressIDs) {
-//     for (let i = 0; i < expressIDs.length; i++) {
-//         const currentExpressID = expressIDs[i];
-//         for (let j = 0; j < precastElements.length; j++) {
-//             const element = precastElements[j];
-//             if (element.expressID === currentExpressID) {
-//             const { ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID } = element;
-//             muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
-//             break; // Sale del bucle interno una vez que encuentra el elemento
-//             }
-//         }
-//     }
-// }
 async function generateLabels(expressIDs) {
     for (let i = 0; i < expressIDs.length; i++) {
         const currentExpressID = expressIDs[i];
@@ -372,16 +500,13 @@ async function generateLabels(expressIDs) {
 }
 
 function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
-   
     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
         return;
     } else {
         const elements = document.getElementsByTagName('p');
         let count = 0;
-    
         for (let i = 0; i < elements.length; i++) {
             const element = elements[i];
-    
             if (element.textContent.startsWith(ART_Pieza) && element.expressID ===expressID) {
                 if (element.style.visibility === 'hidden') {
                     element.style.visibility = 'visible';
@@ -389,7 +514,6 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
             count++;
             }
         }
-    
         if (count === 0) {
             const label = document.createElement('p');
             label.textContent = ART_Pieza;
@@ -401,6 +525,39 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
         }
     }
 }
+// function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
+//     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
+//         return;
+//     } else {
+//         const elements = document.getElementsByTagName('p');
+//         let count = 0;
+//         for (let i = 0; i < elements.length; i++) {
+//             const element = elements[i];
+//             if (element.textContent.startsWith(ART_Pieza) && element.expressID === expressID) {
+//                 if (element.style.visibility === 'hidden') {
+//                     element.style.visibility = 'visible';
+//                 }
+//                 count++;
+//             }
+//         }
+//         if (count === 0) {
+//             const label = document.createElement('p');
+//             label.textContent = ART_Pieza;
+//             label.classList.add('pieza-label');
+//             label.id = expressID;
+//             const labelObject = new CSS2DObject(label);
+
+//             // Factor de escala basado en la diferencia de alturas de los contenedores padres
+//             const containerHeightRatio = 967 / 773;
+//             const scaledCoordX = parseFloat(ART_CoordX) / 1000;
+//             const scaledCoordY = -parseFloat(ART_CoordY) * containerHeightRatio / 1000;
+//             const scaledCoordZ = parseFloat(ART_CoordZ) / 1000;
+
+//             labelObject.position.set(scaledCoordX, scaledCoordZ, scaledCoordY);
+//             scene.add(labelObject);
+//         }
+//     }
+// }
 
 function addCheckboxListeners() {
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -414,8 +571,10 @@ function addCheckboxListeners() {
             if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" ||element.ART_Pieza=== undefined) {
                 return;
             }
-            if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
-                matchingIds.push(element.expressID);
+            if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza ) {
+                if (!element.hasOwnProperty('Camion') || element.Camion === "") {
+                    matchingIds.push(element.expressID);
+                }
             }
         });
             if (isChecked) {
@@ -450,14 +609,20 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 	items.pickableIfcModels.push(subset); 
 }
 
-window.ondblclick = () => {
-    hideClickedItem(viewer);
-    const numCamionElement = document.getElementById("numCamion");
-    let numCamion = numCamionElement.textContent.trim();
-    const expressIDs = obtenerExpressIDsDelCamion(numCamion);  
-    const pesoTotal = calcularPesoTotal(expressIDs);
-    const pesoCamion = document.getElementById("pesoCamion");
-    pesoCamion.textContent = pesoTotal.toString();
+window.ondblclick = async () => {
+    const found = await viewer.IFC.selector.pickIfcItem(false);
+    const id=found.id;
+    const foundElement = precastElements.find(element => element.expressID === id);
+    if (foundElement.ifcType !== "IFCBUILDINGELEMENTPROXY") {
+        hideClickedItem(viewer);
+
+        const numCamionElement = document.getElementById("numCamion");
+        let numCamion = numCamionElement.textContent.trim();
+        const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+        const pesoTotal = calcularPesoTotal(expressIDs);
+        const pesoCamion = document.getElementById("pesoCamion");
+        pesoCamion.textContent = pesoTotal.toString();
+    }
 };
 
    //evento dblClic carga al camion elementos
@@ -728,6 +893,9 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'E' || event.key === 'e') {
+        if (document.activeElement.tagName.toLowerCase() === 'input' && document.activeElement.type === 'text') {
+            return; // No hacer nada si el <input> tiene el foco
+        }
         seleccionarBoton(nuevoCamionEstructuraBtn);
         numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
@@ -850,6 +1018,9 @@ nuevoCamionAlveolarBtn.addEventListener("click", function() {
 });
 
 document.addEventListener('keydown', function(event) {
+    if (document.activeElement.tagName.toLowerCase() === 'input' && document.activeElement.type === 'text') {
+        return; // No hacer nada si el <input> tiene el foco
+    }
     if (event.key === 'a' || event.key === 'A') {
         seleccionarBoton(nuevoCamionAlveolarBtn);
         numCamion=buscaNumCamionMaximo();
@@ -979,6 +1150,9 @@ nuevoCamionCerramientoBtn.addEventListener("click", function() {
 });
 
 document.addEventListener('keydown', function(event) {
+    if (document.activeElement.tagName.toLowerCase() === 'input' && document.activeElement.type === 'text') {
+        return; // No hacer nada si el <input> tiene el foco
+    }
     if (event.key === 'c' || event.key === 'C') {
         seleccionarBoton(nuevoCamionCerramientoBtn);
         numCamion=buscaNumCamionMaximo();
@@ -1111,6 +1285,9 @@ nuevoCamionTubularBtn.addEventListener("click", function() {
 });
 
 document.addEventListener('keydown', function(event) {
+    if (document.activeElement.tagName.toLowerCase() === 'input' && document.activeElement.type === 'text') {
+        return; // No hacer nada si el <input> tiene el foco
+    }
     if (event.key === 't' || event.key === 'T') {
         seleccionarBoton(nuevoCamionCerramientoBtn);
         numCamion=buscaNumCamionMaximo();
@@ -1238,7 +1415,7 @@ function generarTablaPorLetra(letra) {
     const table = document.createElement("table");
     table.classList.add("table");
     const thead = document.createElement("thead");
-    thead.innerHTML ="<tr><th>expressID</th><th>GlobalId</th><th>Camion</th><th>Tipo</th><th>Volumen</th></tr>";
+    thead.innerHTML ="<tr><th>expressID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
     table.appendChild(thead);
 
     const filteredElements = precastElements.filter((elemento) => {
@@ -1257,7 +1434,7 @@ function generarTablaPorLetra(letra) {
         }
         const tr = document.createElement("tr");
         tr.classList.add("item-list-elemento");
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.GlobalId}</td><td>${elemento.Camion}</td><td>${elemento.tipoTransporte}</td><td>${elemento.Volumen_real}</td>`;
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${parseFloat(elemento.ART_Peso).toFixed(2)}</td><td>${parseFloat(elemento.ART_Alto).toFixed(2)}</td><td>${parseFloat(elemento.ART_Ancho).toFixed(2)}</td><td>${parseFloat(elemento.ART_Longitud).toFixed(2)}</td>`;
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
@@ -1271,46 +1448,47 @@ function generarTablaPorLetra(letra) {
 //y vuelve a colocar el valor de la prop Camion ''
 const divCargas = document.querySelector('.divCargas');
 let listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
-// listaElementos.addEventListener('dblclick', function(event) {
-//     const target = event.target;
-//     let elementoEliminadoTabla;
-//     if (target.tagName === 'TD') {
-//         elementoEliminadoTabla = target.parentNode.firstChild.textContent;
-//         target.parentNode.remove();
-//         let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
-//         if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
-//             elementosOcultos.splice(indexToRemove, 1);
-//             globalIds.splice(indexToRemove, 1);
-//         }
-//         allIDs.push(parseInt(elementoEliminadoTabla));
-//     }
-//     showAllItems(viewer, allIDs);
-//     const divCheck = document.getElementById("checktiposIfc");
-//     const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");// Obtener todos los checkbox dentro del div
-//     checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
-    
-    
-//     let numCamion=document.getElementById("numCamion");
-//     const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
-//         if(actValorCamion.Camion===parseInt(numCamion)){
-//             const expressIDs = obtenerExpressIDsDelCamion(numCamion);
-//             const pesoTotal = calcularPesoTotal(expressIDs);
-//             const pesoCamion = document.getElementById("pesoCamion");
-//             pesoCamion.textContent =  pesoTotal.toString();
-//         }
-    
-        
-//         if (actValorCamion) {
-//             actValorCamion.Camion = "";
-//             actValorCamion.tipoTransporte = "";
-//             actValorCamion.Posicion = "";
-//         }
-//     const expressIDs = obtenerExpressIDsDelCamion(numCamion);
-//     const pesoTotal = calcularPesoTotal(expressIDs);
-//     const pesoCamion = document.getElementById("pesoCamion");
-//     pesoCamion.textContent =  pesoTotal.toString();
-// });
 
+// async function listarOcultos(elementosOcultos) {
+//     const itemList = document.querySelector(".item-list-elementos-cargados");
+//     itemList.innerHTML = "";
+//     const table = document.createElement("table");
+//     table.classList.add("table");
+    
+//     const thead = document.createElement("thead");
+//     thead.innerHTML = "<tr><th>expressID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
+//     table.appendChild(thead);
+    
+//     const tbody = document.createElement("tbody");
+    
+//     for (let i = elementosOcultos.length - 1; i >= 0; i--) {  // Muestra los elementos en orden inverso
+//         const id = elementosOcultos[i];
+//         const elemento = precastElements.find(elemento => elemento.expressID === id);
+//         if (!elemento) {
+//             throw new Error(`No se encontró el elemento con expressID = ${id}`);
+//         }
+//         const tr = document.createElement("tr");
+//         tr.classList.add("item-list-elemento");
+//         const peso = parseFloat(elemento.ART_Peso).toFixed(2);
+//         const altura = parseFloat(elemento.ART_Alto).toFixed(2);
+//         const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
+//         const longitud =parseFloat(elemento.ART_Longitud).toFixed(2);
+
+//         if (altura > 2.53) {
+//             tr.style.color = "red";
+//         }
+//         if (longitud > 14) {
+//             tr.style.color = "red";
+//         }
+//         tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td><td>${altura}</td><td>${ancho}</td><td>${longitud}</td>`;
+
+//         tbody.appendChild(tr);
+//     }
+//     table.appendChild(tbody);
+//     itemList.appendChild(table);
+//     $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
+
+// }
 async function listarOcultos(elementosOcultos) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
     itemList.innerHTML = "";
@@ -1334,16 +1512,34 @@ async function listarOcultos(elementosOcultos) {
         const peso = parseFloat(elemento.ART_Peso).toFixed(2);
         const altura = parseFloat(elemento.ART_Alto).toFixed(2);
         const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
-        const longitud =parseFloat(elemento.ART_Longitud).toFixed(2);
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td><td>${altura}</td><td>${ancho}</td><td>${longitud}</td>`;
-
+        const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
+        
+        const alturaCell = document.createElement("td");
+        alturaCell.classList.add("altura");
+        if (parseFloat(altura) > 2.53) {
+            alturaCell.style.color = "red";
+        }
+        alturaCell.textContent = altura;
+        
+        const longitudCell = document.createElement("td");
+        longitudCell.classList.add("longitud");
+        if (parseFloat(longitud) > 14) {
+            longitudCell.style.color = "red";
+        }
+        longitudCell.textContent = longitud;
+        
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
+        tr.appendChild(alturaCell);
+        tr.innerHTML += `<td>${ancho}</td>`;
+        tr.appendChild(longitudCell);
+        
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
     itemList.appendChild(table);
     $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
-
 }
+
 
 function obtenerExpressIDsDelCamion(numCamion) {
     const expressIDs = [];
@@ -1358,7 +1554,7 @@ function obtenerExpressIDsDelCamion(numCamion) {
 function obtenerExpressIDsDelCamionCSV(numCamion) {
     const expressIDs = [];
     for (const elem of precastElements) {
-        if (elem.Camion === numCamion) {
+        if (elem.Camion == numCamion || elem.Camion === numCamion.toString()) {
             expressIDs.push(elem.expressID);
         }
     }
@@ -1368,6 +1564,7 @@ function obtenerExpressIDsDelCamionCSV(numCamion) {
 function hideClickedItem(viewer) {
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = 'block'; //hace visible el div de la tabla en HTML
+    let generarCamionesUnicos = true;
     const result = viewer.context.castRayIfc();
     if (!result) return;
     const manager = viewer.IFC.loader.ifcManager;
@@ -1408,18 +1605,21 @@ function hideClickedItem(viewer) {
                     allIDs.splice(indexToRemove, 1);
                 } 
             } else {
-                
-                alert("El elemento "+precastElements[i].expressID+"  "+ precastElements[i].ifcType +" ya está cargado en el camion: "+precastElements[i].Camion);
-                document.getElementById("datosCamiones").innerHTML = "";
-                document.getElementById("posicionCamion").innerHTML = "";
-                hideAllItems(viewer, elementosOcultos);
-                showAllItems ( viewer, allIDs);
+                generarCamionesUnicos = false;
+                break;
+                // alert("El elemento "+precastElements[i].expressID+"  "+ precastElements[i].ifcType +" ya está cargado en el camion: "+precastElements[i].Camion);
+                // document.getElementById("datosCamiones").innerHTML = "";
+                // document.getElementById("posicionCamion").innerHTML = "";
+                // hideAllItems(viewer, elementosOcultos);
+                // showAllItems ( viewer, allIDs);
             }
             break; 
         }
     }
-    camionesUnicos = obtenerValorCamion(precastElements);
-    generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual);
+    if (generarCamionesUnicos) {
+        camionesUnicos = obtenerValorCamion(precastElements);
+        generaBotonesNumCamion(camionesUnicos, botonSeleccionadoActual);
+    }
 }
 
 //Elimina de visor un elemento pulsado con boton derecho
@@ -1502,11 +1702,8 @@ container.onclick = async () => {
             break;
         }
     }
-
-
     muestraPropiedades(ART_Pieza, ART_Longitud, ART_Ancho, ART_Alto, ART_Peso);
 };
-
 
 function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Ancho, ART_Alto, ART_Peso) {
     const container = document.getElementById('propiedades-container');
@@ -1602,7 +1799,6 @@ function muestraPropiedadesExpressId(expressID) {
     propiedadesContainer.innerHTML = ''; // Limpia el contenido existente
     propiedadesContainer.appendChild(propiedadesDiv);
 }
-
 // **************************************************
 async function precastPropertiesGlobalId(precast,modelID, precastID){
     const props = await viewer.IFC.getProperties(modelID, precastID, true, false);
@@ -1830,7 +2026,12 @@ function exportCSVmethod(){
     const link = document.createElement('a');
     link.setAttribute('id', 'enlaceDescarga');
     link.setAttribute('href', objUrl);
-    link.setAttribute('download', 'File.csv');
+    const fileNameLabel = document.getElementById('file-name');
+    const fileName = fileNameLabel.textContent.trim();
+    const fileNameWithoutExtension = fileName.split(/\.ifc/i)[0];
+
+    
+    link.setAttribute('download', fileNameWithoutExtension + '.csv');
     link.textContent = 'Click to Download';
     document.querySelector(".toolbar").append(link);
 
@@ -1945,7 +2146,7 @@ function creaTablaTransporte() {
 let transporteA = [];
 let transporteC = [];
 let transporteE = [];
-
+let transporteTu = [];
 function clasificarPorTipoTransporte() {
     for (let i = 0; i < precastElements.length; i++) {
         const tipoTransporte = precastElements[i].tipoTransporte;
@@ -1962,13 +2163,16 @@ function clasificarPorTipoTransporte() {
             case "E":
             transporteE.push(precastElements[i]);
             break;
-            // default:
-            // break;
+            
+            case "Tu":
+            transporteE.push(precastElements[i]);
+            break;
         }
     }
     buscaMaxTransporte(transporteA);
     buscaMaxTransporte(transporteC);
     buscaMaxTransporte(transporteE);
+    buscaMaxTransporte(transporteTu);
 
 }
 
@@ -2004,6 +2208,10 @@ function buscaValoresMax(camionMaximo){
         numC=numCamMax;
         numT=numC;
     }
+    // if (letraTrans=== 'Tu'){
+    //     numTu=numCamMax;
+    //     numT=numTu;
+    // }
     if (letraTrans==='E'){
         numE=numCamMax;
         numT=numE;
@@ -2124,8 +2332,7 @@ function generaBotonesNumCamion(camionesUnicos) {
                 var checkboxes = document.querySelectorAll('input[type="checkbox"]');
                 checkboxes.forEach(function (checkbox) {
                     checkbox.checked = true;
-});
-
+                });
             } else {
                 disableCheckboxes();
                 // generateLabels(expressIDs);
@@ -2156,15 +2363,11 @@ function generaBotonesNumCamion(camionesUnicos) {
 
 function agregarBotonCero() {
     viewer.IFC.selector.unpickIfcItems();
-    
     const btnCero = document.createElement("button");
     btnCero.setAttribute("class","btnNumCamion")
-    
     divNumCamiones.appendChild(btnCero);
-
     const iconoPlay = document.createElement("i");
     iconoPlay.setAttribute("class", "fas fa-play");
-
     btnCero.appendChild(iconoPlay);
 
     btnCero.addEventListener("click", function() {
@@ -2178,7 +2381,6 @@ function agregarBotonCero() {
         } else {
             hideAllItems(viewer, idsTotal);
             const botones = document.querySelectorAll('#divNumCamiones button');
-
             botones.forEach(function(boton) {
                 boton.classList.remove('active');
                 boton.style.border = '1px solid white';
@@ -2195,7 +2397,6 @@ function agregarBotonCero() {
 }
 
 function showElementsByCamion(viewer, precastElements) {
-    // Crear el div y el label
     const label = document.createElement("label");
     const div = document.createElement("div");
     div.setAttribute("id", "divNumCamion");
@@ -2352,6 +2553,8 @@ function generarTabla(expressIDs, camion) {
             actValorCamion.Camion = "";
             actValorCamion.tipoTransporte = "";
             actValorCamion.Posicion = "";
+            actValorCamion.numTransporte = "";
+            actValorCamion.letraTransporte = "";
         }
         const nuevoPesoTotal = calcularPesoTotal(expressIDs);
         actualizarCabecera(nuevoPesoTotal);
@@ -2361,33 +2564,33 @@ function generarTabla(expressIDs, camion) {
     divTabla.appendChild(contenedorTabla);
 }
 
-
 let ultimaCeldaSeleccionada = null;
 
 function celdaSeleccionadaColor(celdaSeleccionada) {
-    if (tablaResaltada) {
-        if (ultimaCeldaSeleccionada && precastElements.some(elem => elem.expressID === obtenerExpressID(ultimaCeldaSeleccionada.innerText))) {
-            const ultimoElemento = precastElements.find(elem => elem.expressID === obtenerExpressID(ultimaCeldaSeleccionada.innerText));
-            ultimaCeldaSeleccionada.style.backgroundColor = ultimoElemento.Posicion ? '#BD9BC2' : '';
+    if (ultimaCeldaSeleccionada) {
+        const ultimoContenidoCelda = ultimaCeldaSeleccionada.textContent;
+        const elementoAnterior = precastElements.find(elem => parseInt(ultimoContenidoCelda.split(' ')[0]) === elem.expressID);
+        if (elementoAnterior) {
+            if (elementoAnterior.Posicion) {
+                ultimaCeldaSeleccionada.style.backgroundColor = '#BD9BC2'; // Morado
+            } else {
+                ultimaCeldaSeleccionada.style.backgroundColor = ''; // Sin color de fondo
+            }
         }
     }
-
-    if (ultimaCeldaSeleccionada !== celdaSeleccionada) {
-        if (ultimaCeldaSeleccionada) {
-            ultimaCeldaSeleccionada.style.backgroundColor = ''; // Restablece el color original
+    const contenidoCelda = celdaSeleccionada.textContent;
+    const tienePosicion = precastElements.some(elem => parseInt(contenidoCelda.split(' ')[0]) === elem.expressID && elem.Posicion);
+    const isRightClick = event.button === 2; 
+    if (tienePosicion) {
+        if (isRightClick) {
+            celdaSeleccionada.style.backgroundColor = '#c8c445'; 
+        } else {
+            celdaSeleccionada.style.backgroundColor = '#BD9BC2';
         }
-
-        const nuevoExpressID = obtenerExpressID(celdaSeleccionada.innerText);
-        const nuevoElemento = precastElements.find(elem => elem.expressID === nuevoExpressID);
-        celdaSeleccionada.style.backgroundColor = nuevoElemento.Posicion ? '#c8c445' : '#FFD700';
-        ultimaCeldaSeleccionada = celdaSeleccionada;
+    } else {
+        celdaSeleccionada.style.backgroundColor = '#c8c445'; 
     }
-}
-
-function obtenerExpressID(textoCelda) {
-    const partes = textoCelda.split('-');
-    const expressID = partes[0].trim();
-    return parseFloat(expressID);
+    ultimaCeldaSeleccionada = celdaSeleccionada;
 }
 
 
@@ -2404,18 +2607,18 @@ function resaltarTabla(tabla, cabeceraValor) {
         }
     });
     //actualiza coloreando celdas, para ver los elementos que ya estan asignados en el transporte
-    for (let i = 0; i < tabla.rows.length; i++) {// recorre las filas de la tabla
-         for (let j = 0; j < tabla.rows[i].cells.length; j++) { // recorre las celdas de cada fila 
-            let valorCelda = tabla.rows[i].cells[j].innerText;// Obtiene el valor de la celda actual
-            for (let k = 0; k < precastElements.length; k++) { // recorrer el array precastElements 
-                let expressID = precastElements[k].expressID; // obtiene el valor de la propiedad expressID del objeto actual
-                let posicion = precastElements[k].Posicion; // obtener el valor de la propiedad Posicion del objeto actual 
-                if (valorCelda == expressID && posicion) {// cuando el valor de la celda coincide con el valor de la propiedad expressID y hay algún valor en la propiedad Posicion 
-                    tabla.rows[i].cells[j].style.backgroundColor = `#BD9BC2`; // Cambiar el fondo de la celda a gris 
+    for (let i = 0; i < tabla.rows.length; i++) {
+        for (let j = 0; j < tabla.rows[i].cells.length; j++) { 
+            let valorCelda = tabla.rows[i].cells[j].innerText;
+            for (let k = 0; k < precastElements.length; k++) { 
+                let expressID = precastElements[k].expressID; 
+                let posicion = precastElements[k].Posicion; 
+                if (valorCelda == expressID && posicion) {
+                    tabla.rows[i].cells[j].style.backgroundColor = `#BD9BC2`; 
                     break; 
                 } 
-                if (valorCelda == expressID && posicion==="") {// cuando el valor de la celda coincide con el valor de la propiedad expressID y hay algún valor en la propiedad Posicion 
-                    tabla.rows[i].cells[j].style.backgroundColor = ``; // Cambiar el fondo de la celda a gris 
+                if (valorCelda == expressID && posicion==="") {
+                    tabla.rows[i].cells[j].style.backgroundColor = ``; 
                     break; 
                 }
             } 
@@ -2477,9 +2680,7 @@ function posicionesCamion(tabla, cabeceraValor) {
     cabeceraCajon.innerText = cabeceraValor;
     cabeceraFila.appendChild(cabeceraCajon);
     tablaNueva.appendChild(cabeceraFila);
-
     
-
     for (let i = 0; i < tabla.rows.length; i++) {
         let valorCelda = tabla.rows[i].innerText;
         expressIdByCamion.push(parseInt(valorCelda));
@@ -2510,20 +2711,22 @@ function posicionesCamion(tabla, cabeceraValor) {
                 cajon.setAttribute("data-id", idCajon);
                 cajon.classList.add("cajon");
                 fila.appendChild(cajon);
-        
+                
                 cajon.addEventListener("contextmenu", function (event) {
-                event.preventDefault();
+                    event.preventDefault();
                     if (cajon.innerText === "") {
                         asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
-                        actualizarTablaDerecha()
+                        actualizarTablaDerecha();
+                        simularEventoClic();
                     }
+                    
                 });
-        
+                
                 cajon.addEventListener("dblclick", function (event) {
                     limpiaPosicion(cajon, tabla);
                     actualizarTablaDerecha()
                 });
-        
+                
                 cajon.addEventListener("click", async function (event) {
                     viewer.IFC.selector.pickIfcItemsByID(
                         0,
@@ -2531,14 +2734,10 @@ function posicionesCamion(tabla, cabeceraValor) {
                         false
                     );
                     let id=parseInt(cajon.textContent);
-                    //const props = await viewer.IFC.getProperties(model.modelID, id, true,true);
-                    //updatePropertyMenu(props);
                     muestraPropiedadesExpressId(id);
                     actualizarTablaDerecha();
-
                 });
             }
-            
             tablaNueva.appendChild(fila);
         }
         if (cabeceraValor.includes("A")) {
@@ -2547,6 +2746,13 @@ function posicionesCamion(tabla, cabeceraValor) {
         posicionCamion.appendChild(tablaNueva);
         actualizaCajones(expressIdByCamion);
         crearTablaDerecha(tabla, cabeceraValor)
+}
+
+function simularEventoClic() {
+    var elementoClic = document.querySelector('.tabla-estilo[style="border: 3px solid red;"]');
+    if (elementoClic) {
+        elementoClic.click();
+    }
 }
 
 let cantidadFilas, cantidadColumnas;
@@ -2559,25 +2765,24 @@ function crearTablaDerecha(tabla, cabeceraValor) {
     tablaDerecha.style.borderCollapse = "collapse";
     tablaDerecha.style.border = "2px solid";
     tablaDerecha.style.height = "95%";  
-   
-  
+
     if (cabeceraValor.includes("E")) {
-      cantidadFilas = 3;
-      cantidadColumnas = 5;
-      tablaDerecha.style.borderColor = "#874c8f";
+        cantidadFilas = 3;
+        cantidadColumnas = 5;
+        tablaDerecha.style.borderColor = "#874c8f";
     } else if (cabeceraValor.includes("A")) {
-      cantidadFilas = 4;
-      cantidadColumnas = 4;
-      tablaDerecha.style.borderColor = "#4c7a90";
+        cantidadFilas = 4;
+        cantidadColumnas = 4;
+        tablaDerecha.style.borderColor = "#4c7a90";
     } else if (cabeceraValor.includes("C")) {
-      cantidadFilas = 1;
-      cantidadColumnas = 13;
-      tablaDerecha.style.borderColor = "#90834c";
+        cantidadFilas = 1;
+        cantidadColumnas = 13;
+        tablaDerecha.style.borderColor = "#90834c";
     } else {// Si el cabeceraValor no incluye ninguna de las letras especificadas
-      console.error("CabeceraValor no válido");
-      return;
+        console.error("CabeceraValor no válido");
+        return;
     }
-  const cabeceraFila = document.createElement("tr");
+    const cabeceraFila = document.createElement("tr");
     const cabeceraCajon = document.createElement("th");
     cabeceraCajon.setAttribute("colspan", cantidadColumnas);
     cabeceraCajon.style.textAlign = "center";
@@ -2586,33 +2791,31 @@ function crearTablaDerecha(tabla, cabeceraValor) {
     cabeceraFila.appendChild(cabeceraCajon);
     tablaDerecha.appendChild(cabeceraFila);
     for (let i = 0; i < cantidadFilas; i++) {
-      const fila = document.createElement("tr");
-      if (cantidadFilas === 1) {
-        fila.style.height = "95%";
-      }
-      for (let j = 0; j < cantidadColumnas; j++) {
-        const cajon = document.createElement("td");
-  
-        if (cantidadFilas === 4) {
-          cajon.style.height = "38px";
-  
-          if (j === 1) {
-            cajon.style.borderRight = "3px solid #4c7a90"; // borde derecho
-          }
-        }
+        const fila = document.createElement("tr");
         if (cantidadFilas === 1) {
-          if (j === 6) {
-            cajon.style.borderRight = "3px solid #90834c"; // borde derecho
-            cajon.style.borderLeft = "3px solid #90834c";
-          }
+            fila.style.height = "95%";
+        }
+        for (let j = 0; j < cantidadColumnas; j++) {
+            const cajon = document.createElement("td");
+    
+            if (cantidadFilas === 4) {
+            cajon.style.height = "38px";
+    
+            if (j === 1) {
+                cajon.style.borderRight = "3px solid #4c7a90"; 
+            }
+            }
+            if (cantidadFilas === 1) {
+            if (j === 6) {
+                cajon.style.borderRight = "3px solid #90834c"; 
+                cajon.style.borderLeft = "3px solid #90834c";
+            }
         }
         const idCajon = i * cantidadColumnas + j + 1;
         cajon.setAttribute("id", idCajon);
         cajon.setAttribute("data-id", idCajon);
         cajon.classList.add("cajon");
         fila.appendChild(cajon);
-  
-        
         }
         
         tablaDerecha.appendChild(fila);
@@ -2637,20 +2840,55 @@ function actualizarTablaDerecha() {
             const cajonIzquierda = tablaIzquierda.rows[i].cells[j];
             const cajonDerecha = tablaDerecha.rows[i].cells[j];
             const idCajon = cajonIzquierda.innerText;
-    
+
             const elemento = precastElements.find((e) => e.expressID === parseInt(idCajon));
             if (elemento) {
                 const peso = parseFloat(elemento.ART_Peso);
-                cajonDerecha.innerText = peso.toFixed(2);
+                const pieza = elemento.ART_Pieza;
+                const longitud = parseFloat(elemento.ART_Longitud);
+                const ancho = parseFloat(elemento.ART_Ancho);
+
+                const textoPeso = document.createElement('span');
+                textoPeso.style.fontSize = '12px'; 
+                textoPeso.style.fontWeight = 'bold'; 
+                textoPeso.innerText = ` P: ${peso.toFixed(2)}`;
+
+                const textoPieza = document.createElement('span');
+                textoPieza.style.fontSize = '12px'; 
+                textoPieza.style.fontWeight = 'bold'; 
+                textoPieza.innerText = ` ${pieza}`;
+                cajonDerecha.innerHTML = '';
+
+                const textoLongitud = document.createElement('span');
+                textoLongitud.style.fontSize = '12px';
+                textoLongitud.style.fontWeight = 'bold';
+                textoLongitud.innerText = `L: ${longitud.toFixed(2)}`;
+
+                const textoAncho = document.createElement('span');
+                textoAncho.style.fontSize = '12px';
+                textoAncho.style.fontWeight = 'bold';
+                textoAncho.innerText = `A: ${ancho.toFixed(2)}`;
+                
+                cajonDerecha.style.lineHeight = '0.8'; 
+                cajonDerecha.appendChild(textoPeso);
+                cajonDerecha.appendChild(document.createElement('br')); 
+                cajonDerecha.appendChild(textoPieza);
+                cajonDerecha.appendChild(document.createElement('br'));
+                cajonDerecha.appendChild(textoLongitud);
+                cajonDerecha.appendChild(document.createElement('br'));
+                cajonDerecha.appendChild(textoAncho);
+
                 pesoTotal += peso;
             } else {
-            cajonDerecha.innerText = ''; // si no hay elemento, dejar la celda en blanco
+                cajonDerecha.innerText = ''; // si no hay elemento, dejar la celda en blanco
             }
         }
-        }
+    }
+
     const cabeceraTablaDerecha = tablaDerecha.getElementsByTagName('th')[0];
     cabeceraTablaDerecha.innerText = `Peso Total: ${pesoTotal.toFixed(2)}`;
 }
+
 
 function cambiarIdsTablaA(tabla) {
     const nuevosIds = [1, 2, 9, 10, 3, 4, 11, 12, 5, 6, 13, 14, 7, 8, 15, 16];
@@ -2677,7 +2915,7 @@ function limpiaPosicion(cajon, tabla){
     const celdas = tabla.getElementsByTagName("td");
 
     for (let i = 0; i < celdas.length; i++) {
-        if (celdas[i].textContent === contenidoCelda) {
+        if (celdas[i].textContent.includes(contenidoCelda)) {
             celdas[i].style.background = "";
         }
     }
@@ -2704,21 +2942,15 @@ function actualizaCajones(expressIdByCamion) {
 
 function asignaIdCelda(cajon, contenidoCelda, expressIdByCamion) {
     if (!expressIdByCamion.includes(parseInt(contenidoCelda))) {
-        // El contenidoCelda no está incluido en el array expressIdByCamion
         return;
     }
-
-    // let valorExiste = false;
     let cajones = document.querySelectorAll(".cajon");
     for (let i = 0; i < cajones.length; i++) {
         if (cajones[i] !== cajon && cajones[i].innerText === contenidoCelda) {
-            // El valor ya está en otro cajón, lo eliminamos antes de asignarlo al cajón actual
             cajones[i].innerText = "";
             break;
         }
     }
-
-
     cajon.innerText = contenidoCelda;
     ultimoCajonPulsado = cajon;
 

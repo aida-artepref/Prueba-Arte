@@ -478,56 +478,56 @@ function cargaGlobalIdenPrecast(){
         
 }
 
-function generateCheckboxes(precastElements) {
-    // Agrupa los elementos por la primera letra de la propiedad ART_Pieza
-    const groupedElements = precastElements.reduce((acc, el) => {
-        if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
-            return acc;
-        }
-        const firstLetter = el.ART_Pieza.charAt(0).toUpperCase();
-        if (!acc[firstLetter]) {
-            acc[firstLetter] = [];
-        }
-        acc[firstLetter].push(el);
-        return acc;
-    }, {});
-    const checktiposIfcContainer = document.getElementById('checktiposIfc');
-    checktiposIfcContainer.style.display = 'none';
+// function generateCheckboxes(precastElements) {
+//     // Agrupa los elementos por la primera letra de la propiedad ART_Pieza
+//     const groupedElements = precastElements.reduce((acc, el) => {
+//         if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
+//             return acc;
+//         }
+//         const firstLetter = el.ART_Pieza.charAt(0).toUpperCase();
+//         if (!acc[firstLetter]) {
+//             acc[firstLetter] = [];
+//         }
+//         acc[firstLetter].push(el);
+//         return acc;
+//     }, {});
+//     const checktiposIfcContainer = document.getElementById('checktiposIfc');
+//     checktiposIfcContainer.style.display = 'none';
 
-    Object.entries(groupedElements).forEach(([artPieza, elements]) => {
-        const checkboxContainer = document.createElement('div');
-        checkboxContainer.classList.add('checkbox-container');
+//     Object.entries(groupedElements).forEach(([artPieza, elements]) => {
+//         const checkboxContainer = document.createElement('div');
+//         checkboxContainer.classList.add('checkbox-container');
         
-        const button = document.createElement('button');
-        button.classList.add('btnCheck');
-        button.setAttribute('data-art-pieza', artPieza);
-        button.textContent = artPieza;
-        checkboxContainer.appendChild(button);
+//         const button = document.createElement('button');
+//         button.classList.add('btnCheck');
+//         button.setAttribute('data-art-pieza', artPieza);
+//         button.textContent = artPieza;
+//         checkboxContainer.appendChild(button);
         
-        const checkboxGroup = document.createElement('div');
-        checkboxGroup.classList.add('checkbox-group');
+//         const checkboxGroup = document.createElement('div');
+//         checkboxGroup.classList.add('checkbox-group');
         
-        const checkbox = document.createElement('input');
-        checkbox.setAttribute('type', 'checkbox');
-        checkbox.setAttribute('checked', 'true');
-        checkbox.setAttribute('data-art-pieza', artPieza);
-        checkbox.style.marginLeft = '8px';
-        checkboxGroup.appendChild(checkbox);
+//         const checkbox = document.createElement('input');
+//         checkbox.setAttribute('type', 'checkbox');
+//         checkbox.setAttribute('checked', 'true');
+//         checkbox.setAttribute('data-art-pieza', artPieza);
+//         checkbox.style.marginLeft = '8px';
+//         checkboxGroup.appendChild(checkbox);
     
-        const checkboxLabel = document.createElement('label');
-        checkboxLabel.textContent = `${artPieza} (${elements.length})`;
+//         const checkboxLabel = document.createElement('label');
+//         checkboxLabel.textContent = `${artPieza} (${elements.length})`;
 
-        checkboxGroup.appendChild(checkboxLabel);
+//         checkboxGroup.appendChild(checkboxLabel);
     
-        checkboxContainer.appendChild(checkboxGroup);
-        checktiposIfcContainer.appendChild(checkboxContainer);
-    });
+//         checkboxContainer.appendChild(checkboxGroup);
+//         checktiposIfcContainer.appendChild(checkboxContainer);
+//     });
     
-    setTimeout(() => {
-        addCheckboxListeners();
-        addBotonCheckboxListeners();
-    }, 0);
-    }
+//     setTimeout(() => {
+//         addCheckboxListeners();
+//         addBotonCheckboxListeners();
+//     }, 0);
+//     }
 
 
     function addBotonCheckboxListeners() {
@@ -559,6 +559,83 @@ function generateCheckboxes(precastElements) {
             }
         });
     }
+}
+
+let checkboxLabelsMap = new Map();
+let groupedElements;
+function generateCheckboxes(precastElements) {
+    groupedElements = precastElements.reduce((acc, el) => {
+        if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" || el.ART_Pieza === undefined) {
+            return acc;
+        }
+        const firstLetter = el.ART_Pieza.charAt(0).toUpperCase();
+        if (!acc[firstLetter]) {
+            acc[firstLetter] = [];
+        }
+        acc[firstLetter].push(el);
+        return acc;
+    }, {});
+
+    const checktiposIfcContainer = document.getElementById('checktiposIfc');
+    checktiposIfcContainer.style.display = 'none';
+
+    Object.entries(groupedElements).forEach(([artPieza, elements]) => {
+        const checkboxContainer = document.createElement('div');
+        checkboxContainer.classList.add('checkbox-container');
+
+        const button = document.createElement('button');
+        button.classList.add('btnCheck');
+        button.setAttribute('data-art-pieza', artPieza);
+        button.textContent = artPieza;
+        checkboxContainer.appendChild(button);
+
+        const checkboxGroup = document.createElement('div');
+        checkboxGroup.classList.add('checkbox-group');
+
+        const checkbox = document.createElement('input');
+        checkbox.setAttribute('type', 'checkbox');
+        checkbox.setAttribute('checked', 'true');
+        checkbox.setAttribute('data-art-pieza', artPieza);
+        checkbox.style.marginLeft = '8px';
+        checkboxGroup.appendChild(checkbox);
+
+        const checkboxLabel = document.createElement('label');
+        checkboxLabel.textContent = `${artPieza} (${elements.length})`;
+        checkboxGroup.appendChild(checkboxLabel);
+
+        const piezasCargadasLabel = document.createElement('label');
+        checkboxGroup.appendChild(piezasCargadasLabel);
+        
+        checkboxLabelsMap.set(artPieza, {
+            checkboxLabel,
+            piezasCargadasLabel
+        });
+
+        checkboxContainer.appendChild(checkboxGroup);
+        checktiposIfcContainer.appendChild(checkboxContainer);
+        
+checkboxGroup.appendChild(piezasCargadasLabel);
+
+    });
+
+    setTimeout(() => {
+        addCheckboxListeners();
+        addBotonCheckboxListeners();
+    }, 0);
+}
+
+function updateLoadedPiecesLabel(elements, artPieza) {
+    const checkboxData = checkboxLabelsMap.get(artPieza);
+    if (checkboxData) {
+        const { piezasCargadasLabel } = checkboxData;
+        const numPiezasCargadas = countLoadedPieces(elements);
+        piezasCargadasLabel.textContent = ` Cargadas: ${numPiezasCargadas}`;
+    }
+}
+
+function countLoadedPieces(elements) {
+    const loadedPieces = elements.filter(element => elementosOcultos.includes(element.expressID));
+    return loadedPieces.length;
 }
 
 function removeLabels(expressIDs) {
@@ -1676,103 +1753,97 @@ async function listarOcultos(elementosOcultos) {
     itemList.innerHTML = "";
     const table = document.createElement("table");
     table.classList.add("table");
-  
+
     const thead = document.createElement("thead");
     thead.innerHTML = "<tr><th>ID</th><th>C</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Long</th></tr>";
     table.appendChild(thead);
-  
+
     const tbody = document.createElement("tbody");
     const groupedRows = {}; // Objeto para almacenar las filas agrupadas por valor de "Trans"
     let colorIndex = 1; // Índice para seleccionar el color de fondo
-  
+
     for (let i = elementosOcultos.length - 1; i >= 0; i--) {
-      const id = elementosOcultos[i];
-      const elemento = precastElements.find(
-        (elemento) => elemento.expressID === id
-      );
-      if (!elemento) {
-        throw new Error(`No se encontró el elemento con expressID = ${id}`);
-      }
-  
-      const trans = elemento.tipoTransporte;
-      const peso = parseFloat(elemento.ART_Peso).toFixed(2);
-      const altura = parseFloat(elemento.ART_Alto).toFixed(2);
-      const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
-      const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
-  
-      const tr = document.createElement("tr");
-      tr.classList.add("item-list-elemento");
-  
-      const alturaCell = document.createElement("td");
-      alturaCell.classList.add("altura");
-      if (parseFloat(altura) > 2.60) {
-        alturaCell.style.color = "red";
-      }
-      alturaCell.textContent = altura;
-  
-      const longitudCell = document.createElement("td");
-      longitudCell.classList.add("longitud");
-      if (parseFloat(longitud) > 13.60) {
-        longitudCell.style.color = "red";
-      }
-      longitudCell.textContent = longitud;
-  
-      tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.Camion}</td><td>${trans}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
-      tr.appendChild(alturaCell);
-      tr.innerHTML += `<td>${ancho}</td>`;
-      tr.appendChild(longitudCell);
-  
-      if (!groupedRows[trans]) {
-        // Si no existe un grupo para el valor de "Trans", se crea uno nuevo
-        groupedRows[trans] = [];
-      }
-  
-      groupedRows[trans].push(tr); // Se agrega la fila al grupo correspondiente
-  
-      tbody.appendChild(tr);
+        const id = elementosOcultos[i];
+        const elemento = precastElements.find((elemento) => elemento.expressID === id);
+        if (!elemento) {
+            throw new Error(`No se encontró el elemento con expressID = ${id}`);
+        }
+        const trans = elemento.tipoTransporte;
+        const peso = parseFloat(elemento.ART_Peso).toFixed(2);
+        const altura = parseFloat(elemento.ART_Alto).toFixed(2);
+        const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
+        const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
+    
+        const tr = document.createElement("tr");
+        tr.classList.add("item-list-elemento");
+        const alturaCell = document.createElement("td");
+        alturaCell.classList.add("altura");
+        if (parseFloat(altura) > 2.60) {
+            alturaCell.style.color = "red";
+        }
+        alturaCell.textContent = altura;
+    
+        const longitudCell = document.createElement("td");
+        longitudCell.classList.add("longitud");
+        if (parseFloat(longitud) > 13.60) {
+            longitudCell.style.color = "red";
+        }
+        longitudCell.textContent = longitud;
+    
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.Camion}</td><td>${trans}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
+        tr.appendChild(alturaCell);
+        tr.innerHTML += `<td>${ancho}</td>`;
+        tr.appendChild(longitudCell);
+    
+        if (!groupedRows[trans]) {
+            // Si no existe un grupo para el valor de "Trans", se crea uno nuevo
+            groupedRows[trans] = [];
+        }
+        groupedRows[trans].push(tr); // Se agrega la fila al grupo correspondiente
+        tbody.appendChild(tr);
     }
-  
     table.appendChild(tbody);
     itemList.appendChild(table);
     $(table).tablesorter();
-  
+
     // Estilos CSS para los colores de fondo
     const styleElement = document.createElement("style");
     let styleSheet = "";
-  
+
     for (const trans in groupedRows) {
-      const backgroundColorClass = `color-${colorIndex}`;
-      const color = getRandomColor(); // Obtener un color aleatorio
-  
-      styleSheet += `.table .${backgroundColorClass} { background-color: ${color}; } `;
-  
-      colorIndex++;
-  
-      groupedRows[trans].forEach((row) => {
-        row.classList.add(backgroundColorClass);
-      });
+        const backgroundColorClass = `color-${colorIndex}`;
+        const color = getRandomColor(); // Obtener un color aleatorio
+        styleSheet += `.table .${backgroundColorClass} { background-color: ${color}; } `;
+        colorIndex++;
+        groupedRows[trans].forEach((row) => {
+            row.classList.add(backgroundColorClass);
+        });
     }
-  
     styleElement.innerHTML = styleSheet;
     document.head.appendChild(styleElement);
-  }
-  
-  // Función para obtener un color aleatorio en formato hexadecimal
-  function getRandomColor() {
+    // Actualizar las etiquetas de piezas cargadas para cada grupo de elementos
+    const checkboxGroups = document.querySelectorAll('.checkbox-group');
+    checkboxGroups.forEach(checkboxGroup => {
+        const artPieza = checkboxGroup.querySelector('input').getAttribute('data-art-pieza');
+        const elements = groupedElements[artPieza];
+        const piezasCargadasLabel = checkboxGroup.querySelector('.piezas-cargadas-label');
+        updateLoadedPiecesLabel(elements, piezasCargadasLabel);
+    });
+
+}
+
+function getRandomColor() {
     const letters = "0123456789ABCDEF";
-  let color = "#";
+    let color = "#";
+    for (let i = 0; i < 3; i++) {
+        const index = Math.floor(Math.random() * 3); // Seleccionar un canal de color (R, G o B)
+        const value = Math.floor(Math.random() * 128) + 128; // Generar un valor claro (128-255)
+        color += letters[value >> 4]; // Primer dígito hexadecimal
+        color += letters[value & 0x0F]; // Segundo dígito hexadecimal
+    }
+    return color;
+}
 
-  for (let i = 0; i < 3; i++) {
-    const index = Math.floor(Math.random() * 3); // Seleccionar un canal de color (R, G o B)
-    const value = Math.floor(Math.random() * 128) + 128; // Generar un valor claro (128-255)
-
-    color += letters[value >> 4]; // Primer dígito hexadecimal
-    color += letters[value & 0x0F]; // Segundo dígito hexadecimal
-  }
-
-  return color;
-  }
-  
 
 function obtenerExpressIDsDelCamion(numCamion) {
     const expressIDs = [];

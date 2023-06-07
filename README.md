@@ -3,7 +3,7 @@ VARIABLES GLOBALES
 
 '''javascript'''
 
-let idsTotal; --- array con los ids, de todos lo selementos del IFC
+let idsTotal; --- array con los ids, de todos los elementos del IFC
 
 let allIDs; --- array con los ids, de los elementos que no han sido asignados en transporte
 
@@ -81,3 +81,7 @@ function calcularPesoTotal(expressIDs) {
 const checktiposIfcContainer = document.getElementById('checktiposIfc');
 checktiposIfcContainer.style.display = 'block';
 
+
+
+ const ifcCompleto=document.getElementById('ifcCompleto');
+        ifcCompleto.style.display="block";
