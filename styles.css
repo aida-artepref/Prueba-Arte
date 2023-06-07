@@ -363,17 +363,19 @@ ul, #myUL {
   #inputARTP {
     top: 5%;
     right: 230px;
-    height: 55px;
+    height: auto;
     overflow: hidden;
     transition: height 0.3s ease;
     display: none;
   }
   
 
-  #infoBuscados {
-    height: 100px; 
+  #infoBusquedas {
+    height: auto;
+    max-height: 200px; /* Ajusta esta altura según tus necesidades */
     overflow-y: auto;
   }
+  
   #infoContainer {
     height: auto;
     display: none;

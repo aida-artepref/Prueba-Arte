@@ -175,6 +175,7 @@ let isButtonClicked = false;
 const divInputText= document.getElementById("inputARTP");
 const inputText = document.querySelector("#inputARTP input[type='text']");
 const checkBox = document.getElementById('checkLabels'); 
+const infoBusquedas = document.getElementById("infoBusquedas");
 
 btnBuscar.addEventListener('click', async function() {
     isButtonClicked = !isButtonClicked;
@@ -187,15 +188,18 @@ btnBuscar.addEventListener('click', async function() {
             hideAllItems(viewer, idsTotal);
             showAllItems(viewer, allIDs);
         }
-        
         btnBuscar.style.backgroundColor = 'transparent';
         divInputText.style.display = "none";
         inputText.value="";
+        
         removeLabels(expressIDsInput);
         expressIDsInput=[];
         numBusquedas=0;
-        const infoBusquedas = document.getElementById("infoBusquedas");
-        infoBusquedas.querySelector("p").textContent ="";
+        infoBusquedas.querySelector("p").textContent = "";
+        if (listaElementosEncontrados) {
+            infoBusquedas.removeChild(listaElementosEncontrados);
+            listaElementosEncontrados = null;
+        }
         if (modelCopy) {
             scene.remove(modelCopy); 
             modelCopy = null;
@@ -207,9 +211,9 @@ btnBuscar.addEventListener('click', async function() {
 let numBusquedas = 0;
 let expressIDsInput;
 let modelCopy = null; 
+let listaElementosEncontrados = null;
 
 inputText.addEventListener('change', function() {
-    const infoBusquedas = document.getElementById("infoBusquedas");
     infoBusquedas.querySelector("p").textContent = "";
     removeLabels(expressIDsInput);
     if (isButtonClicked) {
@@ -224,12 +228,33 @@ inputText.addEventListener('change', function() {
             }
             expressIDsInput = elementosEncontrados.map(elemento => elemento.expressID);
             if (elementosEncontrados.length > 0) {
+                const nuevaListaElementosEncontrados = document.createElement("ul");
+                nuevaListaElementosEncontrados.classList.add("elementos-encontrados");
+                elementosEncontrados.sort((a, b) => a.Camion - b.Camion);
+
+                elementosEncontrados.forEach((elemento) => {
+                    const listItem = document.createElement("li");
+                    const nombreElemento = elemento.ART_Pieza;
+                    const camionPertenece = elemento.Camion ? elemento.Camion : "-----";
+    
+                    listItem.textContent = `Elemento: ${nombreElemento}, Camión: ${camionPertenece}`;
+                    nuevaListaElementosEncontrados.appendChild(listItem);
+                });
+
+                if (listaElementosEncontrados) {
+                    infoBusquedas.replaceChild(nuevaListaElementosEncontrados, listaElementosEncontrados);
+                } else {
+                    infoBusquedas.appendChild(nuevaListaElementosEncontrados);
+                }
+
+                listaElementosEncontrados = nuevaListaElementosEncontrados;
+
                 hideAllItems(viewer, idsTotal);
                 if (modelCopy) {
                     scene.remove(modelCopy); 
                 }
                 modelCopy = new Mesh(
-                model.geometry,
+                    model.geometry,
                     new MeshLambertMaterial({
                         transparent: true,
                         opacity: 0.1,
@@ -239,7 +264,6 @@ inputText.addEventListener('change', function() {
                 scene.add(modelCopy);
                 showAllItems(viewer, expressIDsInput);
             } else {
-                const infoBusquedas = document.getElementById("infoBusquedas");
                 infoBusquedas.querySelector("p").textContent = "No existe el elemento: " + elementoBuscado;
             }
             if (checkBox.checked) {
@@ -248,14 +272,15 @@ inputText.addEventListener('change', function() {
                 removeLabels(expressIDsInput);
             }
         } else {
-        btnBuscar.style.backgroundColor = 'transparent';
-        hideAllItems(viewer, idsTotal);
-        showAllItems(viewer, allIDs);
-        removeLabels(expressIDsInput);
-        divInputText.style.display = "none";
+            btnBuscar.style.backgroundColor = 'transparent';
+            hideAllItems(viewer, idsTotal);
+            showAllItems(viewer, allIDs);
+            removeLabels(expressIDsInput);
+            divInputText.style.display = "none";
         }
     }
 });
+
 
 
 
@@ -277,16 +302,6 @@ const inputARTP = document.getElementById('inputARTP');
 const infoContainer = document.getElementById('infoContainer');
 
 
-// mostrarInfoCheckbox.addEventListener('change', function() {
-//     if (mostrarInfoCheckbox.checked) {
-//         infoContainer.classList.add('activeInfo');
-//         inputARTP.style.height = `80px`;
-//     } else {
-//         infoContainer.classList.remove('activeInfo');
-//         inputARTP.style.height = '250px';
-//         generarListaInfo(expressIDsInput);
-//     }
-// });
 
 
 function generarListaInfo(expressIDsInput) {
@@ -1606,57 +1621,158 @@ listaElementos.addEventListener('dblclick', function(event) {
 
 
 
+// async function listarOcultos(elementosOcultos) {
+//     const itemList = document.querySelector(".item-list-elementos-cargados");
+//     itemList.innerHTML = "";
+//     const table = document.createElement("table");
+//     table.classList.add("table");
+    
+//     const thead = document.createElement("thead");
+//     thead.innerHTML = "<tr><th>ID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
+//     table.appendChild(thead);
+    
+//     const tbody = document.createElement("tbody");
+    
+//     for (let i = elementosOcultos.length - 1; i >= 0; i--) {  // Muestra los elementos en orden inverso
+//         const id = elementosOcultos[i];
+//         const elemento = precastElements.find(elemento => elemento.expressID === id);
+//         if (!elemento) {
+//             throw new Error(`No se encontró el elemento con expressID = ${id}`);
+//         }
+//         const tr = document.createElement("tr");
+//         tr.classList.add("item-list-elemento");
+//         const peso = parseFloat(elemento.ART_Peso).toFixed(2);
+//         const altura = parseFloat(elemento.ART_Alto).toFixed(2);
+//         const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
+//         const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
+        
+//         const alturaCell = document.createElement("td");
+//         alturaCell.classList.add("altura");
+//         if (parseFloat(altura) > 2.60) {
+//             alturaCell.style.color = "red";
+//         }
+//         alturaCell.textContent = altura;
+        
+//         const longitudCell = document.createElement("td");
+//         longitudCell.classList.add("longitud");
+//         if (parseFloat(longitud) > 13.60) {
+//             longitudCell.style.color = "red";
+//         }
+//         longitudCell.textContent = longitud;
+        
+//         tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
+//         tr.appendChild(alturaCell);
+//         tr.innerHTML += `<td>${ancho}</td>`;
+//         tr.appendChild(longitudCell);
+        
+//         tbody.appendChild(tr);
+//     }
+//     table.appendChild(tbody);
+//     itemList.appendChild(table);
+//     $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
+// }
 async function listarOcultos(elementosOcultos) {
     const itemList = document.querySelector(".item-list-elementos-cargados");
     itemList.innerHTML = "";
     const table = document.createElement("table");
     table.classList.add("table");
-    
+  
     const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>ID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
+    thead.innerHTML = "<tr><th>ID</th><th>C</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Long</th></tr>";
     table.appendChild(thead);
-    
+  
     const tbody = document.createElement("tbody");
-    
-    for (let i = elementosOcultos.length - 1; i >= 0; i--) {  // Muestra los elementos en orden inverso
-        const id = elementosOcultos[i];
-        const elemento = precastElements.find(elemento => elemento.expressID === id);
-        if (!elemento) {
-            throw new Error(`No se encontró el elemento con expressID = ${id}`);
-        }
-        const tr = document.createElement("tr");
-        tr.classList.add("item-list-elemento");
-        const peso = parseFloat(elemento.ART_Peso).toFixed(2);
-        const altura = parseFloat(elemento.ART_Alto).toFixed(2);
-        const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
-        const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
-        
-        const alturaCell = document.createElement("td");
-        alturaCell.classList.add("altura");
-        if (parseFloat(altura) > 2.60) {
-            alturaCell.style.color = "red";
-        }
-        alturaCell.textContent = altura;
-        
-        const longitudCell = document.createElement("td");
-        longitudCell.classList.add("longitud");
-        if (parseFloat(longitud) > 13.60) {
-            longitudCell.style.color = "red";
-        }
-        longitudCell.textContent = longitud;
-        
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
-        tr.appendChild(alturaCell);
-        tr.innerHTML += `<td>${ancho}</td>`;
-        tr.appendChild(longitudCell);
-        
-        tbody.appendChild(tr);
+    const groupedRows = {}; // Objeto para almacenar las filas agrupadas por valor de "Trans"
+    let colorIndex = 1; // Índice para seleccionar el color de fondo
+  
+    for (let i = elementosOcultos.length - 1; i >= 0; i--) {
+      const id = elementosOcultos[i];
+      const elemento = precastElements.find(
+        (elemento) => elemento.expressID === id
+      );
+      if (!elemento) {
+        throw new Error(`No se encontró el elemento con expressID = ${id}`);
+      }
+  
+      const trans = elemento.tipoTransporte;
+      const peso = parseFloat(elemento.ART_Peso).toFixed(2);
+      const altura = parseFloat(elemento.ART_Alto).toFixed(2);
+      const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
+      const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
+  
+      const tr = document.createElement("tr");
+      tr.classList.add("item-list-elemento");
+  
+      const alturaCell = document.createElement("td");
+      alturaCell.classList.add("altura");
+      if (parseFloat(altura) > 2.60) {
+        alturaCell.style.color = "red";
+      }
+      alturaCell.textContent = altura;
+  
+      const longitudCell = document.createElement("td");
+      longitudCell.classList.add("longitud");
+      if (parseFloat(longitud) > 13.60) {
+        longitudCell.style.color = "red";
+      }
+      longitudCell.textContent = longitud;
+  
+      tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.Camion}</td><td>${trans}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
+      tr.appendChild(alturaCell);
+      tr.innerHTML += `<td>${ancho}</td>`;
+      tr.appendChild(longitudCell);
+  
+      if (!groupedRows[trans]) {
+        // Si no existe un grupo para el valor de "Trans", se crea uno nuevo
+        groupedRows[trans] = [];
+      }
+  
+      groupedRows[trans].push(tr); // Se agrega la fila al grupo correspondiente
+  
+      tbody.appendChild(tr);
     }
+  
     table.appendChild(tbody);
     itemList.appendChild(table);
-    $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
-}
+    $(table).tablesorter();
+  
+    // Estilos CSS para los colores de fondo
+    const styleElement = document.createElement("style");
+    let styleSheet = "";
+  
+    for (const trans in groupedRows) {
+      const backgroundColorClass = `color-${colorIndex}`;
+      const color = getRandomColor(); // Obtener un color aleatorio
+  
+      styleSheet += `.table .${backgroundColorClass} { background-color: ${color}; } `;
+  
+      colorIndex++;
+  
+      groupedRows[trans].forEach((row) => {
+        row.classList.add(backgroundColorClass);
+      });
+    }
+  
+    styleElement.innerHTML = styleSheet;
+    document.head.appendChild(styleElement);
+  }
+  
+  // Función para obtener un color aleatorio en formato hexadecimal
+  function getRandomColor() {
+    const letters = "0123456789ABCDEF";
+  let color = "#";
 
+  for (let i = 0; i < 3; i++) {
+    const index = Math.floor(Math.random() * 3); // Seleccionar un canal de color (R, G o B)
+    const value = Math.floor(Math.random() * 128) + 128; // Generar un valor claro (128-255)
+
+    color += letters[value >> 4]; // Primer dígito hexadecimal
+    color += letters[value & 0x0F]; // Segundo dígito hexadecimal
+  }
+
+  return color;
+  }
+  
 
 function obtenerExpressIDsDelCamion(numCamion) {
     const expressIDs = [];
