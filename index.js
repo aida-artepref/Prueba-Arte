@@ -1833,82 +1833,79 @@ listaElementos.addEventListener('dblclick', function(event) {
 //     itemList.appendChild(table);
 //     $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
 // }
+let camionesActuales = [];
+let coloresCamiones = {};
+
 async function listarOcultos(elementosOcultos) {
-    const itemList = document.querySelector(".item-list-elementos-cargados");
-    itemList.innerHTML = "";
-    const table = document.createElement("table");
-    table.classList.add("table");
+  const itemList = document.querySelector(".item-list-elementos-cargados");
+  itemList.innerHTML = "";
+  const table = document.createElement("table");
+  table.classList.add("table");
 
-    const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>ID</th><th>C</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Long</th></tr>";
-    table.appendChild(thead);
+  const thead = document.createElement("thead");
+  thead.innerHTML = "<tr><th>ID</th><th>C</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Long</th></tr>";
+  table.appendChild(thead);
 
-    const tbody = document.createElement("tbody");
-    const groupedRows = {}; // Objeto para almacenar las filas agrupadas por valor de "Trans"
-    let colorIndex = 1; // Índice para seleccionar el color de fondo
+  const tbody = document.createElement("tbody");
+  const groupedRows = {};
 
-    for (let i = elementosOcultos.length - 1; i >= 0; i--) {
-        const id = elementosOcultos[i];
-        const elemento = precastElements.find((elemento) => elemento.expressID === id);
-        if (!elemento) {
-            throw new Error(`No se encontró el elemento con expressID = ${id}`);
-        }
-        const trans = elemento.tipoTransporte;
-        const peso = parseFloat(elemento.ART_Peso).toFixed(2);
-        const altura = parseFloat(elemento.ART_Alto).toFixed(2);
-        const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
-        const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
-    
-        const tr = document.createElement("tr");
-        tr.classList.add("item-list-elemento");
-        const alturaCell = document.createElement("td");
-        alturaCell.classList.add("altura");
-        if (parseFloat(altura) > 2.60) {
-            alturaCell.style.color = "red";
-        }
-        alturaCell.textContent = altura;
-    
-        const longitudCell = document.createElement("td");
-        longitudCell.classList.add("longitud");
-        if (parseFloat(longitud) > 13.60) {
-            longitudCell.style.color = "red";
-        }
-        longitudCell.textContent = longitud;
-    
-        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.Camion}</td><td>${trans}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
-        tr.appendChild(alturaCell);
-        tr.innerHTML += `<td>${ancho}</td>`;
-        tr.appendChild(longitudCell);
-    
-        if (!groupedRows[trans]) {
-            // Si no existe un grupo para el valor de "Trans", se crea uno nuevo
-            groupedRows[trans] = [];
-        }
-        groupedRows[trans].push(tr); // Se agrega la fila al grupo correspondiente
-        tbody.appendChild(tr);
+  for (let i = elementosOcultos.length - 1; i >= 0; i--) {
+    const id = elementosOcultos[i];
+    const elemento = precastElements.find((elemento) => elemento.expressID === id);
+    if (!elemento) {
+      throw new Error(`No se encontró el elemento con expressID = ${id}`);
     }
-    table.appendChild(tbody);
-    itemList.appendChild(table);
-    $(table).tablesorter();
+    const trans = elemento.tipoTransporte;
+    const peso = parseFloat(elemento.ART_Peso).toFixed(2);
+    const altura = parseFloat(elemento.ART_Alto).toFixed(2);
+    const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
+    const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
 
-    // Estilos CSS para los colores de fondo
-    const styleElement = document.createElement("style");
-    let styleSheet = "";
-
-    for (const trans in groupedRows) {
-        const backgroundColorClass = `color-${colorIndex}`;
-        const color = getRandomColor(); // Obtener un color aleatorio
-        styleSheet += `.table .${backgroundColorClass} { background-color: ${color}; } `;
-        colorIndex++;
-        groupedRows[trans].forEach((row) => {
-            row.classList.add(backgroundColorClass);
-        });
+    const tr = document.createElement("tr");
+    tr.classList.add("item-list-elemento");
+    const alturaCell = document.createElement("td");
+    alturaCell.classList.add("altura");
+    if (parseFloat(altura) > 2.60) {
+      alturaCell.style.color = "red";
     }
-    styleElement.innerHTML = styleSheet;
-    document.head.appendChild(styleElement);
-    updateMissingCamionCount();
-    
+    alturaCell.textContent = altura;
+
+    const longitudCell = document.createElement("td");
+    longitudCell.classList.add("longitud");
+    if (parseFloat(longitud) > 13.60) {
+      longitudCell.style.color = "red";
+    }
+    longitudCell.textContent = longitud;
+
+    tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.Camion}</td><td>${trans}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
+    tr.appendChild(alturaCell);
+    tr.innerHTML += `<td>${ancho}</td>`;
+    tr.appendChild(longitudCell);
+
+    let backgroundColor;
+    if (camionesActuales.includes(elemento.Camion)) {
+      backgroundColor = coloresCamiones[elemento.Camion];
+    } else {
+      const newColor = getRandomColor();
+      coloresCamiones[elemento.Camion] = newColor;
+      camionesActuales.push(elemento.Camion);
+      backgroundColor = newColor;
+    }
+    tr.style.backgroundColor = backgroundColor;
+
+    if (!groupedRows[trans]) {
+      groupedRows[trans] = [];
+    }
+    groupedRows[trans].push(tr);
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  itemList.appendChild(table);
+  $(table).tablesorter();
+
+  updateMissingCamionCount();
 }
+
 
 function getRandomColor() {
     const letters = "0123456789ABCDEF";
