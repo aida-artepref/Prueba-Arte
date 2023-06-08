@@ -708,14 +708,14 @@ function updateMissingCamionCount() {
  
 
 
-function updateLoadedPiecesLabel(elements, artPieza) {
-    const checkboxData = checkboxLabelsMap.get(artPieza);
-    if (checkboxData) {
-        const { piezasCargadasLabel } = checkboxData;
-        const numPiezasCargadas = countLoadedPieces(elements);
-        piezasCargadasLabel.textContent = ` Cargadas: ${numPiezasCargadas}`;
-    }
-}
+// function updateLoadedPiecesLabel(elements, artPieza) {
+//     const checkboxData = checkboxLabelsMap.get(artPieza);
+//     if (checkboxData) {
+//         const { piezasCargadasLabel } = checkboxData;
+//         const numPiezasCargadas = countLoadedPieces(elements);
+//         piezasCargadasLabel.textContent = ` Cargadas: ${numPiezasCargadas}`;
+//     }
+// }
 
 function countLoadedPieces(elements) {
     const loadedPieces = elements.filter(element => element.Camion !== undefined && element.Camion !== '');
@@ -1907,15 +1907,7 @@ async function listarOcultos(elementosOcultos) {
     styleElement.innerHTML = styleSheet;
     document.head.appendChild(styleElement);
     updateMissingCamionCount();
-    // Actualizar las etiquetas de piezas cargadas para cada grupo de elementos
-    // const checkboxGroups = document.querySelectorAll('.checkbox-group');
-    // checkboxGroups.forEach(checkboxGroup => {
-    //     const artPieza = checkboxGroup.querySelector('input').getAttribute('data-art-pieza');
-    //     const elements = groupedElements[artPieza];
-    //     const piezasCargadasLabel = checkboxGroup.querySelector('.piezas-cargadas-label');
-    //     updateLoadedPiecesLabel(elements, piezasCargadasLabel);
-    // });
-
+    
 }
 
 function getRandomColor() {
@@ -2913,7 +2905,7 @@ function generarTabla(expressIDs, camion) {
             }
             allIDs.push(parseInt(elementoEliminadoTabla));
             removeLabels(elementoEliminadoTabla);
-            updateMissingCamionCount();
+            
         }
         listarOcultos(elementosOcultos);
         viewer.IFC.selector.unpickIfcItems();
@@ -2941,6 +2933,7 @@ function generarTabla(expressIDs, camion) {
             actValorCamion.numTransporte = "";
             actValorCamion.letraTransporte = "";
         }
+        updateMissingCamionCount();
         const nuevoPesoTotal = calcularPesoTotal(expressIDs);
         actualizarCabecera(nuevoPesoTotal);
     });
