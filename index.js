@@ -2672,6 +2672,11 @@ function generaBotonesNumCamion(camionesUnicos) {
         });
         btnNumCamiones.appendChild(btn);
         btn.addEventListener("click", function() {
+            let checkboxStates = {};
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(function (checkbox) {
+                checkboxStates[checkbox.id] = checkbox.checked;
+            });
             const expressIDs = [];
             precastElements.forEach(function(precastElement) {
                 if (parseInt(precastElement.Camion) === camion) {
@@ -2683,9 +2688,7 @@ function generaBotonesNumCamion(camionesUnicos) {
             if (isActive) {
             //, elimina los elementos del visor y desactiva el botón
                 viewer.IFC.selector.unpickIfcItems();
-                activeExpressIDs = activeExpressIDs.filter(
-                    id => !expressIDs.includes(id)
-                );
+                activeExpressIDs = activeExpressIDs.filter(id => !expressIDs.includes(id));
                 hideAllItems(viewer, expressIDs);
                 btn.classList.remove("active");
                 btn.style.justifyContent = "center";
@@ -2697,9 +2700,22 @@ function generaBotonesNumCamion(camionesUnicos) {
                 btnsCamionActivo = false;
                 removeLabels(expressIDs);
             } else {
-                
+                // Buscar los elementos con la clase "btnCheck pulsado"
+                const btnCheckPulsado = document.querySelectorAll('.btnCheck.pulsado');
+
+                // Iterar sobre los elementos encontrados
+                btnCheckPulsado.forEach(function(btn) {
+                // Eliminar la clase "pulsado"
+                btn.classList.remove('pulsado');
+                });
+
+                // Ocultar los elementos de la clase "PIEZA-LABEL"
+                const piezaLabels = document.querySelectorAll('.pieza-label');
+                piezaLabels.forEach(function(label) {
+                    label.style.visibility = 'hidden';
+                });
+
                 activeExpressIDs = activeExpressIDs.concat(expressIDs);
-                //  muestra los elementos en tabla en el visor y activa el botón
                 viewer.IFC.selector.unpickIfcItems();
                 hideAllItems(viewer, allIDs);
                 showAllItems(viewer, expressIDs);
@@ -2710,14 +2726,28 @@ function generaBotonesNumCamion(camionesUnicos) {
                 btnsCamionActivo = true;
                 generateLabels(expressIDs);
             }
-            if (botonesActivos === 0) { // si las cargas están desactivados muestra elementos que faltan por transportar
-                showAllItems(viewer, allIDs);
+            if (botonesActivos === 0) {
                 enableCheckboxes();
-                var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                const checkedArtPiezas = []; 
                 checkboxes.forEach(function (checkbox) {
-                    checkbox.checked = true;
+                    if (checkbox.checked) {
+                        checkedArtPiezas.push(checkbox.getAttribute('data-art-pieza'));
+                    }
                 });
-            } else {
+                const matchingIds = []; // Almacenar los IDs de los elementos que coinciden con los checkboxes seleccionados
+                
+                precastElements.forEach(function (element) {
+                    if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
+                        return;
+                    }
+                    if (checkedArtPiezas.includes(element.ART_Pieza.charAt(0).toUpperCase())) {
+                        if (!element.hasOwnProperty('Camion') || element.Camion === "") {
+                            matchingIds.push(element.expressID);
+                        }
+                    }
+                });
+                showAllItems(viewer, matchingIds);
+            }else {
                 disableCheckboxes();
                 // generateLabels(expressIDs);
             }
