@@ -431,7 +431,7 @@ ul, #myUL {
   }
 
   ul {
-    max-height: 400px;
+    max-height: 600px;
     overflow-y: auto;
     font-size: 0.95rem;
   }
@@ -526,9 +526,9 @@ button {
 #divNumCamiones {
   position: fixed;
   bottom: 20%;
-  left: 426px;
+  left: 435px;
   height: auto;
-  width: 80%; 
+  width: 75%; 
   padding: 5px;
   display: flex;
   justify-content: flex-start;

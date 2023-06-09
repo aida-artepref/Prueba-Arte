@@ -2656,6 +2656,20 @@ function generaBotonesNumCamion(camionesUnicos) {
         const btn = document.createElement("button");
         btn.setAttribute("class","btnNumCamion")
         btn.textContent = camion;
+
+        let todosTienenPosicion = precastElements.filter(function(precastElement) {
+            return parseInt(precastElement.Camion) === camion;
+          }).every(function(precastElement) {
+            return precastElement.hasOwnProperty('Posicion') && precastElement.Posicion !== "";
+          });
+          
+          if (todosTienenPosicion) {
+            btn.style.border = "2px solid blue";
+btn.style.boxShadow = "0 0 5px blue";
+          }
+          
+
+
         precastElements.forEach(function(precastElement) {
             if (parseInt(precastElement.Camion) === camion) {
                 const tipoTransporte = precastElement.tipoTransporte;
@@ -2699,13 +2713,10 @@ function generaBotonesNumCamion(camionesUnicos) {
                 botonesActivos--;
                 btnsCamionActivo = false;
                 removeLabels(expressIDs);
+                verificarPosicionYAsignarColor(camion, btn);
             } else {
-                // Buscar los elementos con la clase "btnCheck pulsado"
                 const btnCheckPulsado = document.querySelectorAll('.btnCheck.pulsado');
-
-                // Iterar sobre los elementos encontrados
                 btnCheckPulsado.forEach(function(btn) {
-                // Eliminar la clase "pulsado"
                 btn.classList.remove('pulsado');
                 });
 
@@ -2753,6 +2764,25 @@ function generaBotonesNumCamion(camionesUnicos) {
             }
         });
     });
+
+    function verificarPosicionYAsignarColor(numCamion, btn) {
+        const elementosCamion = precastElements.filter(function(precastElement) {
+          return parseInt(precastElement.Camion) === numCamion;
+        });
+      
+        const todosTienenPosicion = elementosCamion.every(function(precastElement) {
+          return precastElement.hasOwnProperty('Posicion') && precastElement.Posicion !== "";
+        });
+      
+        if (todosTienenPosicion) {
+          // Asignar el color verde a los elementos del camión
+          btn.style.border = "2px solid blue";
+btn.style.boxShadow = "0 0 5px blue";
+        }else{
+            btn.style.border = "";
+            btn.style.boxShadow ="";
+        }
+      }
 
     function disableCheckboxes() {
         for (let i = 0; i < checkboxGroup.length; i++) {
