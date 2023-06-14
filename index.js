@@ -1954,21 +1954,49 @@ async function edita2(nombreMod, expressID ) {
     const position = assemblyIDs.indexOf(foundElement);
 
     const assemblyID = assemblyIDs[position];
-    const assembly =  await manager.getItemProperties(0, assemblyID);
+
+    //const props = await viewer.IFC.getProperties (0, node.expressID, true, true);
+    const assembly =  await manager.getItemProperties(0, assemblyID, true, true);
+    // const mats =assembly.mats;
+    // const psets =assembly.psets;
+    // const type= assembly.type;
+    
+    // delete assembly.mats;
+    // delete assembly.psets;
+    // delete assembly.type;
+
     console.log(assembly);
     assembly.Name.value = nombreMod ;
     manager.ifcAPI.WriteLine(0, assembly);
 
-    const data = await manager.ifcAPI.ExportFileAsIFC(0);
-    const blob = new Blob([data]);
-    const file = new File([blob], "modified.ifc");
+    // const data = await manager.ifcAPI.ExportFileAsIFC(0);
+    // const blob = new Blob([data]);
+    // const file = new File([blob], "modified.ifc");
 
-    const link = document.createElement('a');
-    link.download = 'modified.ifc';
-    link.href = URL.createObjectURL(file);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    // const link = document.createElement('a');
+    // link.download = 'modified.ifc';
+    // link.href = URL.createObjectURL(file);
+    // document.body.appendChild(link);
+    // link.click();
+    // link.remove();
+    const label = document.getElementById("file-name");
+const fileName = label.innerText;
+const currentDate = new Date();
+const formattedDate = currentDate.toISOString().split("T")[0]; // Formato YYYY-MM-DD
+const modifiedFileName = fileName.substring(0, fileName.indexOf(".ifc")) + "Mod_" + formattedDate + ".ifc";
+
+const data = await manager.ifcAPI.ExportFileAsIFC(0);
+const blob = new Blob([data]);
+const file = new File([blob], modifiedFileName);
+
+const link = document.createElement('a');
+link.download = modifiedFileName;
+link.href = URL.createObjectURL(file);
+document.body.appendChild(link);
+link.click();
+link.remove();
+
+
 }
 
 container.onclick = async () => {
@@ -2717,22 +2745,20 @@ function generaBotonesNumCamion(camionesUnicos) {
 
     function verificarPosicionYAsignarColor(numCamion, btn) {
         const elementosCamion = precastElements.filter(function(precastElement) {
-          return parseInt(precastElement.Camion) === numCamion;
+            return parseInt(precastElement.Camion) === numCamion;
         });
-      
         const todosTienenPosicion = elementosCamion.every(function(precastElement) {
-          return precastElement.hasOwnProperty('Posicion') && precastElement.Posicion !== "";
+            return precastElement.hasOwnProperty('Posicion') && precastElement.Posicion !== "";
         });
-      
         if (todosTienenPosicion) {
-          // Asignar el color verde a los elementos del camión
-          btn.style.border = "2px solid blue";
-btn.style.boxShadow = "0 0 5px blue";
+            // Asignar el color verde a los elementos del camión
+            btn.style.border = "2px solid blue";
+            btn.style.boxShadow = "0 0 5px blue";
         }else{
             btn.style.border = "";
             btn.style.boxShadow ="";
         }
-      }
+    }
 
     function disableCheckboxes() {
         for (let i = 0; i < checkboxGroup.length; i++) {
