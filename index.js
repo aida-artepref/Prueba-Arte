@@ -1,9 +1,9 @@
 import { Color, Loader, MeshBasicMaterial, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
-import { IfcElementQuantity } from 'web-ifc';
+import { IFCELEMENTASSEMBLY, IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
-
+import { IFCBUILDINGSTOREY } from "web-ifc";
 
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
@@ -1893,25 +1893,76 @@ let globalIds=[];
 let globalId;
 
 
-async function edit(nombreMod, expressID ) {
-    const manager = viewer.IFC.loader.ifcManager;
+// async function edit(nombreMod, expressID ) {
+//     const manager = viewer.IFC.loader.ifcManager;
 
-    // OBJETO CON SUS PROPIEDADES NATIVAS con el expressID específico
-    const objProps = await viewer.IFC.getProperties(model.modelID, expressID, true, false);
-    console.log(objProps);
+//     // OBJETO CON SUS PROPIEDADES NATIVAS con el expressID específico
+//     const objProps = await viewer.IFC.getProperties(model.modelID, expressID, true, false);
+//     console.log(objProps);
     
-    objProps.Name.value = nombreMod;
-    console.log(objProps);
+//     objProps.Name.value = nombreMod;
+//     console.log(objProps);
 
-    // Guardar los cambios en el archivo IFC
-    manager.ifcAPI.WriteLine(0, objProps);
+//     // Guardar los cambios en el archivo IFC
+//     manager.ifcAPI.WriteLine(0, objProps);
+//     const data = await manager.ifcAPI.ExportFileAsIFC(0);
+
+//     // Crear el archivo modificado
+//     const blob = new Blob([data]);
+//     const file = new File([blob], "modified.ifc");
+
+//     // Descargar el archivo modificado
+//     const link = document.createElement('a');
+//     link.download = 'modified.ifc';
+//     link.href = URL.createObjectURL(file);
+//     document.body.appendChild(link);
+//     link.click();
+//     link.remove();
+// }
+
+// async function edita(event) {
+//     const manager = viewer.IFC.loader.ifcManager;
+//     const storeysIDs = await manager.getAllItemsOfType(0, IFCBUILDINGSTOREY, false);
+//     const storeyID = storeysIDs[0];
+//     const storey =  await manager.getItemProperties(0, storeyID);
+//     console.log(storey);
+//     storey.Name.value = "Nivel 1 - Editado00000000000";
+//     manager.ifcAPI.WriteLine(0, storey);
+
+//     const data = await manager.ifcAPI.ExportFileAsIFC(0);
+//     const blob = new Blob([data]);
+//     const file = new File([blob], "modified.ifc");
+
+//     const link = document.createElement('a');
+//     link.download = 'modified.ifc';
+//     link.href = URL.createObjectURL(file);
+//     document.body.appendChild(link);
+//     link.click();
+//     link.remove();
+// }
+
+async function edita2(nombreMod, expressID ) {
+    const manager = viewer.IFC.loader.ifcManager;
+    const assemblyIDs = await manager.getAllItemsOfType(0, IFCELEMENTASSEMBLY, false);
+
+    let foundElement = null;
+
+    const foundObject = precastElements.find(obj => obj.expressID === expressID);
+    if (foundObject) {
+        foundElement = foundObject.BEP_expressID;
+    }
+    const position = assemblyIDs.indexOf(foundElement);
+
+    const assemblyID = assemblyIDs[position];
+    const assembly =  await manager.getItemProperties(0, assemblyID);
+    console.log(assembly);
+    assembly.Name.value = nombreMod ;
+    manager.ifcAPI.WriteLine(0, assembly);
+
     const data = await manager.ifcAPI.ExportFileAsIFC(0);
-
-    // Crear el archivo modificado
     const blob = new Blob([data]);
     const file = new File([blob], "modified.ifc");
 
-    // Descargar el archivo modificado
     const link = document.createElement('a');
     link.download = 'modified.ifc';
     link.href = URL.createObjectURL(file);
@@ -1919,7 +1970,6 @@ async function edit(nombreMod, expressID ) {
     link.click();
     link.remove();
 }
-
 
 container.onclick = async () => {
     
@@ -1933,6 +1983,7 @@ container.onclick = async () => {
             }
             const expressID = foundM.id;
             console.log(expressID);
+
             const textoMod = document.getElementById("textoModifica");
             textoMod.style.display = "none";
             let nombreMod=prompt("Nuevo nombre a la pieza seleccionada:");
@@ -1947,8 +1998,7 @@ container.onclick = async () => {
 
             const respuesta = confirm(`¿Desea cambiar el nombre de ${nombreAntiguo} por ${nombreMod}?`);
             if (respuesta) {
-
-                edit(nombreMod, expressID);
+                edita2(nombreMod, expressID);
                 console.log(`El usuario seleccionó Sí/Yes para cambiar el nombre de ${expressID} por ${nombreMod}`);
             } else {
                     console.log(`El usuario seleccionó No/Cancel para cambiar el nombre de ${expressID} por ${nombreMod}`);
