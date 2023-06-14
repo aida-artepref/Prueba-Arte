@@ -1,4 +1,4 @@
-import { Color, Loader, MeshBasicMaterial, LineBasicMaterial, MeshStandardMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
+import { Color, Loader, MeshBasicMaterial, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
@@ -8,6 +8,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRe
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 const scene = viewer.context.scene.scene;
+//const scene = viewer.context.getScene;
 viewer.clipper.active = true;
 // viewer.grid.setGrid(100,100);
 // viewer.axes.setAxes();
@@ -58,9 +59,8 @@ GUI.input.onchange = async (event) => {
 
 async function loadModel(url) {
     model = await viewer.IFC.loadIfcUrl(url);
-    const pieces= await viewer.edges.setupModelMaterials(model);
-    viewer.edges.setupModelMaterials(model)
-    //addBordes(model);
+
+    viewer.context.renderer.usePostproduction.active=true;
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
@@ -69,58 +69,31 @@ async function loadModel(url) {
     const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     //setIfcPropertiesContent(ifcProject, viewer, model);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
-    
+    //loader.ifcManager.prop
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
-    viewer.shadows = true;
+    
     await cargaGlobalIdenPrecast();
     await  crearBotonPrecas(); 
     // verNumPrecast();
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
-
-   // mergeEdges(model); // Agregar esta línea para fusionar los bordes de los elementos geométricos.
 }
-// let piezasConBordes = {};
-// function addBordes(model) {
-//     const mat = new LineBasicMaterial({ color: 0x525252 });
 
-//     model.traverse((piece) => {
-//         if (piece instanceof Mesh) {
-//             const pieceMat = mat.clone(); // Clonar el material para cada pieza
-//             viewer.edges.createFromMesh(piece.name, piece, pieceMat);
-//             viewer.edges.toggle(piece.name, true);
-//             piezasConBordes[piece.name] = piece;
-//         }
-//     });
-// }
-// function mergeEdges(model) {
-//     const mat = new LineBasicMaterial({ color: 0x525252 });
-//     const mergedGeometry = new BufferGeometry();
-//     model.traverse((piece) => {
-//         if (piece instanceof Mesh) {
-//             const pieceMat = mat.clone();
-//             viewer.edges.createFromMesh(piece.name, piece, pieceMat);
-//             viewer.edges.toggle(piece.name, true);
-//             mergedGeometry.merge(piece.geometry);
-//         }
-//     });
-//     const mergedMesh = new Mesh(mergedGeometry, model.material);
-//     scene.add(mergedMesh);
-// }
+const btnModifica = document.getElementById('modificaProp');
+let isClickedModifica = false;
+btnModifica.addEventListener('click', async function() {
+    isClickedModifica = !isClickedModifica;
+    if (isClickedModifica) {
+        viewer.IFC.selector.unpickIfcItems();
+        btnModifica.style.backgroundColor = 'gray';
+        const textoMod = document.getElementById("textoModifica");
+        textoMod.style.display = "block";
+    }else {
+        btnModifica.style.backgroundColor = 'transparent';
+    }
+});
 
-// function removeBordes(elementoId) {
-    
-    // const edges = new EdgesGeometry(object.geometry);
-    // const line = new LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffffff }));
-    // scene.add(line);
-
-    // // Eliminar bordes
-    // edges.dispose();
-    // line.geometry.dispose();
-    // line.material.dispose();
-    // scene.remove(line);
-//   }
 let modelCopyCompleto = null; 
 const btnIfcCompleto=document.getElementById('ifcCompleto');
 let ifcCompletoClicked = false;
@@ -150,7 +123,6 @@ let expressIDsUniones = [];
 
 const btnFiltrarUnion = document.getElementById('filtraUniones');
 let isButtonClickedUniones = false;
-
 btnFiltrarUnion.addEventListener('click', async function() {
     isButtonClickedUniones = !isButtonClickedUniones;
     if (isButtonClickedUniones) {
@@ -167,8 +139,6 @@ btnFiltrarUnion.addEventListener('click', async function() {
         showAllItems(viewer, expressIDsUniones);
     }
 });
-
-
 
 const btnBuscar = document.getElementById('buscarButton');
 let isButtonClicked = false;
@@ -280,8 +250,6 @@ inputText.addEventListener('change', function() {
         }
     }
 });
-
-
 
 
 checkBox.addEventListener('change', function() {
@@ -407,6 +375,8 @@ async function crearBotonPrecasFuisonados(){
         btnBuscar.style.display="block";
         const ifcCompleto=document.getElementById('ifcCompleto');
         ifcCompleto.style.display="block";
+        const btnModifica= document.getElementById("modificaProp")
+        btnModifica.style.display = "block";
         });
         
 }
@@ -509,130 +479,10 @@ function addBotonCheckboxListeners() {
     }
 }
 
-// function generateCheckboxes(precastElements) {
-//     // Agrupa los elementos por la primera letra de la propiedad ART_Pieza
-//     const groupedElements = precastElements.reduce((acc, el) => {
-//         if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
-//             return acc;
-//         }
-//         const firstLetter = el.ART_Pieza.charAt(0).toUpperCase();
-//         if (!acc[firstLetter]) {
-//             acc[firstLetter] = [];
-//         }
-//         acc[firstLetter].push(el);
-//         return acc;
-//     }, {});
-//     const checktiposIfcContainer = document.getElementById('checktiposIfc');
-//     checktiposIfcContainer.style.display = 'none';
 
-//     Object.entries(groupedElements).forEach(([artPieza, elements]) => {
-//         const checkboxContainer = document.createElement('div');
-//         checkboxContainer.classList.add('checkbox-container');
-        
-//         const button = document.createElement('button');
-//         button.classList.add('btnCheck');
-//         button.setAttribute('data-art-pieza', artPieza);
-//         button.textContent = artPieza;
-//         checkboxContainer.appendChild(button);
-        
-//         const checkboxGroup = document.createElement('div');
-//         checkboxGroup.classList.add('checkbox-group');
-        
-//         const checkbox = document.createElement('input');
-//         checkbox.setAttribute('type', 'checkbox');
-//         checkbox.setAttribute('checked', 'true');
-//         checkbox.setAttribute('data-art-pieza', artPieza);
-//         checkbox.style.marginLeft = '8px';
-//         checkboxGroup.appendChild(checkbox);
-    
-//         const checkboxLabel = document.createElement('label');
-//         checkboxLabel.textContent = `${artPieza} (${elements.length})`;
-
-//         checkboxGroup.appendChild(checkboxLabel);
-    
-//         checkboxContainer.appendChild(checkboxGroup);
-//         checktiposIfcContainer.appendChild(checkboxContainer);
-//     });
-    
-//     setTimeout(() => {
-//         addCheckboxListeners();
-//         addBotonCheckboxListeners();
-//     }, 0);
-//     }
-
-
-
-// let checkboxLabelsMap = new Map();
-// let groupedElements;
-// function generateCheckboxes(precastElements) {
-//     groupedElements = precastElements.reduce((acc, el) => {
-//         if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" || el.ART_Pieza === undefined) {
-//             return acc;
-//         }
-//         const firstLetter = el.ART_Pieza.charAt(0).toUpperCase();
-//         if (!acc[firstLetter]) {
-//             acc[firstLetter] = [];
-//         }
-//         acc[firstLetter].push(el);
-//         return acc;
-//     }, {});
-
-//     const checktiposIfcContainer = document.getElementById('checktiposIfc');
-//     checktiposIfcContainer.style.display = 'none';
-
-//     Object.entries(groupedElements).forEach(([artPieza, elements]) => {
-//         const checkboxContainer = document.createElement('div');
-//         checkboxContainer.classList.add('checkbox-container');
-
-//         const button = document.createElement('button');
-//         button.classList.add('btnCheck');
-//         button.setAttribute('data-art-pieza', artPieza);
-//         button.textContent = artPieza;
-//         checkboxContainer.appendChild(button);
-
-//         const checkboxGroup = document.createElement('div');
-//         checkboxGroup.classList.add('checkbox-group');
-
-//         const checkbox = document.createElement('input');
-//         checkbox.setAttribute('type', 'checkbox');
-//         checkbox.setAttribute('checked', 'true');
-//         checkbox.setAttribute('data-art-pieza', artPieza);
-//         checkbox.style.marginLeft = '8px';
-//         checkboxGroup.appendChild(checkbox);
-
-//         const checkboxLabel = document.createElement('label');
-//         checkboxLabel.textContent = `${artPieza} (${elements.length})`;
-//         checkboxGroup.appendChild(checkboxLabel);
-
-//         const piezasCargadasLabel = document.createElement('label');
-//         piezasCargadasLabel.setAttribute('data-art-pieza', artPieza);
-//         checkboxGroup.appendChild(piezasCargadasLabel);
-
-//         checkboxLabelsMap.set(artPieza, {
-//             checkboxLabel,
-//             piezasCargadasLabel
-//         });
-
-//         checkboxContainer.appendChild(checkboxGroup);
-//         checktiposIfcContainer.appendChild(checkboxContainer);
-//     });
-
-//     // Insertar piezasCargadasLabel después de crear todos los elementos checkbox
-//     const checkboxGroups = document.querySelectorAll('.checkbox-group');
-//     checkboxGroups.forEach(checkboxGroup => {
-//         const piezasCargadasLabel = document.createElement('label');
-//         piezasCargadasLabel.classList.add('piezas-cargadas-label');
-//         checkboxGroup.appendChild(piezasCargadasLabel);
-//     });
-
-//     setTimeout(() => {
-//         addCheckboxListeners();
-//         addBotonCheckboxListeners();
-//     }, 0);
-// }
 let groupedElements;
 function generateCheckboxes(precastElements) {
-     groupedElements = precastElements.reduce((acc, el) => {
+    groupedElements = precastElements.reduce((acc, el) => {
         if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" || el.ART_Pieza === undefined) {
             return acc;
         }
@@ -704,18 +554,7 @@ function updateMissingCamionCount() {
         missingCamionLabel.textContent = ` / ${missingCamionCount}`;
       }
     });
-  }
- 
-
-
-// function updateLoadedPiecesLabel(elements, artPieza) {
-//     const checkboxData = checkboxLabelsMap.get(artPieza);
-//     if (checkboxData) {
-//         const { piezasCargadasLabel } = checkboxData;
-//         const numPiezasCargadas = countLoadedPieces(elements);
-//         piezasCargadasLabel.textContent = ` Cargadas: ${numPiezasCargadas}`;
-//     }
-// }
+}
 
 function countLoadedPieces(elements) {
     const loadedPieces = elements.filter(element => element.Camion !== undefined && element.Camion !== '');
@@ -776,39 +615,7 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
         }
     }
 }
-// function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
-//     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
-//         return;
-//     } else {
-//         const elements = document.getElementsByTagName('p');
-//         let count = 0;
-//         for (let i = 0; i < elements.length; i++) {
-//             const element = elements[i];
-//             if (element.textContent.startsWith(ART_Pieza) && element.expressID === expressID) {
-//                 if (element.style.visibility === 'hidden') {
-//                     element.style.visibility = 'visible';
-//                 }
-//                 count++;
-//             }
-//         }
-//         if (count === 0) {
-//             const label = document.createElement('p');
-//             label.textContent = ART_Pieza;
-//             label.classList.add('pieza-label');
-//             label.id = expressID;
-//             const labelObject = new CSS2DObject(label);
 
-//             // Factor de escala basado en la diferencia de alturas de los contenedores padres
-//             const containerHeightRatio = 967 / 773;
-//             const scaledCoordX = parseFloat(ART_CoordX) / 1000;
-//             const scaledCoordY = -parseFloat(ART_CoordY) * containerHeightRatio / 1000;
-//             const scaledCoordZ = parseFloat(ART_CoordZ) * containerHeightRatio/ 1000;
-
-//             labelObject.position.set(scaledCoordX, scaledCoordZ, scaledCoordY);
-//             scene.add(labelObject);
-//         }
-//     }
-// }
 
 function addCheckboxListeners() {
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -850,7 +657,7 @@ function getWholeSubset(viewer, model, allIDs) {
 	});
 }
 
-//Remplaza un modelo original (model) por un subconjunto previamente creado (subset).
+// Remplaza un modelo original (model) por un subconjunto previamente creado (subset).
 function replaceOriginalModelBySubset(viewer, model, subset) {
 	const items = viewer.context.items;  //obtiene el objeto "items" del contexto del visor y lo almacena en una variable local.
 	items.pickableIfcModels = items.pickableIfcModels.filter(model => model !== model);  //Filtra las matrices y elimina cualquier referencia al modelo original
@@ -859,6 +666,35 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 	items.ifcModels.push(subset);
 	items.pickableIfcModels.push(subset); 
 }
+
+// function replaceOriginalModelBySubset(viewer, model, subset) {
+//     const items = viewer.context.items;
+//     items.pickableIfcModels = items.pickableIfcModels.filter(m => m !== model);
+//     items.ifcModels = items.ifcModels.filter(m => m !== model);
+
+//     model.removeFromParent();
+//     // Crea un nuevo material para el subset
+//     const newMaterial  = createCustomMaterial();
+
+//     // Aplica el nuevo material al subset
+//     subset.material = newMaterial;
+
+//     // Agrega el subset a las matrices para su renderizado y selección
+//     items.ifcModels.push(subset);
+//     items.pickableIfcModels.push(subset);
+// }
+
+// function createCustomMaterial() {
+//     // Crear un nuevo material personalizado
+//     const material = new MeshBasicMaterial({
+//     //   color: 0x00ffff, // Color blanco
+//       transparent: false, // Hacer el material transparente
+//       opacity: 0.9, // Configurar la opacidad en 0 para ocultar la parte sólida
+//       wireframe: true, // Activar el modo alámbrico (renderizado de bordes)
+//     });
+//     return material;
+//   }
+
 
 window.ondblclick = async () => {
     const found = await viewer.IFC.selector.pickIfcItem(false);
@@ -2056,7 +1892,72 @@ viewer.IFC.selector.unpickIfcItems();
 let globalIds=[];
 let globalId;
 
+
+async function edit(nombreMod, expressID ) {
+    const manager = viewer.IFC.loader.ifcManager;
+
+    // OBJETO CON SUS PROPIEDADES NATIVAS con el expressID específico
+    const objProps = await viewer.IFC.getProperties(model.modelID, expressID, true, false);
+    console.log(objProps);
+    
+    objProps.Name.value = nombreMod;
+    console.log(objProps);
+
+    // Guardar los cambios en el archivo IFC
+    manager.ifcAPI.WriteLine(0, objProps);
+    const data = await manager.ifcAPI.ExportFileAsIFC(0);
+
+    // Crear el archivo modificado
+    const blob = new Blob([data]);
+    const file = new File([blob], "modified.ifc");
+
+    // Descargar el archivo modificado
+    const link = document.createElement('a');
+    link.download = 'modified.ifc';
+    link.href = URL.createObjectURL(file);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+}
+
+
 container.onclick = async () => {
+    
+    if(isClickedModifica){
+        const foundM = await viewer.IFC.selector.pickIfcItem(false);
+            if (foundM === null || foundM === undefined) {
+                const container = document.getElementById('propiedades-container');
+                container.style.visibility = "hidden";
+                viewer.IFC.selector.unpickIfcItems();
+                return;
+            }
+            const expressID = foundM.id;
+            console.log(expressID);
+            const textoMod = document.getElementById("textoModifica");
+            textoMod.style.display = "none";
+            let nombreMod=prompt("Nuevo nombre a la pieza seleccionada:");
+            let nombreAntiguo = null;
+
+            for (const precast of precastElements) {
+                if (precast.expressID === expressID) {
+                    nombreAntiguo = precast.ART_Pieza;
+                    break;
+                }
+            }
+
+            const respuesta = confirm(`¿Desea cambiar el nombre de ${nombreAntiguo} por ${nombreMod}?`);
+            if (respuesta) {
+
+                edit(nombreMod, expressID);
+                console.log(`El usuario seleccionó Sí/Yes para cambiar el nombre de ${expressID} por ${nombreMod}`);
+            } else {
+                    console.log(`El usuario seleccionó No/Cancel para cambiar el nombre de ${expressID} por ${nombreMod}`);
+}
+
+
+
+        
+    }
     const found = await viewer.IFC.selector.pickIfcItem(false);
     if (found === null || found === undefined) {
         const container = document.getElementById('propiedades-container');
@@ -2082,6 +1983,7 @@ container.onclick = async () => {
         }
     }
     muestraPropiedades(ART_Pieza, ART_Longitud, ART_Ancho, ART_Alto, ART_Peso);
+
 };
 
 function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Ancho, ART_Alto, ART_Peso) {
@@ -2481,7 +2383,7 @@ GUI.importer.addEventListener("change", function(e) {
         clasificarPorTipoTransporte();
         actualizaDesplegables();
         creaTablaTransporte();
-
+        
         nuevoCamionEstructuraBtn.click();
     })
     .catch(error => console.error(error));
@@ -2657,18 +2559,16 @@ function generaBotonesNumCamion(camionesUnicos) {
         btn.setAttribute("class","btnNumCamion")
         btn.textContent = camion;
 
-        let todosTienenPosicion = precastElements.filter(function(precastElement) {
-            return parseInt(precastElement.Camion) === camion;
-          }).every(function(precastElement) {
-            return precastElement.hasOwnProperty('Posicion') && precastElement.Posicion !== "";
-          });
-          
-          if (todosTienenPosicion) {
+        let todosTienenPosicion = precastElements.filter(function(precastElement) { 
+                return parseInt(precastElement.Camion) === camion;
+            }).every(function(precastElement) {
+                // verifica si todos los elementos cumplen qeu existe valor en posicion
+                return precastElement.hasOwnProperty('Posicion') && precastElement.Posicion !== "";
+            });
+        if (todosTienenPosicion) {
             btn.style.border = "2px solid blue";
-btn.style.boxShadow = "0 0 5px blue";
-          }
-          
-
+            btn.style.boxShadow = "0 0 5px blue";
+        }
 
         precastElements.forEach(function(precastElement) {
             if (parseInt(precastElement.Camion) === camion) {
@@ -2997,7 +2897,6 @@ function generarTabla(expressIDs, camion) {
     contenedorTabla.appendChild(tabla);
     thElemento.classList.add('cabecera-tabla');
     divTabla.appendChild(contenedorTabla);
-   
 }
 
 let ultimaCeldaSeleccionada = null;
@@ -3315,35 +3214,35 @@ function actualizarTablaDerecha() {
                 const longitud = parseFloat(elemento.ART_Longitud);
                 const ancho = parseFloat(elemento.ART_Ancho);
 
-                const textoPeso = document.createElement('span');
-                textoPeso.style.fontSize = '12px'; 
-                textoPeso.style.fontWeight = 'bold'; 
-                textoPeso.innerText = ` P: ${peso.toFixed(2)}`;
-
                 const textoPieza = document.createElement('span');
-                textoPieza.style.fontSize = '12px'; 
+                textoPieza.style.fontSize = '14px'; 
                 textoPieza.style.fontWeight = 'bold'; 
                 textoPieza.innerText = ` ${pieza}`;
                 cajonDerecha.innerHTML = '';
 
                 const textoLongitud = document.createElement('span');
                 textoLongitud.style.fontSize = '12px';
-                textoLongitud.style.fontWeight = 'bold';
                 textoLongitud.innerText = `L: ${longitud.toFixed(2)}`;
 
+                
                 const textoAncho = document.createElement('span');
                 textoAncho.style.fontSize = '12px';
-                textoAncho.style.fontWeight = 'bold';
                 textoAncho.innerText = `A: ${ancho.toFixed(2)}`;
+
+                const textoPeso = document.createElement('span');
+                textoPeso.style.fontSize = '12px'; 
+                textoPeso.innerText = ` P: ${peso.toFixed(2)}`;
                 
                 cajonDerecha.style.lineHeight = '0.8'; 
-                cajonDerecha.appendChild(textoPeso);
-                cajonDerecha.appendChild(document.createElement('br')); 
                 cajonDerecha.appendChild(textoPieza);
                 cajonDerecha.appendChild(document.createElement('br'));
                 cajonDerecha.appendChild(textoLongitud);
                 cajonDerecha.appendChild(document.createElement('br'));
                 cajonDerecha.appendChild(textoAncho);
+                cajonDerecha.appendChild(document.createElement('br')); 
+                cajonDerecha.appendChild(textoPeso);
+                cajonDerecha.appendChild(document.createElement('br')); 
+                
 
                 pesoTotal += peso;
             } else {

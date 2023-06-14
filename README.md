@@ -85,3 +85,7 @@ checktiposIfcContainer.style.display = 'block';
 
  const ifcCompleto=document.getElementById('ifcCompleto');
         ifcCompleto.style.display="block";
+
+
+        const btnModifica= document.getElementById("modificaProp")
+        btnModifica.style.display = "block";

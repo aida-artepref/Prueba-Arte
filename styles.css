@@ -431,7 +431,7 @@ ul, #myUL {
   }
 
   ul {
-    max-height: 600px;
+    max-height: 595px;
     overflow-y: auto;
     font-size: 0.95rem;
   }
@@ -813,10 +813,9 @@ input[type="checkbox"] {
   border-bottom: 1px solid black;
 }
 .borde-grueso {
-  border-width: 4px !important; // establece un borde de 4 píxeles de ancho en los bordes verticales de las celdas
+  border-width: 4px !important; 
+
 }
-
-
 td.cajon {
   position: relative;
   text-align: center;
