@@ -1893,109 +1893,64 @@ let globalIds=[];
 let globalId;
 
 
-// async function edit(nombreMod, expressID ) {
-//     const manager = viewer.IFC.loader.ifcManager;
-
-//     // OBJETO CON SUS PROPIEDADES NATIVAS con el expressID específico
-//     const objProps = await viewer.IFC.getProperties(model.modelID, expressID, true, false);
-//     console.log(objProps);
+async function getPropSetExpressID(expressID) {
     
-//     objProps.Name.value = nombreMod;
-//     console.log(objProps);
-
-//     // Guardar los cambios en el archivo IFC
-//     manager.ifcAPI.WriteLine(0, objProps);
-//     const data = await manager.ifcAPI.ExportFileAsIFC(0);
-
-//     // Crear el archivo modificado
-//     const blob = new Blob([data]);
-//     const file = new File([blob], "modified.ifc");
-
-//     // Descargar el archivo modificado
-//     const link = document.createElement('a');
-//     link.download = 'modified.ifc';
-//     link.href = URL.createObjectURL(file);
-//     document.body.appendChild(link);
-//     link.click();
-//     link.remove();
-// }
-
-// async function edita(event) {
-//     const manager = viewer.IFC.loader.ifcManager;
-//     const storeysIDs = await manager.getAllItemsOfType(0, IFCBUILDINGSTOREY, false);
-//     const storeyID = storeysIDs[0];
-//     const storey =  await manager.getItemProperties(0, storeyID);
-//     console.log(storey);
-//     storey.Name.value = "Nivel 1 - Editado00000000000";
-//     manager.ifcAPI.WriteLine(0, storey);
-
-//     const data = await manager.ifcAPI.ExportFileAsIFC(0);
-//     const blob = new Blob([data]);
-//     const file = new File([blob], "modified.ifc");
-
-//     const link = document.createElement('a');
-//     link.download = 'modified.ifc';
-//     link.href = URL.createObjectURL(file);
-//     document.body.appendChild(link);
-//     link.click();
-//     link.remove();
-// }
+    const properties = await viewer.IFC.getProperties(0, expressID, true, true);
+    const propertySets = properties.psets;
+    const propertySetsArray = Object.values(propertySets);
+    if (propertySetsArray.length > 0) {
+        const ultimaPropertySet = propertySetsArray[propertySetsArray.length - 1];
+        return ultimaPropertySet;
+    }
+    return null; 
+}
 
 async function edita2(nombreMod, expressID ) {
+
     const manager = viewer.IFC.loader.ifcManager;
+    
     const assemblyIDs = await manager.getAllItemsOfType(0, IFCELEMENTASSEMBLY, false);
-
     let foundElement = null;
-
     const foundObject = precastElements.find(obj => obj.expressID === expressID);
     if (foundObject) {
         foundElement = foundObject.BEP_expressID;
     }
     const position = assemblyIDs.indexOf(foundElement);
-
     const assemblyID = assemblyIDs[position];
 
-    //const props = await viewer.IFC.getProperties (0, node.expressID, true, true);
-    const assembly =  await manager.getItemProperties(0, assemblyID, true, true);
-    // const mats =assembly.mats;
-    // const psets =assembly.psets;
-    // const type= assembly.type;
+    // const assembly =  await manager.getItemProperties(0, assemblyID, true, true);
+    // console.log(assembly);
+
+    const propertySets = await getPropSetExpressID(assemblyID);
+    console.log(propertySets);
+
+
+    if (propertySets.HasProperties.length >= 11) {
+        const artPiezaProperty = propertySets.HasProperties[9].NominalValue;
+        console.log("Valor anterior de ART_Pieza:", artPiezaProperty.value);
     
-    // delete assembly.mats;
-    // delete assembly.psets;
-    // delete assembly.type;
+        artPiezaProperty.value = nombreMod;
+        console.log("Nuevo valor de ART_Pieza:", artPiezaProperty.value);
+    }
 
-    console.log(assembly);
-    assembly.Name.value = nombreMod ;
-    manager.ifcAPI.WriteLine(0, assembly);
+    manager.ifcAPI.WriteLine(0, propertySets);
 
-    // const data = await manager.ifcAPI.ExportFileAsIFC(0);
-    // const blob = new Blob([data]);
-    // const file = new File([blob], "modified.ifc");
-
-    // const link = document.createElement('a');
-    // link.download = 'modified.ifc';
-    // link.href = URL.createObjectURL(file);
-    // document.body.appendChild(link);
-    // link.click();
-    // link.remove();
     const label = document.getElementById("file-name");
-const fileName = label.innerText;
-const currentDate = new Date();
-const formattedDate = currentDate.toISOString().split("T")[0]; // Formato YYYY-MM-DD
-const modifiedFileName = fileName.substring(0, fileName.indexOf(".ifc")) + "Mod_" + formattedDate + ".ifc";
+    const fileName = label.innerText;
+    const currentDate = new Date();
+    const formattedDate = currentDate.toISOString().split("T")[0]; // Formato YYYY-MM-DD
+    const modifiedFileName = fileName.substring(0, fileName.indexOf(".ifc")) + "Mod_" + formattedDate + ".ifc";
 
-const data = await manager.ifcAPI.ExportFileAsIFC(0);
-const blob = new Blob([data]);
-const file = new File([blob], modifiedFileName);
+    const data = await manager.ifcAPI.ExportFileAsIFC(0);
+    const blob = new Blob([data]);
+    const file = new File([blob], modifiedFileName);
 
-const link = document.createElement('a');
-link.download = modifiedFileName;
-link.href = URL.createObjectURL(file);
-document.body.appendChild(link);
-link.click();
-link.remove();
-
+    const link = document.createElement('a');
+    link.download = modifiedFileName;
+    link.href = URL.createObjectURL(file);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
 
 }
 
