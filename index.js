@@ -701,6 +701,11 @@ window.ondblclick = async () => {
     const id=found.id;
     const foundElement = precastElements.find(element => element.expressID === id);
     if (foundElement.ifcType !== "IFCBUILDINGELEMENTPROXY") {
+        const nuevoCamionCerramiento = document.getElementById("nuevoCamionCerramiento");
+        if (foundElement.ART_Pieza.startsWith("T") && !nuevoCamionCerramiento.classList.contains("seleccionado")) {
+            alert("Panel, SOLO en camion de cerramiento C.");
+            return; 
+        }
         hideClickedItem(viewer);
         let idString =id.toString();
         removeLabels(idString);
@@ -1589,10 +1594,31 @@ listaElementos.addEventListener('dblclick', function(event) {
 
         }
         else {
-            showAllItems(viewer, allIDs);
-            const divCheck = document.getElementById("checktiposIfc");
-            const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");// Obtener todos los checkbox dentro del div
-            checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
+            // const matchingIds = [];
+            // const checkedArtPiezas = [];
+            // const divCheck = document.getElementById("checktiposIfc");
+            // const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");
+            
+            // checkboxes.forEach(function (checkbox) {
+            //     if (checkbox.checked) {
+            //     checkedArtPiezas.push(checkbox.getAttribute('data-art-pieza'));
+            //     }
+            // });
+
+            // precastElements.forEach(function (element) {
+            //     if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
+            //     return;
+            //     }
+            //     if (checkedArtPiezas.includes(element.ART_Pieza.charAt(0).toUpperCase())) {
+            //     if (!element.hasOwnProperty('Camion') || element.Camion === "") {
+            //         matchingIds.push(element.expressID);
+            //     }
+            //     }
+            // });
+
+            // showAllItems(viewer, matchingIds);
+                        
+            // checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
         }
     }
     let numCamion=parseInt(document.getElementById("numCamion").textContent);
@@ -1615,60 +1641,34 @@ listaElementos.addEventListener('dblclick', function(event) {
     const pesoCamion = document.getElementById("pesoCamion");
     pesoCamion.textContent =  pesoTotal.toString();
     updateMissingCamionCount();
+    updateElementVisor();
 });
 
-
-
-// async function listarOcultos(elementosOcultos) {
-//     const itemList = document.querySelector(".item-list-elementos-cargados");
-//     itemList.innerHTML = "";
-//     const table = document.createElement("table");
-//     table.classList.add("table");
+function updateElementVisor() {
+    const matchingIds = [];
+    const checkedArtPiezas = [];
+    const divCheck = document.getElementById("checktiposIfc");
+    const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");
     
-//     const thead = document.createElement("thead");
-//     thead.innerHTML = "<tr><th>ID</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Longitud</th></tr>";
-//     table.appendChild(thead);
+    checkboxes.forEach(function (checkbox) {
+        if (checkbox.checked) {
+            checkedArtPiezas.push(checkbox.getAttribute('data-art-pieza'));
+        }
+        });
     
-//     const tbody = document.createElement("tbody");
+        precastElements.forEach(function (element) {
+            if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
+                return;
+            }
+            if (checkedArtPiezas.includes(element.ART_Pieza.charAt(0).toUpperCase())) {
+                if (!element.hasOwnProperty('Camion') || element.Camion === "") {
+                matchingIds.push(element.expressID);
+                }
+            }
+        });
     
-//     for (let i = elementosOcultos.length - 1; i >= 0; i--) {  // Muestra los elementos en orden inverso
-//         const id = elementosOcultos[i];
-//         const elemento = precastElements.find(elemento => elemento.expressID === id);
-//         if (!elemento) {
-//             throw new Error(`No se encontró el elemento con expressID = ${id}`);
-//         }
-//         const tr = document.createElement("tr");
-//         tr.classList.add("item-list-elemento");
-//         const peso = parseFloat(elemento.ART_Peso).toFixed(2);
-//         const altura = parseFloat(elemento.ART_Alto).toFixed(2);
-//         const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
-//         const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
-        
-//         const alturaCell = document.createElement("td");
-//         alturaCell.classList.add("altura");
-//         if (parseFloat(altura) > 2.60) {
-//             alturaCell.style.color = "red";
-//         }
-//         alturaCell.textContent = altura;
-        
-//         const longitudCell = document.createElement("td");
-//         longitudCell.classList.add("longitud");
-//         if (parseFloat(longitud) > 13.60) {
-//             longitudCell.style.color = "red";
-//         }
-//         longitudCell.textContent = longitud;
-        
-//         tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.tipoTransporte}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
-//         tr.appendChild(alturaCell);
-//         tr.innerHTML += `<td>${ancho}</td>`;
-//         tr.appendChild(longitudCell);
-        
-//         tbody.appendChild(tr);
-//     }
-//     table.appendChild(tbody);
-//     itemList.appendChild(table);
-//     $(table).tablesorter(); // para ordenar la tabla si pulsamos en sus encabezados
-// }
+        showAllItems(viewer, matchingIds);
+    }
 let camionesActuales = [];
 let coloresCamiones = {};
 
@@ -1918,21 +1918,19 @@ async function edita2(nombreMod, expressID ) {
     const position = assemblyIDs.indexOf(foundElement);
     const assemblyID = assemblyIDs[position];
 
-    // const assembly =  await manager.getItemProperties(0, assemblyID, true, true);
-    // console.log(assembly);
-
     const propertySets = await getPropSetExpressID(assemblyID);
-    console.log(propertySets);
-
+    // console.log(propertySets);
 
     if (propertySets.HasProperties.length >= 11) {
         const artPiezaProperty = propertySets.HasProperties[9].NominalValue;
-        console.log("Valor anterior de ART_Pieza:", artPiezaProperty.value);
+        // console.log("Valor anterior de ART_Pieza:", artPiezaProperty.value);
     
         artPiezaProperty.value = nombreMod;
-        console.log("Nuevo valor de ART_Pieza:", artPiezaProperty.value);
+        // console.log("Nuevo valor de ART_Pieza:", artPiezaProperty.value);
     }
-
+    const assembly =  await manager.getItemProperties(0, assemblyID, true, true);
+    assembly.Name.value = nombreMod ;
+    manager.ifcAPI.WriteLine(0, assembly);
     manager.ifcAPI.WriteLine(0, propertySets);
 
     const label = document.getElementById("file-name");
@@ -1951,7 +1949,6 @@ async function edita2(nombreMod, expressID ) {
     document.body.appendChild(link);
     link.click();
     link.remove();
-
 }
 
 container.onclick = async () => {
@@ -1965,8 +1962,6 @@ container.onclick = async () => {
                 return;
             }
             const expressID = foundM.id;
-            console.log(expressID);
-
             const textoMod = document.getElementById("textoModifica");
             textoMod.style.display = "none";
             let nombreMod=prompt("Nuevo nombre a la pieza seleccionada:");
@@ -3023,6 +3018,7 @@ function resaltarTablaNueva(tabla) {
         } 
     }
 }
+
 function eliminarTabla(camion) {
     const divTabla = document.getElementById("datosCamiones");
     const thElements = divTabla.getElementsByTagName("th");
@@ -3114,7 +3110,7 @@ function posicionesCamion(tabla, cabeceraValor) {
                     if (cajon.innerText === "") {
                         asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
                         actualizarTablaDerecha();
-                        // simularEventoClic();
+                        simularEventoClic();
                     }
                     
                 });
