@@ -97,6 +97,27 @@ btnModifica.addEventListener('click', async function() {
 let modelCopyCompleto = null; 
 const btnIfcCompleto=document.getElementById('ifcCompleto');
 let ifcCompletoClicked = false;
+// btnIfcCompleto.addEventListener('click', async function(){
+//     ifcCompletoClicked=!ifcCompletoClicked;
+//     if(ifcCompletoClicked){
+//         btnIfcCompleto.style.background='gray';
+//         if (modelCopyCompleto) {
+//             scene.remove(modelCopyCompleto); 
+//         }
+//         modelCopyCompleto = new Mesh(
+//         model.geometry,
+//             new MeshLambertMaterial({
+//                 transparent: true,
+//                 opacity: 0.4,
+//                 color: 0x54a2c4,
+//             })
+//         );
+//         scene.add(modelCopyCompleto);
+//     }else{
+//         btnIfcCompleto.style.background='';
+//         scene.remove(modelCopyCompleto); 
+//     }
+// })
 btnIfcCompleto.addEventListener('click', async function(){
     ifcCompletoClicked=!ifcCompletoClicked;
     if(ifcCompletoClicked){
@@ -108,7 +129,7 @@ btnIfcCompleto.addEventListener('click', async function(){
         model.geometry,
             new MeshLambertMaterial({
                 transparent: true,
-                opacity: 0.4,
+                opacity: 0.9,
                 color: 0x54a2c4,
             })
         );
@@ -118,7 +139,6 @@ btnIfcCompleto.addEventListener('click', async function(){
         scene.remove(modelCopyCompleto); 
     }
 })
-
 let expressIDsUniones = []; 
 
 const btnFiltrarUnion = document.getElementById('filtraUniones');
@@ -1905,8 +1925,36 @@ async function getPropSetExpressID(expressID) {
     return null; 
 }
 
-async function edita2(nombreMod, expressID ) {
+async function edita2( expressID ) {
+    
+    let nombreAntiguo = null;
+    for (const precast of precastElements) {
+        if (precast.expressID === expressID) {
+            nombreAntiguo = precast.ART_Pieza;
+            break;
+        }
+    }
+    let nombreMod = prompt(`El nuevo número que se asignará a: ${nombreAntiguo}`);
+    const nombreModValido=validaNombreMod(nombreMod);
+    if (!nombreModValido){
+        alert("Nuevo nombre asigando a la pieza no valido. Solo debes introducir el nuevo numero");
+        return;
+    }
+    if(nombreMod===null || nombreMod===''|| nombreMod== undefined){
+        return;
+    }
 
+    const resultadoNombreAntiguo = comprobarNombreModificado(nombreAntiguo)
+    const letraNombreAntiguo=resultadoNombreAntiguo.letras;
+    const nombreNuevoNL=letraNombreAntiguo+nombreMod;
+    const respuesta = confirm(`¿Desea cambiar el nombre de ${nombreAntiguo} por ${nombreNuevoNL}?`);
+            if (respuesta) {
+                
+                console.log(`El usuario seleccionó Sí/Yes para cambiar el nombre de ${expressID} por ${nombreMod}`);
+            } else {
+                    console.log(`El usuario seleccionó No/Cancel para cambiar el nombre de ${expressID} por ${nombreMod}`);
+                    return;
+            } 
     const manager = viewer.IFC.loader.ifcManager;
     
     const assemblyIDs = await manager.getAllItemsOfType(0, IFCELEMENTASSEMBLY, false);
@@ -1917,19 +1965,14 @@ async function edita2(nombreMod, expressID ) {
     }
     const position = assemblyIDs.indexOf(foundElement);
     const assemblyID = assemblyIDs[position];
-
     const propertySets = await getPropSetExpressID(assemblyID);
-    // console.log(propertySets);
 
     if (propertySets.HasProperties.length >= 11) {
         const artPiezaProperty = propertySets.HasProperties[9].NominalValue;
-        // console.log("Valor anterior de ART_Pieza:", artPiezaProperty.value);
-    
-        artPiezaProperty.value = nombreMod;
-        // console.log("Nuevo valor de ART_Pieza:", artPiezaProperty.value);
+        artPiezaProperty.value = nombreNuevoNL;
     }
     const assembly =  await manager.getItemProperties(0, assemblyID, true, true);
-    assembly.Name.value = nombreMod ;
+    assembly.Name.value = nombreNuevoNL ;
     manager.ifcAPI.WriteLine(0, assembly);
     manager.ifcAPI.WriteLine(0, propertySets);
 
@@ -1951,6 +1994,23 @@ async function edita2(nombreMod, expressID ) {
     link.remove();
 }
 
+function validaNombreMod(nombreMod) {
+    const regex = /^\d{1,3}$/;
+    return regex.test(nombreMod);
+}
+
+function comprobarNombreModificado(nombreMod){
+    const letras = nombreMod.match(/[a-zA-Z]{1,2}/); // Buscar una o dos letras
+    const numeros = nombreMod.match(/\d{1,2}/g); // Buscar uno o dos números
+    
+    const parteLetras = letras ? letras[0] : '';
+    const parteNumeros = numeros ? numeros.join('') : '';
+    return {
+        letras: parteLetras,
+        numeros: parteNumeros
+    };
+}
+
 container.onclick = async () => {
     
     if(isClickedModifica){
@@ -1964,27 +2024,8 @@ container.onclick = async () => {
             const expressID = foundM.id;
             const textoMod = document.getElementById("textoModifica");
             textoMod.style.display = "none";
-            let nombreMod=prompt("Nuevo nombre a la pieza seleccionada:");
-            let nombreAntiguo = null;
-
-            for (const precast of precastElements) {
-                if (precast.expressID === expressID) {
-                    nombreAntiguo = precast.ART_Pieza;
-                    break;
-                }
-            }
-
-            const respuesta = confirm(`¿Desea cambiar el nombre de ${nombreAntiguo} por ${nombreMod}?`);
-            if (respuesta) {
-                edita2(nombreMod, expressID);
-                console.log(`El usuario seleccionó Sí/Yes para cambiar el nombre de ${expressID} por ${nombreMod}`);
-            } else {
-                    console.log(`El usuario seleccionó No/Cancel para cambiar el nombre de ${expressID} por ${nombreMod}`);
-}
-
-
-
-        
+            edita2( expressID )
+       
     }
     const found = await viewer.IFC.selector.pickIfcItem(false);
     if (found === null || found === undefined) {
