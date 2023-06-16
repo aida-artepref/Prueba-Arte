@@ -2547,6 +2547,7 @@ async function mostrarElementosRestantes(){
         }
     }
     camionesUnicos = obtenerValorCamion(precastElements);
+    
     generaBotonesNumCamion(camionesUnicos);
     viewer.IFC.loader.ifcManager.clearSubset(0,"full-model-subset");
     subset = getWholeSubset(viewer, model, allIDs);
@@ -2564,6 +2565,7 @@ function obtenerValorCamion(precastElements) {
     });
     return Array.from(valoresCamion);
 }
+
 
 let activeExpressIDs = [];
 
@@ -2584,8 +2586,35 @@ function generaBotonesNumCamion(camionesUnicos) {
     const checkboxGroup = document.getElementsByClassName("checkbox-group");
     camionesUnicos.forEach(function(camion) {
         const btn = document.createElement("button");
-        btn.setAttribute("class","btnNumCamion")
-        btn.textContent = camion;
+        btn.setAttribute("class", "btnNumCamion");
+        
+        // Obtener el tipo de transporte correspondiente al camión actual
+        const tipoTransporte = precastElements.find(elemento => parseInt(elemento.Camion) === camion)?.tipoTransporte;
+        
+        // Crear un elemento <div> para contener los textos
+        const divContenedor = document.createElement("div");
+        
+        // Crear un elemento <span> para el texto del camión
+        const spanCamion = document.createElement("span");
+        spanCamion.textContent = camion;
+        
+        // Crear un elemento <br> para el salto de línea
+        const br = document.createElement("br");
+        
+        // Crear un elemento <span> para el texto del tipo de transporte
+        const spanTipoTransporte = document.createElement("span");
+        spanTipoTransporte.textContent = tipoTransporte;
+        
+        // Agregar los elementos al contenedor
+        divContenedor.appendChild(spanCamion);
+        divContenedor.appendChild(br);
+        divContenedor.appendChild(spanTipoTransporte);
+        
+        // Agregar el contenedor al botón
+        btn.appendChild(divContenedor);
+        
+        // Agregar el botón al contenedor de botones
+        btnNumCamiones.appendChild(btn);
 
         let todosTienenPosicion = precastElements.filter(function(precastElement) { 
                 return parseInt(precastElement.Camion) === camion;
