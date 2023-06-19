@@ -1,4 +1,4 @@
-import { Color, Loader, MeshBasicMaterial, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
+import { Color, Loader, MeshBasicMaterial, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial,MultiMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IFCELEMENTASSEMBLY, IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
@@ -125,14 +125,36 @@ btnIfcCompleto.addEventListener('click', async function(){
         if (modelCopyCompleto) {
             scene.remove(modelCopyCompleto); 
         }
-        modelCopyCompleto = new Mesh(
-        model.geometry,
-            new MeshLambertMaterial({
-                transparent: true,
-                opacity: 0.9,
-                color: 0x54a2c4,
-            })
-        );
+        // modelCopyCompleto = new Mesh(
+        // model.geometry,
+        //     new MeshLambertMaterial({
+        //         transparent: true,
+        //         opacity: 0.5,
+        //         color: 0x54a2c4,
+        //     })
+        // );
+        // modelCopyCompleto = new Mesh(
+        //     model.geometry,
+        //         new MeshBasicMaterial({
+        //             transparent: true,
+        //         opacity: 0.5,
+        //         color: 0x54a2c4,
+        //             wireframe: true,
+
+        //         })
+        //     );
+        const materialSolid = new MeshLambertMaterial({
+            
+            transparent: true,
+            opacity: 0.5,
+            color: 0x54a2c4,
+        });
+        
+        const materialLine = new LineBasicMaterial({ color: 0x000000 });
+        
+        const multiMaterial = new MultiMaterial([materialSolid, materialLine]);
+        
+        modelCopyCompleto = new Mesh(model.geometry, multiMaterial);
         scene.add(modelCopyCompleto);
     }else{
         btnIfcCompleto.style.background='';
@@ -1914,14 +1936,20 @@ let globalId;
 
 
 async function getPropSetExpressID(expressID) {
-    
     const properties = await viewer.IFC.getProperties(0, expressID, true, true);
     const propertySets = properties.psets;
     const propertySetsArray = Object.values(propertySets);
+
     if (propertySetsArray.length > 0) {
         const ultimaPropertySet = propertySetsArray[propertySetsArray.length - 1];
-        return ultimaPropertySet;
+        const atributesPropertySet = propertySetsArray[propertySetsArray.length - 2];
+
+        return {
+            ultimaPropertySet: ultimaPropertySet,
+            atributesPropertySet: atributesPropertySet
+        };
     }
+
     return null; 
 }
 
@@ -1937,14 +1965,14 @@ async function edita2( expressID ) {
     let nombreMod = prompt(`El nuevo número que se asignará a: ${nombreAntiguo}`);
     const nombreModValido=validaNombreMod(nombreMod);
     if (!nombreModValido){
-        alert("Nuevo nombre asigando a la pieza no valido. Solo debes introducir el nuevo numero");
+        alert("Nuevo nombre asigando a la pieza no valido. Solo debes introducir el nuevo numero de tres cifras");
         return;
     }
     if(nombreMod===null || nombreMod===''|| nombreMod== undefined){
         return;
     }
 
-    const resultadoNombreAntiguo = comprobarNombreModificado(nombreAntiguo)
+    const resultadoNombreAntiguo = separaLetrasNum(nombreAntiguo)
     const letraNombreAntiguo=resultadoNombreAntiguo.letras;
     const nombreNuevoNL=letraNombreAntiguo+nombreMod;
     const respuesta = confirm(`¿Desea cambiar el nombre de ${nombreAntiguo} por ${nombreNuevoNL}?`);
@@ -1965,16 +1993,39 @@ async function edita2( expressID ) {
     }
     const position = assemblyIDs.indexOf(foundElement);
     const assemblyID = assemblyIDs[position];
-    const propertySets = await getPropSetExpressID(assemblyID);
+    const propertySetsTotal = await getPropSetExpressID(assemblyID);
+    const propertySets=propertySetsTotal.ultimaPropertySet;
+    const propertySetsPrecast=propertySetsTotal.atributesPropertySet;
 
-    if (propertySets.HasProperties.length >= 11) {
-        const artPiezaProperty = propertySets.HasProperties[9].NominalValue;
-        artPiezaProperty.value = nombreNuevoNL;
+    // console.log(propertySets)
+    // console.log(propertySetsPrecast)
+   
+ 
+    for (let i = 0; i < propertySetsPrecast.HasProperties.length; i++) {
+        if (propertySetsPrecast.HasProperties[i].Name.value === "ElementNumber") {
+            let numMod=parseInt(nombreMod);
+            propertySetsPrecast.HasProperties[i].NominalValue.value = numMod;
+            break;
+        }
+    } 
+    for (let i = 0; i < propertySets.HasProperties.length; i++) {
+        if (propertySets.HasProperties[i].Name.value === "ART_Pieza") {
+
+            propertySets.HasProperties[i].NominalValue.value = nombreNuevoNL;
+            break;
+        }
     }
+    // if (propertySets.HasProperties.length >= 11) {
+    //     const artPiezaProperty = propertySets.HasProperties[9].NominalValue;
+    //     artPiezaProperty.value = nombreNuevoNL;
+    // }
     const assembly =  await manager.getItemProperties(0, assemblyID, true, true);
     assembly.Name.value = nombreNuevoNL ;
     manager.ifcAPI.WriteLine(0, assembly);
     manager.ifcAPI.WriteLine(0, propertySets);
+     manager.ifcAPI.WriteLine(0, propertySetsPrecast);
+
+    updatePrecastElementsBeforeEdita(nombreNuevoNL, expressID);
 
     const label = document.getElementById("file-name");
     const fileName = label.innerText;
@@ -1992,6 +2043,14 @@ async function edita2( expressID ) {
     document.body.appendChild(link);
     link.click();
     link.remove();
+    
+}
+
+function updatePrecastElementsBeforeEdita(nombreNuevoNL, expressID) {
+    const foundObject = precastElements.find(obj => obj.expressID === expressID);
+    if (foundObject) {
+        foundObject.ART_Pieza = nombreNuevoNL;
+    }
 }
 
 function validaNombreMod(nombreMod) {
@@ -1999,9 +2058,9 @@ function validaNombreMod(nombreMod) {
     return regex.test(nombreMod);
 }
 
-function comprobarNombreModificado(nombreMod){
-    const letras = nombreMod.match(/[a-zA-Z]{1,2}/); // Buscar una o dos letras
-    const numeros = nombreMod.match(/\d{1,2}/g); // Buscar uno o dos números
+function separaLetrasNum(nombreMod){
+    const letras = nombreMod.match(/[a-zA-Z]{1,2}/); //  una o dos letras
+    const numeros = nombreMod.match(/\d{1,2,3}/g); //  uno  dos o tres dígitos
     
     const parteLetras = letras ? letras[0] : '';
     const parteNumeros = numeros ? numeros.join('') : '';
