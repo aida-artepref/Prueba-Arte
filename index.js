@@ -72,7 +72,7 @@ async function loadModel(url) {
     //loader.ifcManager.prop
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
-    
+    viewer.context.fitToFrame();
     await cargaGlobalIdenPrecast();
     await  crearBotonPrecas(); 
     // verNumPrecast();
@@ -97,27 +97,7 @@ btnModifica.addEventListener('click', async function() {
 let modelCopyCompleto = null; 
 const btnIfcCompleto=document.getElementById('ifcCompleto');
 let ifcCompletoClicked = false;
-// btnIfcCompleto.addEventListener('click', async function(){
-//     ifcCompletoClicked=!ifcCompletoClicked;
-//     if(ifcCompletoClicked){
-//         btnIfcCompleto.style.background='gray';
-//         if (modelCopyCompleto) {
-//             scene.remove(modelCopyCompleto); 
-//         }
-//         modelCopyCompleto = new Mesh(
-//         model.geometry,
-//             new MeshLambertMaterial({
-//                 transparent: true,
-//                 opacity: 0.4,
-//                 color: 0x54a2c4,
-//             })
-//         );
-//         scene.add(modelCopyCompleto);
-//     }else{
-//         btnIfcCompleto.style.background='';
-//         scene.remove(modelCopyCompleto); 
-//     }
-// })
+
 btnIfcCompleto.addEventListener('click', async function(){
     ifcCompletoClicked=!ifcCompletoClicked;
     if(ifcCompletoClicked){
@@ -265,17 +245,11 @@ inputText.addEventListener('change', function() {
                 if (modelCopy) {
                     scene.remove(modelCopy); 
                 }
-                modelCopy = new Mesh(
-                    model.geometry,
-                    new MeshLambertMaterial({
-                        transparent: true,
-                        opacity: 0.1,
-                        color: 0x77aaff,
-                    })
-                );
-                scene.add(modelCopy);
+                
+                
                 showAllItems(viewer, expressIDsInput);
             } else {
+                infoBusquedas.querySelector("p").textContent = "";
                 infoBusquedas.querySelector("p").textContent = "No existe el elemento: " + elementoBuscado;
             }
             if (checkBox.checked) {
@@ -808,6 +782,7 @@ function hideAllItems(viewer, ids) {
         );
     }); 
 }
+
 function hideAllItem(viewer, id) {
         viewer.IFC.loader.ifcManager.removeFromSubset(
             0,
@@ -2218,9 +2193,21 @@ async function precastProperties(precast,modelID, precastID){
     const props = await viewer.IFC.getProperties(modelID, precastID, true, true);
 
     const mats =props.mats;
+    // console.log("PROPS MATS "+mats)
     const psets =props.psets;
     const type= props.type;
-    
+    // for (let mat in mats){
+        
+    //     getName = mats[mat].Name.value;
+        
+    //     let properties = mats[mat].HasProperties;
+    //     if (mats[mat] !== IfcElementQuantity){
+    //         for (let property in properties){
+    //             console.log("MATS "+properties[property].Name.value, properties[property].NominalValue.value, true);
+    //         }
+    //     }
+    // }
+
     delete props.mats;
     delete props.psets;
     delete props.type;
