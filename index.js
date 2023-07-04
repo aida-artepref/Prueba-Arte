@@ -80,6 +80,33 @@ async function loadModel(url) {
     divCargas.style.display = "block";
 }
 
+let modelID=-1
+let selectID=-1
+let multiSelectID=[]
+let materialSelect= new MeshLambertMaterial({
+    transparent: true,
+    opacity: 0.9,
+    color: 0x54a2c4,
+});
+
+let keyCtrl = false;
+function onKeyDown(event) {
+    if (event.key === "Control") {
+      keyCtrl = true;
+      
+    }
+}
+
+  function onKeyUp(event) {
+    if (event.key === "Control") {
+      keyCtrl = false;
+    }
+  }
+
+  document.addEventListener("keydown", onKeyDown);
+  document.addEventListener("keyup", onKeyUp);
+
+
 const btnModifica = document.getElementById('modificaProp');
 let isClickedModifica = false;
 btnModifica.addEventListener('click', async function() {
@@ -130,11 +157,11 @@ btnIfcCompleto.addEventListener('click', async function(){
             color: 0x54a2c4,
         });
         
-        const materialLine = new LineBasicMaterial({ color: 0x000000 });
+        // const materialLine = new LineBasicMaterial({ color: 0x000000 });
         
-        const multiMaterial = new MultiMaterial([materialSolid, materialLine]);
+        // const multiMaterial = new MultiMaterial([materialSolid, materialLine]);
         
-        modelCopyCompleto = new Mesh(model.geometry, multiMaterial);
+        modelCopyCompleto = new Mesh(model.geometry, materialSolid);
         scene.add(modelCopyCompleto);
     }else{
         btnIfcCompleto.style.background='';
@@ -942,7 +969,7 @@ function funcTablaTransporte(numCamion, numLetra) {
     //  objeto con las propiedades Camion y tipoTransporte
     const objetoTransporte = { Camion: numCamion, tipoTransporte: numLetra };
     tablaTransporte.push(objetoTransporte);
-    console.log(tablaTransporte);
+    //console.log(tablaTransporte);
 }
 
 nuevoCamionEstructuraBtn.addEventListener("click", function() {
@@ -984,7 +1011,7 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
         funcTablaTransporte(numCamion, numLetra);
         actualizaDesplegables();
     } else if (numCamion !== maxCamion && elementoExistente !== undefined ) {
-        numCamion=parseInt(buscaNumCamionMaximo())+1;
+       // numCamion=parseInt(buscaNumCamionMaximo())+1;
         document.getElementById("numCamion").innerHTML = numCamion;
         numE++;
         numT = numE;
@@ -1337,6 +1364,7 @@ document.addEventListener('keydown', function(event) {
 });
 
 nuevoCamionTubularBtn.addEventListener("click", function() {
+    viewer.context.ifcCamera.toggleProjection();
     seleccionarBoton(nuevoCamionTubularBtn);
     numCamion=buscaNumCamionMaximo();
     var maxCamion = 0;
@@ -1401,10 +1429,11 @@ nuevoCamionTubularBtn.addEventListener("click", function() {
 });
 
 document.addEventListener('keydown', function(event) {
+    
     if (document.activeElement.tagName.toLowerCase() === 'input' && document.activeElement.type === 'text') {
         return; // No hacer nada si el <input> tiene el foco
     }
-    if (event.key === 't' || event.key === 'T') {
+    if (event.key === 'x' || event.key === 'X') {
         seleccionarBoton(nuevoCamionTubularBtn);
         numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
@@ -2045,8 +2074,30 @@ function separaLetrasNum(nombreMod){
     };
 }
 
+function onClickSeleccionMultiple() {
+  const found = viewer.context.castRayIfc();
+  if (found && keyCtrl) {
+    modelID = found.object.modelID;
+    selectID = found.id;
+    multiSelectID.push(selectID);
+    let subset = viewer.IFC.loader.ifcManager.createSubset({
+      modelID: modelID,
+      ids: multiSelectID,
+      material: materialSelect,
+      scene: scene,
+      removePrevious: false,
+      customID: -1,
+      applyBVH: true,
+    });
+  } else {
+    viewer.IFC.loader.ifcManager.removeSubset(materialSelect, -1);
+    modelID = -1;
+    selectID = -1;
+    multiSelectID = [];
+  }
+}
 container.onclick = async () => {
-    
+    onClickSeleccionMultiple();
     if(isClickedModifica){
         const foundM = await viewer.IFC.selector.pickIfcItem(false);
             if (foundM === null || foundM === undefined) {
