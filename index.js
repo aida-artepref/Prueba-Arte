@@ -1,4 +1,4 @@
-import { Color, Loader, MeshBasicMaterial, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial,MultiMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
+import { Color, Loader, MeshBasicMaterial, BoxHelper, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial,MultiMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IFCELEMENTASSEMBLY, IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
@@ -67,9 +67,7 @@ async function loadModel(url) {
     idsTotal=getAllIds(model); 
     console.log(idsTotal.length+" total de elementos en modelo inicial");
     const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
-    //setIfcPropertiesContent(ifcProject, viewer, model);
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
-    //loader.ifcManager.prop
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
     viewer.context.fitToFrame();
@@ -93,13 +91,14 @@ let keyCtrl = false;
 function onKeyDown(event) {
     if (event.key === "Control") {
       keyCtrl = true;
-      
+      //viewer.context.ifcCamera.cameraControls.enabled = false;
     }
 }
 
   function onKeyUp(event) {
     if (event.key === "Control") {
       keyCtrl = false;
+      //viewer.context.ifcCamera.cameraControls.enabled = true;
     }
   }
 
@@ -312,56 +311,6 @@ const infoBuscadosList = document.getElementById('infoBuscados');
 const inputARTP = document.getElementById('inputARTP');
 const infoContainer = document.getElementById('infoContainer');
 
-
-
-
-function generarListaInfo(expressIDsInput) {
-    const infoBuscadosList = document.getElementById('infoBuscados');
-    infoBuscadosList.innerHTML = ''; 
-    const textoInput = inputText.value.trim();
-    if (textoInput) {
-        const tabla = document.createElement('table');
-        const thead = document.createElement('thead');
-        const tbody = document.createElement('tbody');
-        const cabeceraRow = document.createElement('tr');
-        const cabeceraExpressID = document.createElement('th');
-        const cabeceraARTPieza = document.createElement('th');
-        const cabeceraCamion = document.createElement('th');
-        
-        cabeceraExpressID.textContent = 'expressID';
-        cabeceraARTPieza.textContent = 'ART_Pieza';
-        cabeceraCamion.textContent = 'Camion';
-        
-        cabeceraRow.appendChild(cabeceraExpressID);
-        cabeceraRow.appendChild(cabeceraARTPieza);
-        cabeceraRow.appendChild(cabeceraCamion);
-        
-        thead.appendChild(cabeceraRow);
-        tabla.appendChild(thead);
-        tabla.appendChild(tbody);
-        infoBuscadosList.appendChild(tabla);
-        
-        expressIDsInput.forEach(expressID => {
-            const elementoEncontrado = precastElements.find(elemento => elemento.expressID === expressID);
-            if (elementoEncontrado) {
-                const fila = document.createElement('tr');
-                const celdaExpressID = document.createElement('td');
-                const celdaARTPieza = document.createElement('td');
-                const celdaCamion = document.createElement('td');
-                
-                celdaExpressID.textContent = elementoEncontrado.expressID;
-                celdaARTPieza.textContent = elementoEncontrado.ART_Pieza;
-                celdaCamion.textContent = elementoEncontrado.Camion;
-                
-                fila.appendChild(celdaExpressID);
-                fila.appendChild(celdaARTPieza);
-                fila.appendChild(celdaCamion);
-                
-                tbody.appendChild(fila);
-            }
-        });
-    }
-}
 
 //Nave cube
 viewer.container = container;
@@ -599,10 +548,6 @@ function updateMissingCamionCount() {
     });
 }
 
-function countLoadedPieces(elements) {
-    const loadedPieces = elements.filter(element => element.Camion !== undefined && element.Camion !== '');
-    return loadedPieces.length;
-}
 
 function removeLabels(expressIDs) {
     const labels = document.querySelectorAll('.pieza-label'); // Buscar todos los elementos con la clase "pieza-label"
@@ -709,35 +654,6 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 	items.ifcModels.push(subset);
 	items.pickableIfcModels.push(subset); 
 }
-
-// function replaceOriginalModelBySubset(viewer, model, subset) {
-//     const items = viewer.context.items;
-//     items.pickableIfcModels = items.pickableIfcModels.filter(m => m !== model);
-//     items.ifcModels = items.ifcModels.filter(m => m !== model);
-
-//     model.removeFromParent();
-//     // Crea un nuevo material para el subset
-//     const newMaterial  = createCustomMaterial();
-
-//     // Aplica el nuevo material al subset
-//     subset.material = newMaterial;
-
-//     // Agrega el subset a las matrices para su renderizado y selección
-//     items.ifcModels.push(subset);
-//     items.pickableIfcModels.push(subset);
-// }
-
-// function createCustomMaterial() {
-//     // Crear un nuevo material personalizado
-//     const material = new MeshBasicMaterial({
-//     //   color: 0x00ffff, // Color blanco
-//       transparent: false, // Hacer el material transparente
-//       opacity: 0.9, // Configurar la opacidad en 0 para ocultar la parte sólida
-//       wireframe: true, // Activar el modo alámbrico (renderizado de bordes)
-//     });
-//     return material;
-//   }
-
 
 window.ondblclick = async () => {
     const found = await viewer.IFC.selector.pickIfcItem(false);
@@ -972,7 +888,9 @@ function funcTablaTransporte(numCamion, numLetra) {
     //console.log(tablaTransporte);
 }
 
+
 nuevoCamionEstructuraBtn.addEventListener("click", function() {
+    setProjectionMode("perspective");
     seleccionarBoton(nuevoCamionEstructuraBtn);
     numCamion=buscaNumCamionMaximo();
     var maxCamion = 0;
@@ -1035,10 +953,12 @@ nuevoCamionEstructuraBtn.addEventListener("click", function() {
 });
 
 document.addEventListener('keydown', function(event) {
+
     if (event.key === 'E' || event.key === 'e') {
         if (document.activeElement.tagName.toLowerCase() === 'input' && document.activeElement.type === 'text') {
             return; // No hacer nada si el <input> tiene el foco
         }
+        setProjectionMode("perspective");
         seleccionarBoton(nuevoCamionEstructuraBtn);
         numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
@@ -1103,6 +1023,7 @@ document.addEventListener('keydown', function(event) {
 });
 
 nuevoCamionAlveolarBtn.addEventListener("click", function() {
+    setProjectionMode("perspective");
     seleccionarBoton(nuevoCamionAlveolarBtn);
     numCamion=buscaNumCamionMaximo();
     var maxCamion = 0;
@@ -1165,6 +1086,7 @@ document.addEventListener('keydown', function(event) {
         return; // No hacer nada si el <input> tiene el foco
     }
     if (event.key === 'a' || event.key === 'A') {
+        setProjectionMode("perspective");
         seleccionarBoton(nuevoCamionAlveolarBtn);
         numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
@@ -1229,6 +1151,7 @@ document.addEventListener('keydown', function(event) {
 });
 
 nuevoCamionCerramientoBtn.addEventListener("click", function() {
+    setProjectionMode("perspective");
     seleccionarBoton(nuevoCamionCerramientoBtn);
     numCamion=buscaNumCamionMaximo();
     var maxCamion = 0;
@@ -1297,6 +1220,7 @@ document.addEventListener('keydown', function(event) {
         return; // No hacer nada si el <input> tiene el foco
     }
     if (event.key === 'c' || event.key === 'C') {
+        setProjectionMode("perspective");
         seleccionarBoton(nuevoCamionCerramientoBtn);
         numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
@@ -1363,8 +1287,22 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
+
 nuevoCamionTubularBtn.addEventListener("click", function() {
-    viewer.context.ifcCamera.toggleProjection();
+    setProjectionMode("orthographic");
+        
+        // Obtener el centro del edificio
+        const boxHelper = new BoxHelper(model, 0xff0000);
+        const geometry = boxHelper.geometry;
+        const centro = geometry.boundingSphere.center;
+
+        //  cámara en el punto centro desplazada 50 unidades en el eje Y
+        const camera = viewer.context.ifcCamera.cameraControls;
+        camera.setLookAt(centro.x, centro.y + 50, centro.z, centro.x, centro.y, centro.z);
+        // viewer.context.ifcCamera.cameraControls.enabled = false;    
+    
+
+
     seleccionarBoton(nuevoCamionTubularBtn);
     numCamion=buscaNumCamionMaximo();
     var maxCamion = 0;
@@ -1434,6 +1372,7 @@ document.addEventListener('keydown', function(event) {
         return; // No hacer nada si el <input> tiene el foco
     }
     if (event.key === 'x' || event.key === 'X') {
+        setProjectionMode("orthographic");
         seleccionarBoton(nuevoCamionTubularBtn);
         numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
@@ -1499,6 +1438,16 @@ document.addEventListener('keydown', function(event) {
         } 
     }
 });
+
+function setProjectionMode(mode) {
+    var currentMode = viewer.context.ifcCamera.cameraControls._camera.type;
+    
+    if (mode === "orthographic" && currentMode !== "OrthographicCamera") {    // Si el modo es 'orthographic' y la vista no está en proyección ortográfica, cambia a ortográfica
+        viewer.context.ifcCamera.toggleProjection();  
+    } else if (mode === "perspective" && currentMode !== "PerspectiveCamera") {    // Si el modo es 'perspective' y la vista no está en proyección perspectiva, cambia a perspectiva
+        viewer.context.ifcCamera.toggleProjection();
+    }
+}
 
 function seleccionarBoton(boton) {
     const botonesTipoCarga = document.querySelectorAll('#tipoCarga button');
