@@ -4,6 +4,7 @@ import { IFCELEMENTASSEMBLY, IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { IFCBUILDINGSTOREY } from "web-ifc";
+import { SelectionWindowMode } from 'web-ifc-viewer/dist/components/selection/selection-window.js';
 
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
@@ -84,26 +85,55 @@ let multiSelectID=[]
 let materialSelect= new MeshLambertMaterial({
     transparent: true,
     opacity: 0.9,
-    color: 0x54a2c4,
+    color: 0x44ed7f,
 });
 
 let keyCtrl = false;
+
 function onKeyDown(event) {
     if (event.key === "Control") {
-      keyCtrl = true;
-      //viewer.context.ifcCamera.cameraControls.enabled = false;
+        console.log("Control pulsado")
+        keyCtrl = true;
+        viewer.context.ifcCamera.cameraControls.enabled = false;
+        onClickSeleccionMultiple();
+        
     }
 }
 
-  function onKeyUp(event) {
-    if (event.key === "Control") {
-      keyCtrl = false;
-      //viewer.context.ifcCamera.cameraControls.enabled = true;
+function onClickSeleccionMultiple() {
+    const found = viewer.context.castRayIfc();
+        if (found && keyCtrl) {
+        modelID = found.object.modelID;
+        selectID = found.id;
+        multiSelectID.push(selectID);
+        let subset = viewer.IFC.loader.ifcManager.createSubset({
+            modelID: modelID,
+            ids: multiSelectID,
+            material: materialSelect,
+            scene: scene,
+            removePrevious: false,
+            customID: -1,
+            applyBVH: true,
+        });
+        scene.add(subset);
+        } else {
+        viewer.IFC.loader.ifcManager.removeSubset(materialSelect, -1);
+        modelID = -1;
+        selectID = -1;
+        multiSelectID = [];
     }
-  }
+}
 
-  document.addEventListener("keydown", onKeyDown);
-  document.addEventListener("keyup", onKeyUp);
+function onKeyUp(event) {
+    if (event.key === "Control") {
+        console.log(" suelto Control")
+        keyCtrl = false;
+        viewer.context.ifcCamera.cameraControls.enabled = true;
+    }
+}
+
+document.addEventListener("keydown", onKeyDown);
+document.addEventListener("keyup", onKeyUp);
 
 
 const btnModifica = document.getElementById('modificaProp');
@@ -1299,10 +1329,7 @@ nuevoCamionTubularBtn.addEventListener("click", function() {
         //  cámara en el punto centro desplazada 50 unidades en el eje Y
         const camera = viewer.context.ifcCamera.cameraControls;
         camera.setLookAt(centro.x, centro.y + 50, centro.z, centro.x, centro.y, centro.z);
-        // viewer.context.ifcCamera.cameraControls.enabled = false;    
     
-
-
     seleccionarBoton(nuevoCamionTubularBtn);
     numCamion=buscaNumCamionMaximo();
     var maxCamion = 0;
@@ -1373,6 +1400,13 @@ document.addEventListener('keydown', function(event) {
     }
     if (event.key === 'x' || event.key === 'X') {
         setProjectionMode("orthographic");
+        const boxHelper = new BoxHelper(model, 0xff0000);
+        const geometry = boxHelper.geometry;
+        const centro = geometry.boundingSphere.center;
+
+        //  cámara en el punto centro desplazada 50 unidades en el eje Y
+        const camera = viewer.context.ifcCamera.cameraControls;
+        camera.setLookAt(centro.x, centro.y + 50, centro.z, centro.x, centro.y, centro.z);
         seleccionarBoton(nuevoCamionTubularBtn);
         numCamion=buscaNumCamionMaximo();
         var maxCamion = 0;
@@ -2023,30 +2057,9 @@ function separaLetrasNum(nombreMod){
     };
 }
 
-function onClickSeleccionMultiple() {
-  const found = viewer.context.castRayIfc();
-  if (found && keyCtrl) {
-    modelID = found.object.modelID;
-    selectID = found.id;
-    multiSelectID.push(selectID);
-    let subset = viewer.IFC.loader.ifcManager.createSubset({
-      modelID: modelID,
-      ids: multiSelectID,
-      material: materialSelect,
-      scene: scene,
-      removePrevious: false,
-      customID: -1,
-      applyBVH: true,
-    });
-  } else {
-    viewer.IFC.loader.ifcManager.removeSubset(materialSelect, -1);
-    modelID = -1;
-    selectID = -1;
-    multiSelectID = [];
-  }
-}
+
 container.onclick = async () => {
-    onClickSeleccionMultiple();
+    
     if(isClickedModifica){
         const foundM = await viewer.IFC.selector.pickIfcItem(false);
             if (foundM === null || foundM === undefined) {
