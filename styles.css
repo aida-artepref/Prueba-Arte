@@ -33,6 +33,11 @@
     border-bottom: var(--border);
 }
 
+.selectBox {
+  border: 1px solid #55aaff;
+  background-color: rgba(75, 160, 255, 0.3);
+  position: fixed;
+}
 .button{
     display:flex;
     align-items: center;

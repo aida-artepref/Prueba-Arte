@@ -1,15 +1,22 @@
-import { Color, Loader, MeshBasicMaterial, BoxHelper, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial,MultiMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
+import { Color, Loader, MeshBasicMaterial, BoxHelper, WebGLRenderer, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial,MultiMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IFCELEMENTASSEMBLY, IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { IFCBUILDINGSTOREY } from "web-ifc";
 import { SelectionWindowMode } from 'web-ifc-viewer/dist/components/selection/selection-window.js';
+import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
+import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.js';
 
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 const scene = viewer.context.scene.scene;
-//const scene = viewer.context.getScene;
+const camera = viewer.context.ifcCamera.cameraControls;
+// const renderer=viewer.context.renderer;
+
+const renderer=viewer.context.renderer.renderer;
+
+
 viewer.clipper.active = true;
 // viewer.grid.setGrid(100,100);
 // viewer.axes.setAxes();
@@ -60,7 +67,7 @@ GUI.input.onchange = async (event) => {
 
 async function loadModel(url) {
     model = await viewer.IFC.loadIfcUrl(url);
-
+    viewer.shadowDropper.renderShadow(model.modelID);
     viewer.context.renderer.usePostproduction.active=true;
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
@@ -79,61 +86,67 @@ async function loadModel(url) {
     divCargas.style.display = "block";
 }
 
-let modelID=-1
-let selectID=-1
-let multiSelectID=[]
-let materialSelect= new MeshLambertMaterial({
-    transparent: true,
-    opacity: 0.9,
-    color: 0x44ed7f,
-});
 
+// const selectionBox = new SelectionBox(camera, scene);
+// let helper = new SelectionHelper(renderer, 'selectBox');
 let keyCtrl = false;
-
-function onKeyDown(event) {
-    if (event.key === "Control") {
-        console.log("Control pulsado")
-        keyCtrl = true;
-        viewer.context.ifcCamera.cameraControls.enabled = false;
-        onClickSeleccionMultiple();
-        
-    }
-}
-
-function onClickSeleccionMultiple() {
-    const found = viewer.context.castRayIfc();
-        if (found && keyCtrl) {
-        modelID = found.object.modelID;
-        selectID = found.id;
-        multiSelectID.push(selectID);
-        let subset = viewer.IFC.loader.ifcManager.createSubset({
-            modelID: modelID,
-            ids: multiSelectID,
-            material: materialSelect,
-            scene: scene,
-            removePrevious: false,
-            customID: -1,
-            applyBVH: true,
-        });
-        scene.add(subset);
-        } else {
-        viewer.IFC.loader.ifcManager.removeSubset(materialSelect, -1);
-        modelID = -1;
-        selectID = -1;
-        multiSelectID = [];
-    }
-}
-
-function onKeyUp(event) {
-    if (event.key === "Control") {
-        console.log(" suelto Control")
-        keyCtrl = false;
-        viewer.context.ifcCamera.cameraControls.enabled = true;
-    }
-}
 
 document.addEventListener("keydown", onKeyDown);
 document.addEventListener("keyup", onKeyUp);
+
+
+function onKeyDown(event) {
+    if (event.key === "Control") {
+        keyCtrl = true;
+        viewer.context.ifcCamera.cameraControls.enabled = false;
+        // document.addEventListener("pointerdown", startSelection);
+        // document.addEventListener("pointermove", updateSelection);
+        // document.addEventListener("pointerup", endSelection);
+    }
+}
+function onKeyUp(event) {
+    if (event.key === "Control") {
+        keyCtrl = false;
+        viewer.context.ifcCamera.cameraControls.enabled =  true;
+        // document.removeEventListener("pointerdown", startSelection);
+        // document.removeEventListener("pointermove", updateSelection);
+        // document.removeEventListener("pointerup", endSelection);
+    }
+}
+
+function startSelection(event) {
+    if (keyCtrl) {
+        selectionBox.startPoint.set(
+            (event.clientX / window.innerWidth) * 2 - 1,
+            -(event.clientY / window.innerHeight) * 2 + 1,
+            0.5
+        );
+    }
+}
+
+function updateSelection(event) {
+    if (keyCtrl && helper.isDown) {
+        selectionBox.endPoint.set(
+            (event.clientX / window.innerWidth) * 2 - 1,
+            -(event.clientY / window.innerHeight) * 2 + 1,
+            0.5
+        );
+        const allSelected = selectionBox.select();
+        // Realiza acciones adicionales con los elementos seleccionados
+    }
+}
+
+function endSelection(event) {
+    if (keyCtrl) {
+        selectionBox.endPoint.set(
+            (event.clientX / window.innerWidth) * 2 - 1,
+            -(event.clientY / window.innerHeight) * 2 + 1,
+            0.5
+        );
+        const allSelected = selectionBox.select();
+       console.log(allSelected)
+    }
+}
 
 
 const btnModifica = document.getElementById('modificaProp');
