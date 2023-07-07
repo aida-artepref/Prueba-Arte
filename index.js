@@ -12,9 +12,9 @@ const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 const scene = viewer.context.scene.scene;
 const camera = viewer.context.ifcCamera.cameraControls;
-// const renderer=viewer.context.renderer;
-
 const renderer=viewer.context.renderer.renderer;
+
+
 
 
 viewer.clipper.active = true;
@@ -84,9 +84,17 @@ async function loadModel(url) {
     // verNumPrecast();
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
+    
+    creaSelectionBoxYHelper()
 }
 
-
+let selectionBox; 
+let helper; 
+function creaSelectionBoxYHelper(){
+    selectionBox = new SelectionBox(camera, scene);
+    
+    helper = new SelectionHelper(selectionBox,renderer, 'selectBox');
+}
 // const selectionBox = new SelectionBox(camera, scene);
 // let helper = new SelectionHelper(renderer, 'selectBox');
 let keyCtrl = false;
@@ -99,18 +107,18 @@ function onKeyDown(event) {
     if (event.key === "Control") {
         keyCtrl = true;
         viewer.context.ifcCamera.cameraControls.enabled = false;
-        // document.addEventListener("pointerdown", startSelection);
-        // document.addEventListener("pointermove", updateSelection);
-        // document.addEventListener("pointerup", endSelection);
+        document.addEventListener("pointerdown", startSelection);
+        document.addEventListener("pointermove", updateSelection);
+        document.addEventListener("pointerup", endSelection);
     }
 }
 function onKeyUp(event) {
     if (event.key === "Control") {
         keyCtrl = false;
         viewer.context.ifcCamera.cameraControls.enabled =  true;
-        // document.removeEventListener("pointerdown", startSelection);
-        // document.removeEventListener("pointermove", updateSelection);
-        // document.removeEventListener("pointerup", endSelection);
+        document.removeEventListener("pointerdown", startSelection);
+        document.removeEventListener("pointermove", updateSelection);
+        document.removeEventListener("pointerup", endSelection);
     }
 }
 
