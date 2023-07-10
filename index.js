@@ -11,7 +11,8 @@ import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 const scene = viewer.context.scene.scene;
-const camera = viewer.context.ifcCamera.cameraControls;
+//const camera = viewer.context.ifcCamera;
+// const camera = viewer.context.ifcCamera.cameraControls;
 const renderer=viewer.context.renderer.renderer;
 
 
@@ -85,76 +86,101 @@ async function loadModel(url) {
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
     
-    creaSelectionBoxYHelper()
-}
-
-let selectionBox; 
-let helper; 
-function creaSelectionBoxYHelper(){
-    selectionBox = new SelectionBox(camera, scene);
     
-    helper = new SelectionHelper(selectionBox,renderer, 'selectBox');
-}
-// const selectionBox = new SelectionBox(camera, scene);
-// let helper = new SelectionHelper(renderer, 'selectBox');
-let keyCtrl = false;
-
-document.addEventListener("keydown", onKeyDown);
-document.addEventListener("keyup", onKeyUp);
-
-
-function onKeyDown(event) {
-    if (event.key === "Control") {
-        keyCtrl = true;
-        viewer.context.ifcCamera.cameraControls.enabled = false;
-        document.addEventListener("pointerdown", startSelection);
-        document.addEventListener("pointermove", updateSelection);
-        document.addEventListener("pointerup", endSelection);
-    }
-}
-function onKeyUp(event) {
-    if (event.key === "Control") {
-        keyCtrl = false;
-        viewer.context.ifcCamera.cameraControls.enabled =  true;
-        document.removeEventListener("pointerdown", startSelection);
-        document.removeEventListener("pointermove", updateSelection);
-        document.removeEventListener("pointerup", endSelection);
-    }
 }
 
-function startSelection(event) {
-    if (keyCtrl) {
-        selectionBox.startPoint.set(
-            (event.clientX / window.innerWidth) * 2 - 1,
-            -(event.clientY / window.innerHeight) * 2 + 1,
-            0.5
-        );
-    }
-}
+// const camera = viewer.context.getCamera();
+// const scena2=viewer.context.getScene();
+// let selectionBox = null;
+// let helper = null;
+// let keyCtrl = false;
 
-function updateSelection(event) {
-    if (keyCtrl && helper.isDown) {
-        selectionBox.endPoint.set(
-            (event.clientX / window.innerWidth) * 2 - 1,
-            -(event.clientY / window.innerHeight) * 2 + 1,
-            0.5
-        );
-        const allSelected = selectionBox.select();
-        // Realiza acciones adicionales con los elementos seleccionados
-    }
-}
+// document.addEventListener("keydown", function(event) {
+//     if (event.key === "Control") {
+//         keyCtrl = true;
+//         viewer.context.ifcCamera.cameraControls.enabled = false;
+//         createSelectionBoxAndHelper();
+//     }
+// });
 
-function endSelection(event) {
-    if (keyCtrl) {
-        selectionBox.endPoint.set(
-            (event.clientX / window.innerWidth) * 2 - 1,
-            -(event.clientY / window.innerHeight) * 2 + 1,
-            0.5
-        );
-        const allSelected = selectionBox.select();
-       console.log(allSelected)
-    }
-}
+// document.addEventListener("keyup", function(event) {
+//     if (event.key === "Control") {
+//         keyCtrl = false;
+//         viewer.context.ifcCamera.cameraControls.enabled = true;
+//         removeSelectionBoxAndHelper();
+//     }
+// });
+
+// function createSelectionBoxAndHelper() {
+//     if (!selectionBox && keyCtrl) {
+//         selectionBox = new SelectionBox(camera, scena2);
+//         helper = new SelectionHelper(selectionBox, renderer, 'selectBox');
+//     }
+// }
+
+// function removeSelectionBoxAndHelper() {
+//   if (selectionBox !== null) {
+   
+//     selectionBox = null;
+//     helper = null;
+//   }
+// }
+
+
+// document.addEventListener("pointerdown", function(event) {
+//   if (keyCtrl && selectionBox) {
+//     for (const item of selectionBox.collection) {
+//       item.material.emissive.set(0x000000);
+//     }
+//     selectionBox.startPoint.set(
+//       (event.clientX / window.innerWidth) * 2 - 1,
+//       -(event.clientY / window.innerHeight) * 2 + 1,
+//       0.5
+//     );
+//   }
+// });
+
+// document.addEventListener('pointermove', function(event) {
+//     if (keyCtrl && helper && helper.isDown && selectionBox) {
+//         for (let i = 0; i < selectionBox.collection.length; i++) {
+//             selectionBox.collection[i].material.emissive.set(0x000000);
+//         }
+    
+//         selectionBox.endPoint.set(
+//             (event.clientX / window.innerWidth) * 2 - 1,
+//             -(event.clientY / window.innerHeight) * 2 + 1,
+//             0.5
+//         );
+    
+//         if (keyCtrl) {
+//             const allSelected = selectionBox.select();
+    
+//             for (let i = 0; i < allSelected.length; i++) {
+//             allSelected[i].material.emissive.set(0xffffff);
+//             }
+//         }
+//     }
+// });
+
+// document.addEventListener('pointerup', function(event) {
+//   if (keyCtrl && selectionBox) {
+//     selectionBox.endPoint.set(
+//       (event.clientX / window.innerWidth) * 2 - 1,
+//       -(event.clientY / window.innerHeight) * 2 + 1,
+//       0.5
+//     );
+
+//     if (keyCtrl) {
+//       const allSelected = selectionBox.select();
+
+//       for (let i = 0; i < allSelected.length; i++) {
+//         allSelected[i].material.emissive.set(0xffffff);
+//       }
+//     }
+//   }
+// });
+
+
 
 
 const btnModifica = document.getElementById('modificaProp');
