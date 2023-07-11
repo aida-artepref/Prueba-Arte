@@ -7,6 +7,18 @@ import { IFCBUILDINGSTOREY } from "web-ifc";
 import { SelectionWindowMode } from 'web-ifc-viewer/dist/components/selection/selection-window.js';
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.js';
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDTlGsBq7VwlM3SXw2woBBqHsasVjXQgrc",
+    authDomain: "cargas-917bc.firebaseapp.com",
+    projectId: "cargas-917bc",
+    storageBucket: "cargas-917bc.appspot.com",
+    messagingSenderId: "996650908621",
+    appId: "1:996650908621:web:b550fd82697fc26933a284"
+};
+
+const app = initializeApp(firebaseConfig);
 
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
@@ -89,98 +101,94 @@ async function loadModel(url) {
     
 }
 
-// const camera = viewer.context.getCamera();
-// const scena2=viewer.context.getScene();
-// let selectionBox = null;
-// let helper = null;
-// let keyCtrl = false;
+const camera = viewer.context.getCamera();
+const scena2=viewer.context.getScene();
+let selectionBox = null;
+let helper = null;
+let keyCtrl = false;
 
-// document.addEventListener("keydown", function(event) {
-//     if (event.key === "Control") {
-//         keyCtrl = true;
-//         viewer.context.ifcCamera.cameraControls.enabled = false;
-//         createSelectionBoxAndHelper();
-//     }
-// });
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Control") {
+        createSelectionBoxAndHelper();
+        keyCtrl = true;
+        // const element = document.querySelector('.selectBox')
+        // element.style.display = 'block'
+        viewer.context.ifcCamera.cameraControls.enabled = false;
+        
+    }
+});
 
-// document.addEventListener("keyup", function(event) {
-//     if (event.key === "Control") {
-//         keyCtrl = false;
-//         viewer.context.ifcCamera.cameraControls.enabled = true;
-//         removeSelectionBoxAndHelper();
-//     }
-// });
+document.addEventListener("keyup", function(event) {
+    if (event.key === "Control") {
+        // const element = document.querySelector('.selectBox')
+        // element.style.display = 'none'
+        keyCtrl = false;
+        viewer.context.ifcCamera.cameraControls.enabled = true;
+        removeSelectionBoxAndHelper();
+    }
+});
 
-// function createSelectionBoxAndHelper() {
-//     if (!selectionBox && keyCtrl) {
-//         selectionBox = new SelectionBox(camera, scena2);
-//         helper = new SelectionHelper(selectionBox, renderer, 'selectBox');
-//     }
-// }
+function createSelectionBoxAndHelper() {
+    if (!selectionBox && keyCtrl) {
+       
+        selectionBox = new SelectionBox(camera, scena2);
+        helper = new SelectionHelper(selectionBox, renderer, 'selectBox');
+      
+    }
+}
 
-// function removeSelectionBoxAndHelper() {
-//   if (selectionBox !== null) {
+function removeSelectionBoxAndHelper() {
+  if (selectionBox !== null) {
    
-//     selectionBox = null;
-//     helper = null;
-//   }
-// }
-
-
-// document.addEventListener("pointerdown", function(event) {
-//   if (keyCtrl && selectionBox) {
-//     for (const item of selectionBox.collection) {
-//       item.material.emissive.set(0x000000);
-//     }
-//     selectionBox.startPoint.set(
-//       (event.clientX / window.innerWidth) * 2 - 1,
-//       -(event.clientY / window.innerHeight) * 2 + 1,
-//       0.5
-//     );
-//   }
-// });
-
-// document.addEventListener('pointermove', function(event) {
-//     if (keyCtrl && helper && helper.isDown && selectionBox) {
-//         for (let i = 0; i < selectionBox.collection.length; i++) {
-//             selectionBox.collection[i].material.emissive.set(0x000000);
-//         }
-    
-//         selectionBox.endPoint.set(
-//             (event.clientX / window.innerWidth) * 2 - 1,
-//             -(event.clientY / window.innerHeight) * 2 + 1,
-//             0.5
-//         );
-    
-//         if (keyCtrl) {
-//             const allSelected = selectionBox.select();
-    
-//             for (let i = 0; i < allSelected.length; i++) {
-//             allSelected[i].material.emissive.set(0xffffff);
-//             }
-//         }
-//     }
-// });
-
-// document.addEventListener('pointerup', function(event) {
-//   if (keyCtrl && selectionBox) {
-//     selectionBox.endPoint.set(
-//       (event.clientX / window.innerWidth) * 2 - 1,
-//       -(event.clientY / window.innerHeight) * 2 + 1,
-//       0.5
-//     );
-
-//     if (keyCtrl) {
-//       const allSelected = selectionBox.select();
-
-//       for (let i = 0; i < allSelected.length; i++) {
-//         allSelected[i].material.emissive.set(0xffffff);
-//       }
-//     }
-//   }
-// });
-
-
+    selectionBox = null;
+    helper = null;
+    // selectionBox.dispose();
+    // helper.dispose();
+  }
+}
+document.addEventListener("pointerdown", function(event) {
+    if (keyCtrl && selectionBox) {
+      selectionBox.startPoint.set(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1,
+        0.5
+      );
+    }
+  });
+  
+  document.addEventListener('pointermove', function(event) {
+      if (keyCtrl && helper && helper.isDown && selectionBox) {
+  
+          selectionBox.endPoint.set(
+              (event.clientX / window.innerWidth) * 2 - 1,
+              -(event.clientY / window.innerHeight) * 2 + 1,
+              0.5
+          );
+  
+          if (keyCtrl) {
+              const allSelected = selectionBox.select();
+  
+              for (let i = 0; i < allSelected.length; i++) {
+              allSelected[i].material.emissive.set(0xffffff);
+              }
+          }
+      }
+  });
+  
+  document.addEventListener('pointerup', function(event) {
+    if (keyCtrl && selectionBox) {
+      selectionBox.endPoint.set(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1,
+        0.5
+      );
+  
+      if (keyCtrl) {
+        const allSelected = selectionBox.select();
+  console.log(allSelected)
+      }
+    }
+  });
 
 
 const btnModifica = document.getElementById('modificaProp');
