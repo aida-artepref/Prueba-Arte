@@ -35,9 +35,15 @@
 
 .selectBox {
   border: 1px solid #55aaff;
-  background-color: rgba(75, 160, 255, 0.3);
+  background-color: rgba(25, 255, 140, 0.3);
   position: fixed;
- 
+  display: block;
+}
+.selectBoxInvisible {
+  border: 1px solid #55aaff;
+  background-color: rgba(25, 255, 140, 0.3);
+  position: fixed;
+  display: none;
 }
 .button{
     display:flex;

@@ -109,87 +109,88 @@ let keyCtrl = false;
 
 document.addEventListener("keydown", function(event) {
     if (event.key === "Control") {
-        createSelectionBoxAndHelper();
         keyCtrl = true;
-        // const element = document.querySelector('.selectBox')
-        // element.style.display = 'block'
         viewer.context.ifcCamera.cameraControls.enabled = false;
-        
+        createSelectionBoxAndHelper();
+        toggleSelectionBoxVisibility(true);
     }
 });
 
 document.addEventListener("keyup", function(event) {
     if (event.key === "Control") {
-        // const element = document.querySelector('.selectBox')
-        // element.style.display = 'none'
         keyCtrl = false;
         viewer.context.ifcCamera.cameraControls.enabled = true;
         removeSelectionBoxAndHelper();
+        toggleSelectionBoxVisibility(false);
     }
 });
 
+function toggleSelectionBoxVisibility(visible) {
+    if (helper) {
+      const selectionBoxElement = helper.element;
+      if (visible) {
+        selectionBoxElement.className = 'selectBox';
+      } 
+    }else {
+        selectionBoxElement.className = 'selectBoxInvisible';
+      }
+  }
+  
+
 function createSelectionBoxAndHelper() {
     if (!selectionBox && keyCtrl) {
-       
         selectionBox = new SelectionBox(camera, scena2);
         helper = new SelectionHelper(selectionBox, renderer, 'selectBox');
-      
     }
 }
 
 function removeSelectionBoxAndHelper() {
-  if (selectionBox !== null) {
-   
-    selectionBox = null;
-    helper = null;
-    // selectionBox.dispose();
-    // helper.dispose();
-  }
+    if (selectionBox !== null) {
+        selectionBox = null;
+        helper = null;
+        // selectionBox.dispose();
+        // helper.dispose();
+    }
 }
 document.addEventListener("pointerdown", function(event) {
     if (keyCtrl && selectionBox) {
-      selectionBox.startPoint.set(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        -(event.clientY / window.innerHeight) * 2 + 1,
-        0.5
-      );
+        selectionBox.startPoint.set(
+            (event.clientX / window.innerWidth) * 2 - 1,
+            -(event.clientY / window.innerHeight) * 2 + 1,
+            0.5
+        );
     }
-  });
-  
-  document.addEventListener('pointermove', function(event) {
-      if (keyCtrl && helper && helper.isDown && selectionBox) {
-  
-          selectionBox.endPoint.set(
-              (event.clientX / window.innerWidth) * 2 - 1,
-              -(event.clientY / window.innerHeight) * 2 + 1,
-              0.5
-          );
-  
-          if (keyCtrl) {
-              const allSelected = selectionBox.select();
-  
-              for (let i = 0; i < allSelected.length; i++) {
-              allSelected[i].material.emissive.set(0xffffff);
-              }
-          }
-      }
-  });
-  
-  document.addEventListener('pointerup', function(event) {
-    if (keyCtrl && selectionBox) {
-      selectionBox.endPoint.set(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        -(event.clientY / window.innerHeight) * 2 + 1,
-        0.5
-      );
-  
-      if (keyCtrl) {
-        const allSelected = selectionBox.select();
-  console.log(allSelected)
-      }
-    }
-  });
+});
 
+document.addEventListener('pointermove', function(event) {
+    if (keyCtrl && helper && helper.isDown && selectionBox) {
+
+        selectionBox.endPoint.set(
+            (event.clientX / window.innerWidth) * 2 - 1,
+            -(event.clientY / window.innerHeight) * 2 + 1,
+            0.5
+        );
+
+        if (keyCtrl) {
+            const allSelected = selectionBox.select();
+        }
+    }
+});
+
+document.addEventListener('pointerup', function(event) {
+    if (keyCtrl && selectionBox) {
+        selectionBox.endPoint.set(
+            (event.clientX / window.innerWidth) * 2 - 1,
+            -(event.clientY / window.innerHeight) * 2 + 1,
+            0.5
+        );
+
+        if (keyCtrl) {
+            const allSelected = selectionBox.select();
+            console.log(allSelected)
+        }
+    }
+});
 
 const btnModifica = document.getElementById('modificaProp');
 let isClickedModifica = false;
