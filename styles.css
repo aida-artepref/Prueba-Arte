@@ -37,13 +37,15 @@
   border: 1px solid #55aaff;
   background-color: rgba(25, 255, 140, 0.3);
   position: fixed;
-  display: block;
+  /* display: block; */
+  visibility: visible;
 }
 .selectBoxInvisible {
   border: 1px solid #55aaff;
   background-color: rgba(25, 255, 140, 0.3);
   position: fixed;
-  display: none;
+  /* display: none; */
+  visibility: hidden;
 }
 .button{
     display:flex;

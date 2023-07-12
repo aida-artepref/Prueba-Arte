@@ -120,22 +120,25 @@ document.addEventListener("keyup", function(event) {
     if (event.key === "Control") {
         keyCtrl = false;
         viewer.context.ifcCamera.cameraControls.enabled = true;
-        removeSelectionBoxAndHelper();
         toggleSelectionBoxVisibility(false);
+        removeSelectionBoxAndHelper();
+        
     }
 });
 
 function toggleSelectionBoxVisibility(visible) {
     if (helper) {
-      const selectionBoxElement = helper.element;
-      if (visible) {
-        selectionBoxElement.className = 'selectBox';
-      } 
-    }else {
-        selectionBoxElement.className = 'selectBoxInvisible';
-      }
-  }
-  
+        const selectionBoxElement = helper.element;
+        if (visible) {
+            selectionBoxElement.classList.remove("selectBoxInvisible");
+            selectionBoxElement.classList.add("selectBox");
+        } else {
+            selectionBoxElement.classList.remove("selectBox");
+            selectionBoxElement.classList.add("selectBoxInvisible");
+        }
+    }
+}
+
 
 function createSelectionBoxAndHelper() {
     if (!selectionBox && keyCtrl) {
@@ -148,8 +151,7 @@ function removeSelectionBoxAndHelper() {
     if (selectionBox !== null) {
         selectionBox = null;
         helper = null;
-        // selectionBox.dispose();
-        // helper.dispose();
+        
     }
 }
 document.addEventListener("pointerdown", function(event) {
