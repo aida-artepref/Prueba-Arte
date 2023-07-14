@@ -17,7 +17,7 @@ const firebaseConfig = {
     messagingSenderId: "996650908621",
     appId: "1:996650908621:web:b550fd82697fc26933a284"
 };
-
+console.log("HOLAAAAAAAAAAAAAAA")
 const app = initializeApp(firebaseConfig);
 
 const container = document.getElementById('viewer-container');
@@ -154,45 +154,108 @@ function removeSelectionBoxAndHelper() {
         
     }
 }
-document.addEventListener("pointerdown", function(event) {
-    if (keyCtrl && selectionBox) {
-        selectionBox.startPoint.set(
-            (event.clientX / window.innerWidth) * 2 - 1,
-            -(event.clientY / window.innerHeight) * 2 + 1,
-            0.5
-        );
-    }
-});
 
-document.addEventListener('pointermove', function(event) {
-    if (keyCtrl && helper && helper.isDown && selectionBox) {
+
+document.addEventListener( 'pointerdown', function ( event ) {
+        if(keyCtrl){
+            console.log(selectionBox.collection);
+            for ( const item of selectionBox.collection ) {
+                item.material.emissive.set( 0x000000 );
+                // console.log(item);
+            }
+        
+            selectionBox.startPoint.set(
+                ( event.clientX / window.innerWidth ) * 2 - 1,
+                - ( event.clientY / window.innerHeight ) * 2 + 1,
+                0.5 );
+        }
+} );
+
+document.addEventListener( 'pointermove', function ( event ) {
+    
+    if (keyCtrl && helper.isDown ) {
+
+        for ( let i = 0; i < selectionBox.collection.length; i ++ ) {
+
+            selectionBox.collection[ i ].material.emissive.set( 0x000000 );
+
+        }
 
         selectionBox.endPoint.set(
-            (event.clientX / window.innerWidth) * 2 - 1,
-            -(event.clientY / window.innerHeight) * 2 + 1,
-            0.5
-        );
+            ( event.clientX / window.innerWidth ) * 2 - 1,
+            - ( event.clientY / window.innerHeight ) * 2 + 1,
+            0.5 );
 
-        if (keyCtrl) {
-            const allSelected = selectionBox.select();
+        const allSelected = selectionBox.select();
+
+        for ( let i = 0; i < allSelected.length; i ++ ) {
+
+            allSelected[ i ].material.emissive.set( 0xffffff );
+
         }
-    }
-});
 
-document.addEventListener('pointerup', function(event) {
-    if (keyCtrl && selectionBox) {
-        selectionBox.endPoint.set(
-            (event.clientX / window.innerWidth) * 2 - 1,
-            -(event.clientY / window.innerHeight) * 2 + 1,
-            0.5
-        );
-
-        if (keyCtrl) {
-            const allSelected = selectionBox.select();
-            console.log(allSelected)
-        }
+    
     }
-});
+} );
+
+document.addEventListener( 'pointerup', function ( event ) {
+    if(keyCtrl){
+    selectionBox.endPoint.set(
+        ( event.clientX / window.innerWidth ) * 2 - 1,
+        - ( event.clientY / window.innerHeight ) * 2 + 1,
+        0.5 );
+
+    const allSelected = selectionBox.select();
+    console.log("ALLSELECT"+allSelected);
+
+    for ( let i = 0; i < allSelected.length; i ++ ) {
+
+        allSelected[ i ].material.emissive.set( 0xffffff );
+
+    }
+    }
+} );
+
+// document.addEventListener("pointerdown", function(event) {
+//     if (keyCtrl && selectionBox) {
+        
+//         selectionBox.startPoint.set(
+//             (event.clientX / window.innerWidth) * 2 - 1,
+//             -(event.clientY / window.innerHeight) * 2 + 1,
+//             0.5
+//         );
+//     }
+// });
+
+// document.addEventListener('pointermove', function(event) {
+//     if (keyCtrl && helper && helper.isDown && selectionBox) {
+
+//         selectionBox.endPoint.set(
+//             (event.clientX / window.innerWidth) * 2 - 1,
+//             -(event.clientY / window.innerHeight) * 2 + 1,
+//             0.5
+//         );
+
+//         if (keyCtrl) {
+//             const allSelected = selectionBox.select();
+//         }
+//     }
+// });
+
+// document.addEventListener('pointerup', function(event) {
+//     if (keyCtrl && selectionBox) {
+//         selectionBox.endPoint.set(
+//             (event.clientX / window.innerWidth) * 2 - 1,
+//             -(event.clientY / window.innerHeight) * 2 + 1,
+//             0.5
+//         );
+
+//         if (keyCtrl) {
+//             const allSelected = selectionBox.select();
+//             console.log(allSelected)
+//         }
+//     }
+// });
 
 const btnModifica = document.getElementById('modificaProp');
 let isClickedModifica = false;
