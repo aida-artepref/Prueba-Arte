@@ -7,7 +7,9 @@ import { IFCBUILDINGSTOREY } from "web-ifc";
 import { SelectionWindowMode } from 'web-ifc-viewer/dist/components/selection/selection-window.js';
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.js';
+
 import { initializeApp } from "firebase/app";
+import { getFirestore, collection, getDocs, addDoc} from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDTlGsBq7VwlM3SXw2woBBqHsasVjXQgrc",
@@ -17,8 +19,35 @@ const firebaseConfig = {
     messagingSenderId: "996650908621",
     appId: "1:996650908621:web:b550fd82697fc26933a284"
 };
-console.log("HOLAAAAAAAAAAAAAAA")
+
 const app = initializeApp(firebaseConfig);
+const db = getFirestore(app); // Obtén una referencia a la base de datos Firestore
+
+
+async function insertaFirebaseObra() {
+    const collectionRef = collection(db, 'prueba');
+    try {
+      precastElements.forEach(async (objeto) => {
+        await addDoc(collectionRef, objeto);
+        console.log('Documento agregado:', objeto);
+      });
+      console.log('Todos los documentos agregados correctamente.');
+    } catch (error) {
+      console.error('Error al agregar los documentos:', error);
+    }
+  } 
+// Leer datos de una colección
+async function obtenerDatos() {
+        const querySnapshot = await getDocs(collection(db, "Elementos"));
+        querySnapshot.forEach((doc) => {
+        console.log(doc.id, "=>", doc.data());
+    });
+}
+obtenerDatos();
+
+
+
+
 
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
@@ -98,8 +127,19 @@ async function loadModel(url) {
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
     
-    
+    // const properties = await viewer.IFC.properties.serializeAllProperties(model);
+    // await descargarArchivoJSON(properties);
 }
+// async function descargarArchivoJSON(properties) {
+//     const file = new File(properties, 'properties.json');
+  
+//     const link = document.createElement('a');
+//     document.body.appendChild(link);
+//     link.href = URL.createObjectURL(file);
+//     link.download = 'properties.json';
+//     link.click();
+//     link.remove();
+//   }
 
 const camera = viewer.context.getCamera();
 const scena2=viewer.context.getScene();
@@ -156,106 +196,6 @@ function removeSelectionBoxAndHelper() {
 }
 
 
-document.addEventListener( 'pointerdown', function ( event ) {
-        if(keyCtrl){
-            console.log(selectionBox.collection);
-            for ( const item of selectionBox.collection ) {
-                item.material.emissive.set( 0x000000 );
-                // console.log(item);
-            }
-        
-            selectionBox.startPoint.set(
-                ( event.clientX / window.innerWidth ) * 2 - 1,
-                - ( event.clientY / window.innerHeight ) * 2 + 1,
-                0.5 );
-        }
-} );
-
-document.addEventListener( 'pointermove', function ( event ) {
-    
-    if (keyCtrl && helper.isDown ) {
-
-        for ( let i = 0; i < selectionBox.collection.length; i ++ ) {
-
-            selectionBox.collection[ i ].material.emissive.set( 0x000000 );
-
-        }
-
-        selectionBox.endPoint.set(
-            ( event.clientX / window.innerWidth ) * 2 - 1,
-            - ( event.clientY / window.innerHeight ) * 2 + 1,
-            0.5 );
-
-        const allSelected = selectionBox.select();
-
-        for ( let i = 0; i < allSelected.length; i ++ ) {
-
-            allSelected[ i ].material.emissive.set( 0xffffff );
-
-        }
-
-    
-    }
-} );
-
-document.addEventListener( 'pointerup', function ( event ) {
-    if(keyCtrl){
-    selectionBox.endPoint.set(
-        ( event.clientX / window.innerWidth ) * 2 - 1,
-        - ( event.clientY / window.innerHeight ) * 2 + 1,
-        0.5 );
-
-    const allSelected = selectionBox.select();
-    console.log("ALLSELECT"+allSelected);
-
-    for ( let i = 0; i < allSelected.length; i ++ ) {
-
-        allSelected[ i ].material.emissive.set( 0xffffff );
-
-    }
-    }
-} );
-
-// document.addEventListener("pointerdown", function(event) {
-//     if (keyCtrl && selectionBox) {
-        
-//         selectionBox.startPoint.set(
-//             (event.clientX / window.innerWidth) * 2 - 1,
-//             -(event.clientY / window.innerHeight) * 2 + 1,
-//             0.5
-//         );
-//     }
-// });
-
-// document.addEventListener('pointermove', function(event) {
-//     if (keyCtrl && helper && helper.isDown && selectionBox) {
-
-//         selectionBox.endPoint.set(
-//             (event.clientX / window.innerWidth) * 2 - 1,
-//             -(event.clientY / window.innerHeight) * 2 + 1,
-//             0.5
-//         );
-
-//         if (keyCtrl) {
-//             const allSelected = selectionBox.select();
-//         }
-//     }
-// });
-
-// document.addEventListener('pointerup', function(event) {
-//     if (keyCtrl && selectionBox) {
-//         selectionBox.endPoint.set(
-//             (event.clientX / window.innerWidth) * 2 - 1,
-//             -(event.clientY / window.innerHeight) * 2 + 1,
-//             0.5
-//         );
-
-//         if (keyCtrl) {
-//             const allSelected = selectionBox.select();
-//             console.log(allSelected)
-//         }
-//     }
-// });
 
 const btnModifica = document.getElementById('modificaProp');
 let isClickedModifica = false;
@@ -457,11 +397,6 @@ checkBox.addEventListener('change', function() {
     }
 });
 
-// const mostrarInfoCheckbox = document.getElementById('mostrarInfo');
-const infoBuscadosList = document.getElementById('infoBuscados');
-const inputARTP = document.getElementById('inputARTP');
-const infoContainer = document.getElementById('infoContainer');
-
 
 //Nave cube
 viewer.container = container;
@@ -491,10 +426,12 @@ async function crearBotonPrecasFuisonados(){
     var contenedorBotones = document.querySelector(".button-container");
     contenedorBotones.insertBefore(btnCreaPrecastFusionados, ultimoBoton.nextSibling);
     btnCreaPrecastFusionados.addEventListener("click", async function() {
-        await agregarPropiedadesElementPart();
         btnCreaPrecastFusionados.remove();
-        eliminarElementosAssembly();
-        generateCheckboxes(precastElements);
+        
+            agregarPropiedadesElementPart();
+            eliminarElementosAssembly();
+            generateCheckboxes(precastElements);
+        
         const btnFiltros=document.getElementById('filtraTipos');
         btnFiltros.style.display="block";
         const divFiltros = document.getElementById('checktiposIfc');
@@ -522,12 +459,16 @@ async function crearBotonPrecasFuisonados(){
         btnModifica.style.display = "block";
         });
         
+        
 }
 
 function eliminarElementosAssembly() {
     precastElements = precastElements.filter(element => element.ifcType !== 'IFCELEMENTASSEMBLY');
     console.log("TOTAL DE ELEMNTOS EN PRECAST: "+precastElements.length);
+    // insertar array precastEleemt en firebase
+    insertaFirebaseObra();
 }
+
 
 async function crearBotonPrecas(){
     var btnCreaPrecast = document.createElement("button");
