@@ -1,4 +1,4 @@
-import { Color, Loader, MeshBasicMaterial, BoxHelper, WebGLRenderer, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial,MultiMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
+import { Color, Loader, MeshBasicMaterial, BoxHelper, WebGLRenderer, Vector3, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial,MultiMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IFCELEMENTASSEMBLY, IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
@@ -9,7 +9,8 @@ import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.js';
 
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc} from "firebase/firestore";
+import { getFirestore, collection, getDocs,  addDoc, doc, setDoc, query, updateDoc   } from "firebase/firestore";
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyDTlGsBq7VwlM3SXw2woBBqHsasVjXQgrc",
@@ -24,26 +25,144 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app); // Obtén una referencia a la base de datos Firestore
 
 
-async function insertaFirebaseObra() {
-    const collectionRef = collection(db, 'prueba');
+let collectionRef =null;
+
+async function insertaModeloFire() {
     try {
-      precastElements.forEach(async (objeto) => {
-        await addDoc(collectionRef, objeto);
-        console.log('Documento agregado:', objeto);
-      });
-      console.log('Todos los documentos agregados correctamente.');
+        collectionRef = collection(db, projectName);
+        const q = query(collectionRef);
+
+        const querySnapshot = await getDocs(q);
+        const existingDocsCount = querySnapshot.docs.length;
+
+        if (existingDocsCount > 0) {
+        console.log('La colección ya existe: '+ projectName);
+        console.log('Número de piezas existentes en :'+projectName, existingDocsCount);
+
+        let documentosIguales = true;
+        querySnapshot.docs.forEach((doc) => {
+            const existingDocData = doc.data();
+            const matchingObject = precastElements.find(
+            (objeto) => objeto.GlobalId === doc.id
+            );
+
+            if (!matchingObject) {
+            console.log('Documento faltante:', doc.id);
+            documentosIguales = false;
+            } else {
+            // Comparar los valores de los campos en el documento existente y el objeto correspondiente
+            const fields = Object.keys(existingDocData);
+            fields.forEach((field) => {
+                if (existingDocData[field] !== matchingObject[field]) {
+                console.log(
+                    `Diferencia en el campo ${field} del documento ${doc.id}:`,
+                    existingDocData[field],
+                    '!==',
+                    matchingObject[field]
+                );
+                documentosIguales = false;
+                }
+            });
+            }
+        });
+
+        if (documentosIguales) {
+            console.log('La colección tiene los mismos documentos y campos.');
+        } else {
+            console.log('La colección tiene diferencias en documentos o campos.');
+        }
+        } else {
+            precastElements.forEach(async (objeto) => {
+                const docRef = doc(db, projectName, objeto.GlobalId);
+                await setDoc(docRef, objeto);
+                console.log('Documento agregado:', objeto);
+            });
+            console.log('Todos los documentos agregados correctamente.');
+        }
     } catch (error) {
-      console.error('Error al agregar los documentos:', error);
+        console.error('Error al agregar los documentos:', error);
     }
-  } 
+}
+
+
+let precastCollectionRef=null;
+let projectName = null;
+async function obtieneNameProject(url){
+    const response = await fetch(url);
+    const text = await response.text();
+    const lines = text.split('\n');
+
+    for (const line of lines) {
+        if (line.includes('IFCPROJECT')) {
+        const fields = line.split(',');
+        projectName = fields[2].replace(/'/g, '');
+        break;
+        }
+    }
+
+    if (projectName) {
+        console.log('Nombre del proyecto:', projectName);
+        precastCollectionRef = collection(db, projectName);
+    } else {
+        
+        console.log('No se encontró el nombre del proyecto');
+    }
+}
+async function actualizarBaseDeDatos() {
+    try {
+        collectionRef = collection(db, projectName);
+        const q = query(collectionRef);
+
+        const querySnapshot = await getDocs(q);
+    
+        const propertiesMap = new Map();
+
+        precastElements.forEach((objeto) => {
+            // Almacenar las propiedades y sus valores correspondientes en el mapa
+            Object.entries(objeto).forEach(([key, value]) => {
+                propertiesMap.set(key, value);
+            });
+        });
+
+        const updatePromises = [];
+
+        querySnapshot.docs.forEach(async (docSnapshot) => {
+            const existingDocData = docSnapshot.data();
+            const docRef = doc(db, projectName, docSnapshot.id);
+        
+            // Comparar los valores de los campos en el documento existente y el mapa de propiedades
+            propertiesMap.forEach(async (value, field) => {
+                if (!existingDocData.hasOwnProperty(field) || existingDocData[field] !== value) {
+                    const updatePromise = updateDoc(docRef, {
+                        [field]: value
+                    });
+                    updatePromises.push(updatePromise); // Agregar la promesa a la matriz
+                    console.log(
+                        `Campo ${field} agregado al documento ${docSnapshot.id} y ACTUALIZADO con el valor:`,
+                        value
+                    );
+                }
+            });
+        });
+
+        // Esperar a que se completen todas las actualizaciones antes de continuar
+        await Promise.all(updatePromises);
+
+        console.log('Todos los documentos actualizados correctamente.');
+    } catch (error) {
+        console.error('Error al actualizar los documentos:', error);
+    }
+}
+
+
 // Leer datos de una colección
 async function obtenerDatos() {
-        const querySnapshot = await getDocs(collection(db, "Elementos"));
+        const querySnapshot = await getDocs(collection(db, ));
         querySnapshot.forEach((doc) => {
-        console.log(doc.id, "=>", doc.data());
+        // console.log(doc.id, "=>", doc.data());
     });
 }
-obtenerDatos();
+// obtenerDatos();
 
 
 
@@ -116,7 +235,8 @@ async function loadModel(url) {
     allIDs = getAllIds(model); 
     idsTotal=getAllIds(model); 
     console.log(idsTotal.length+" total de elementos en modelo inicial");
-    const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
+    obtieneNameProject(url);
+    // const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
@@ -132,7 +252,6 @@ async function loadModel(url) {
 }
 // async function descargarArchivoJSON(properties) {
 //     const file = new File(properties, 'properties.json');
-  
 //     const link = document.createElement('a');
 //     document.body.appendChild(link);
 //     link.href = URL.createObjectURL(file);
@@ -140,6 +259,7 @@ async function loadModel(url) {
 //     link.click();
 //     link.remove();
 //   }
+
 
 const camera = viewer.context.getCamera();
 const scena2=viewer.context.getScene();
@@ -179,7 +299,6 @@ function toggleSelectionBoxVisibility(visible) {
     }
 }
 
-
 function createSelectionBoxAndHelper() {
     if (!selectionBox && keyCtrl) {
         selectionBox = new SelectionBox(camera, scena2);
@@ -195,7 +314,58 @@ function removeSelectionBoxAndHelper() {
     }
 }
 
+document.addEventListener("pointerdown", function(event) { 
+    if (keyCtrl && selectionBox) { 
+        selectionBox.startPoint.set( 
+            viewer.context.mouse.position.x, 
+            viewer.context.mouse.position.y, 
+            0.5 
+        ); 
+    } 
+}); 
 
+document.addEventListener("pointerup", function(event) { 
+    if (keyCtrl && selectionBox) { 
+        selectionBox.endPoint.set( 
+            (event.clientX / window.innerWidth) * 2 - 1, 
+            -(event.clientY / window.innerHeight) * 2 + 1, 
+            0.5 
+        ); 
+        const allSelected = selectionBox.select(scene, camera, selectionBox); 
+        console.log(allSelected);
+    } 
+});
+// document.addEventListener("pointermove", function(event) {
+//     if (keyCtrl && selectionBox && helper.isDown) {
+//         console.log("en movimiento RATON")
+//         selectionBox.endPoint.set(
+//             viewer.context.mouse.position.x,
+//             viewer.context.mouse.position.y,
+//             0.5
+//         );
+        
+//     }
+// });
+
+// document.addEventListener("pointerup", function(event) {
+//     if (keyCtrl && selectionBox) {
+//         console.log("Levanto")
+//         for ( let i = 0; i < selectionBox.collection.length; i ++ ) {
+
+// 						selectionBox.collection[ i ].material.emissive.set( 0x000000 );
+
+// 					}
+
+// 					selectionBox.endPoint.set(
+// 						( event.clientX / window.innerWidth ) * 2 - 1,
+// 						- ( event.clientY / window.innerHeight ) * 2 + 1,
+// 						0.5 );
+
+// 					const allSelected = selectionBox.select();
+
+					
+//     }
+// });
 
 const btnModifica = document.getElementById('modificaProp');
 let isClickedModifica = false;
@@ -384,7 +554,6 @@ inputText.addEventListener('change', function() {
     }
 });
 
-
 checkBox.addEventListener('change', function() {
     const textoInput = inputText.value.trim();
     if (textoInput) {
@@ -396,7 +565,6 @@ checkBox.addEventListener('change', function() {
         }
     }
 });
-
 
 //Nave cube
 viewer.container = container;
@@ -418,7 +586,7 @@ async function crearBotonPrecasFuisonados(){
     btnCreaPrecastFusionados.classList.add("button");
     btnCreaPrecastFusionados.id = "btnCreaPrecastFusionados";
     btnCreaPrecastFusionados.className;
-    btnCreaPrecastFusionados.textContent = "Fusiona";// Agrega el texto que deseas que aparezca en el botón
+    btnCreaPrecastFusionados.textContent = "Fusiona";
 
     //  referencia al último botón existente
     var ultimoBoton = document.querySelector(".button-container .button:last-of-type");
@@ -457,16 +625,15 @@ async function crearBotonPrecasFuisonados(){
         ifcCompleto.style.display="block";
         const btnModifica= document.getElementById("modificaProp")
         btnModifica.style.display = "block";
-        });
-        
-        
+        });    
 }
 
 function eliminarElementosAssembly() {
     precastElements = precastElements.filter(element => element.ifcType !== 'IFCELEMENTASSEMBLY');
     console.log("TOTAL DE ELEMNTOS EN PRECAST: "+precastElements.length);
     // insertar array precastEleemt en firebase
-    insertaFirebaseObra();
+    // insertaModeloFire();
+    
 }
 
 
@@ -767,6 +934,7 @@ window.ondblclick = async () => {
         const pesoCamion = document.getElementById("pesoCamion");
         pesoCamion.textContent = pesoTotal.toString();
     }
+    // actualizarBaseDeDatos();
 };
 
    //evento dblClic carga al camion elementos
@@ -1682,6 +1850,7 @@ listaElementos.addEventListener('dblclick', function(event) {
                     }
                 }
             });
+            //  actualizarBaseDeDatos();
 
         }
         else {
@@ -2386,6 +2555,8 @@ for (let i = 0; i < toggler.length; i++) {
 //++++++++++++++++++++++++
 async function createTreeMenu(modelID){
     const ifcProject = await viewer.IFC.getSpatialStructure (modelID);
+    //console.log(ifcProject);
+    
     removeAllChildren(GUI.tree); //elimina la estructura html ejemplo creada para ver como lo vamos a montar
 
     const ifcProjectNode = createNestedChildren(GUI.tree, ifcProject);
@@ -3114,6 +3285,7 @@ function generarTabla(expressIDs, camion) {
     contenedorTabla.appendChild(tabla);
     thElemento.classList.add('cabecera-tabla');
     divTabla.appendChild(contenedorTabla);
+    // actualizarBaseDeDatos();
 }
 
 let ultimaCeldaSeleccionada = null;
@@ -3308,7 +3480,8 @@ function posicionesCamion(tabla, cabeceraValor) {
                 
                 cajon.addEventListener("dblclick", function (event) {
                     limpiaPosicion(cajon, tabla);
-                    actualizarTablaDerecha()
+                    actualizarTablaDerecha();
+                    // actualizarBaseDeDatos();
                 });
                 
                 cajon.addEventListener("click", async function (event) {
