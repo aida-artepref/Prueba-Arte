@@ -36,10 +36,15 @@ const db = getFirestore(app); // Obtén una referencia a la base de datos Firest
 
 
 let collectionRef =null;
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 async function insertaModeloFire() {
     try {
         collectionRef = collection(db, projectName);
         const q = query(collectionRef);
+<<<<<<< HEAD
     
         const querySnapshot = await getDocs(q);
         const existingDocsCount = querySnapshot.docs.length;
@@ -105,15 +110,63 @@ async function insertaModeloFire() {
             const docRef = doc(db, projectName, objeto.GlobalId);
             await setDoc(docRef, objeto);
             console.log('Documento agregado:', objeto);
+=======
+
+        const querySnapshot = await getDocs(q);
+        const existingDocsCount = querySnapshot.docs.length;
+
+        if (existingDocsCount > 0) {
+        console.log('La colección ya existe: '+ projectName);
+        console.log('Número de piezas existentes en :'+projectName, existingDocsCount);
+
+        let documentosIguales = true;
+        querySnapshot.docs.forEach((doc) => {
+            const existingDocData = doc.data();
+            const matchingObject = precastElements.find(
+            (objeto) => objeto.GlobalId === doc.id
+            );
+
+            if (!matchingObject) {
+            console.log('Documento faltante:', doc.id);
+            documentosIguales = false;
+            } else {
+            // Comparar los valores de los campos en el documento existente y el objeto correspondiente
+            const fields = Object.keys(existingDocData);
+            fields.forEach((field) => {
+                if (existingDocData[field] !== matchingObject[field]) {
+                console.log(
+                    `Diferencia en el campo ${field} del documento ${doc.id}:`,
+                    existingDocData[field],
+                    '!==',
+                    matchingObject[field]
+                );
+                documentosIguales = false;
+                }
+            });
+            }
+        });
+
+        if (documentosIguales) {
+            console.log('La colección tiene los mismos documentos y campos.');
+        } else {
+            console.log('La colección tiene diferencias en documentos o campos.');
+        }
+        } else {
+            precastElements.forEach(async (objeto) => {
+                const docRef = doc(db, projectName, objeto.GlobalId);
+                await setDoc(docRef, objeto);
+                console.log('Documento agregado:', objeto);
+>>>>>>> main
             });
             console.log('Todos los documentos agregados correctamente.');
         }
     } catch (error) {
-      console.error('Error al agregar los documentos:', error);
+        console.error('Error al agregar los documentos:', error);
     }
 }
 
 
+<<<<<<< HEAD
 
 
 
@@ -177,6 +230,8 @@ async function insertaModeloFire() {
 // }
 
 
+=======
+>>>>>>> main
 let precastCollectionRef=null;
 let projectName = null;
 async function obtieneNameProject(url){
@@ -202,14 +257,31 @@ async function obtieneNameProject(url){
 }
 async function actualizarBaseDeDatos() {
     try {
+<<<<<<< HEAD
         const collectionRef = collection(db, projectName);
         const querySnapshot = await getDocs(collectionRef);
+=======
+        collectionRef = collection(db, projectName);
+        const q = query(collectionRef);
+
+        const querySnapshot = await getDocs(q);
+    
+        const propertiesMap = new Map();
+
+        precastElements.forEach((objeto) => {
+            // Almacenar las propiedades y sus valores correspondientes en el mapa
+            Object.entries(objeto).forEach(([key, value]) => {
+                propertiesMap.set(key, value);
+            });
+        });
+>>>>>>> main
 
         const updatePromises = [];
 
         querySnapshot.docs.forEach(async (docSnapshot) => {
             const existingDocData = docSnapshot.data();
             const docRef = doc(db, projectName, docSnapshot.id);
+<<<<<<< HEAD
             const docGlobalId = existingDocData.GlobalId;
 
             const objetoActualizado = precastElements.find((objeto) => objeto.GlobalId === docGlobalId);
@@ -238,6 +310,25 @@ async function actualizarBaseDeDatos() {
             }
         });
 
+=======
+        
+            // Comparar los valores de los campos en el documento existente y el mapa de propiedades
+            propertiesMap.forEach(async (value, field) => {
+                if (!existingDocData.hasOwnProperty(field) || existingDocData[field] !== value) {
+                    const updatePromise = updateDoc(docRef, {
+                        [field]: value
+                    });
+                    updatePromises.push(updatePromise); // Agregar la promesa a la matriz
+                    console.log(
+                        `Campo ${field} agregado al documento ${docSnapshot.id} y ACTUALIZADO con el valor:`,
+                        value
+                    );
+                }
+            });
+        });
+
+        // Esperar a que se completen todas las actualizaciones antes de continuar
+>>>>>>> main
         await Promise.all(updatePromises);
 
         console.log('Todos los documentos actualizados correctamente.');
@@ -247,6 +338,7 @@ async function actualizarBaseDeDatos() {
 }
 
 
+<<<<<<< HEAD
 
 // async function actualizarBaseDeDatos() {
     //UPDATE FIREBASE, CUANDO UN ELEMENTO DEL VISOR PASA A UN CAMION LOS DATOS SE ACTUALIZAN EN LA COLECCION CORRESPONDIENTE
@@ -293,6 +385,8 @@ async function actualizarBaseDeDatos() {
 
 
 
+=======
+>>>>>>> main
 // Leer datos de una colección
 async function obtenerDatos() {
         const querySnapshot = await getDocs(collection(db, ));
@@ -491,9 +585,15 @@ document.addEventListener("pointerup", function(event) {
 //         for ( let i = 0; i < selectionBox.collection.length; i ++ ) {
 
 // 						selectionBox.collection[ i ].material.emissive.set( 0x000000 );
+<<<<<<< HEAD
 
 // 					}
 
+=======
+
+// 					}
+
+>>>>>>> main
 // 					selectionBox.endPoint.set(
 // 						( event.clientX / window.innerWidth ) * 2 - 1,
 // 						- ( event.clientY / window.innerHeight ) * 2 + 1,
@@ -770,7 +870,11 @@ function eliminarElementosAssembly() {
     precastElements = precastElements.filter(element => element.ifcType !== 'IFCELEMENTASSEMBLY');
     console.log("TOTAL DE ELEMNTOS EN PRECAST: "+precastElements.length);
     // insertar array precastEleemt en firebase
+<<<<<<< HEAD
     insertaModeloFire();
+=======
+    // insertaModeloFire();
+>>>>>>> main
     
 }
 
@@ -1072,7 +1176,11 @@ window.ondblclick = async () => {
         const pesoCamion = document.getElementById("pesoCamion");
         pesoCamion.textContent = pesoTotal.toString();
     }
+<<<<<<< HEAD
     actualizarBaseDeDatos();
+=======
+    // actualizarBaseDeDatos();
+>>>>>>> main
 };
 
    //evento dblClic carga al camion elementos
@@ -1988,7 +2096,11 @@ listaElementos.addEventListener('dblclick', function(event) {
                     }
                 }
             });
+<<<<<<< HEAD
             
+=======
+            //  actualizarBaseDeDatos();
+>>>>>>> main
 
         }
         else {
@@ -3424,7 +3536,11 @@ function generarTabla(expressIDs, camion) {
     contenedorTabla.appendChild(tabla);
     thElemento.classList.add('cabecera-tabla');
     divTabla.appendChild(contenedorTabla);
+<<<<<<< HEAD
     actualizarBaseDeDatos();
+=======
+    // actualizarBaseDeDatos();
+>>>>>>> main
 }
 
 let ultimaCeldaSeleccionada = null;
@@ -3620,7 +3736,11 @@ function posicionesCamion(tabla, cabeceraValor) {
                 cajon.addEventListener("dblclick", function (event) {
                     limpiaPosicion(cajon, tabla);
                     actualizarTablaDerecha();
+<<<<<<< HEAD
                     actualizarBaseDeDatos();
+=======
+                    // actualizarBaseDeDatos();
+>>>>>>> main
                 });
                 
                 cajon.addEventListener("click", async function (event) {
