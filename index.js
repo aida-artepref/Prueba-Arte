@@ -1,4 +1,4 @@
-import { Color, Loader, MeshBasicMaterial, BoxHelper, WebGLRenderer, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial,MultiMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
+import { Color, Loader, MeshBasicMaterial, BoxHelper, WebGLRenderer, Vector3, MeshDepthMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, BackSide, MeshPhongMaterial,MultiMaterial, EdgesGeometry, Mesh, BufferGeometry, MeshLambertMaterial} from 'three';
 import{ IfcViewerAPI } from 'web-ifc-viewer';
 import { IFCELEMENTASSEMBLY, IfcElementQuantity } from 'web-ifc';
 import { NavCube } from './NavCube/NavCube.js';
@@ -9,7 +9,8 @@ import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.js';
 
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc} from "firebase/firestore";
+import { getFirestore, collection, getDocs,  addDoc, doc, setDoc, query, updateDoc   } from "firebase/firestore";
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyDTlGsBq7VwlM3SXw2woBBqHsasVjXQgrc",
@@ -20,30 +21,286 @@ const firebaseConfig = {
     appId: "1:996650908621:web:b550fd82697fc26933a284"
 };
 
+// const firebaseConfig = {
+//   apiKey: "AIzaSyBIUFK1o20tz-lO1ylbcQAH3OjeyKJGBWA",
+//   authDomain: "cargas-v2.firebaseapp.com",
+//   projectId: "cargas-v2",
+//   storageBucket: "cargas-v2.appspot.com",
+//   messagingSenderId: "473120721125",
+//   appId: "1:473120721125:web:4dd808832901ef32af6c0c"
+// };
+
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app); // Obtén una referencia a la base de datos Firestore
 
 
-async function insertaFirebaseObra() {
-    const collectionRef = collection(db, 'prueba');
+let collectionRef =null;
+async function insertaModeloFire() {
     try {
-      precastElements.forEach(async (objeto) => {
-        await addDoc(collectionRef, objeto);
-        console.log('Documento agregado:', objeto);
-      });
-      console.log('Todos los documentos agregados correctamente.');
+        collectionRef = collection(db, projectName);
+        const q = query(collectionRef);
+    
+        const querySnapshot = await getDocs(q);
+        const existingDocsCount = querySnapshot.docs.length;
+    
+        if (existingDocsCount > 0) {
+            console.log('La colección ya existe: ' + projectName);
+            console.log('Número de piezas existentes en: ' + projectName, existingDocsCount);
+    
+            if (existingDocsCount === precastElements.length) {
+            let documentosIguales = true;
+    
+            querySnapshot.docs.forEach(async (doc) => {
+                const existingDocData = doc.data();
+                const matchingObject = precastElements.find(
+                (objeto) => objeto.GlobalId === doc.id
+                );
+    
+                if (!matchingObject) {
+                console.log('Documento faltante:', doc.id);
+                documentosIguales = false;
+                } else {
+                    const fields = Object.keys(existingDocData);
+        
+                    fields.forEach(async (field) => {
+                        if (field === 'expressID') {
+                            if (existingDocData[field] !== matchingObject[field]) {
+                                console.log(
+                                `Diferencia en el campo ${field} del documento ${doc.id}:`,
+                                existingDocData[field],
+                                '!==',
+                                matchingObject[field]
+                                );
+                                documentosIguales = false;
+                                console.log(`Actualizando ExpressID del documento ${doc.id} a:`, matchingObject[field]);
+                                const docRef = doc(db, projectName, docSnapshot.id);
+                                // const docRef = doc(collectionRef, doc.id);
+
+                                await updateDoc(docRef, { ExpressID: matchingObject[field] });
+                            }
+                        } else if (existingDocData[field] !== matchingObject[field]) {
+                        console.log(
+                            `DiferenciaAAAA en el campo ${field} del documento ${doc.id}:`,
+                            existingDocData[field],
+                            '!==',
+                            matchingObject[field]
+                        );
+                        documentosIguales = false;
+                        }
+                    });
+                }
+            });
+    
+            if (documentosIguales) {
+                console.log('La colección tiene los mismos documentos y campos.');
+            } else {
+                console.log('La colección tiene diferencias en documentos o campos.');
+            }
+            } else {
+            console.log('La cantidad de documentos no coincide con precastElements.length.');
+            }
+        } else {
+            precastElements.forEach(async (objeto) => {
+            const docRef = doc(db, projectName, objeto.GlobalId);
+            await setDoc(docRef, objeto);
+            console.log('Documento agregado:', objeto);
+            });
+            console.log('Todos los documentos agregados correctamente.');
+        }
     } catch (error) {
       console.error('Error al agregar los documentos:', error);
     }
-  } 
+}
+
+
+
+
+
+// async function insertaModeloFire() {
+//     try {
+//         collectionRef = collection(db, projectName);
+//         const q = query(collectionRef);
+
+//         const querySnapshot = await getDocs(q);
+//         const existingDocsCount = querySnapshot.docs.length; //cantidad de documentos existentes en la colección
+
+//         if (existingDocsCount > 0) {
+//         console.log('La colección ya existe: '+ projectName);
+//         console.log('Número de piezas existentes en :'+projectName, existingDocsCount);
+
+//         let documentosIguales = true;
+//         // itera sobre cada documento en el snapshot
+//         querySnapshot.docs.forEach((doc) => {
+//             const existingDocData = doc.data();
+//             // Busca un objeto en el array precastElements que tenga el mismo GlobalId que el documento
+//             const matchingObject = precastElements.find(
+//             (objeto) => objeto.GlobalId === doc.id
+//             );
+
+//             if (!matchingObject) {
+//             console.log('Falta algun elemento en el IFC, respecto a los datos almacenados anteriormente:', doc.id);
+//             documentosIguales = false;
+//             } else {
+//             // Comparar los valores de los campos en el documento existente y el objeto correspondiente
+//             const fields = Object.keys(existingDocData);
+//             fields.forEach((field) => {
+//                 if (existingDocData[field] !== matchingObject[field]) {
+//                 console.log(
+//                     `Diferencia en el campo ${field} del documento ${doc.id}:`,
+//                     existingDocData[field],
+//                     '!==',
+//                     matchingObject[field]
+//                 );
+//                 documentosIguales = false;
+//                 }
+//             });
+//             }
+//         });
+
+//         if (documentosIguales) {
+//             console.log('La colección tiene los mismos documentos y campos.');
+//         } else {
+//             console.log('La colección tiene diferencias en documentos o campos.');
+//         }
+//         } else {
+//             precastElements.forEach(async (objeto) => {
+//                 const docRef = doc(db, projectName, objeto.GlobalId);
+//                 await setDoc(docRef, objeto);
+//                 console.log('Documento agregado:', objeto);
+//             });
+//             console.log('Todos los documentos agregados correctamente.');
+//         }
+//     } catch (error) {
+//         console.error('Error al agregar los documentos:', error);
+//     }
+// }
+
+
+let precastCollectionRef=null;
+let projectName = null;
+async function obtieneNameProject(url){
+    const response = await fetch(url);
+    const text = await response.text();
+    const lines = text.split('\n');
+
+    for (const line of lines) {
+        if (line.includes('IFCPROJECT')) {
+        const fields = line.split(',');
+        projectName = fields[2].replace(/'/g, '');
+        break;
+        }
+    }
+
+    if (projectName) {
+        console.log('Nombre del proyecto:', projectName);
+        precastCollectionRef = collection(db, projectName);
+    } else {
+        
+        console.log('No se encontró el nombre del proyecto');
+    }
+}
+async function actualizarBaseDeDatos() {
+    try {
+        const collectionRef = collection(db, projectName);
+        const querySnapshot = await getDocs(collectionRef);
+
+        const updatePromises = [];
+
+        querySnapshot.docs.forEach(async (docSnapshot) => {
+            const existingDocData = docSnapshot.data();
+            const docRef = doc(db, projectName, docSnapshot.id);
+            const docGlobalId = existingDocData.GlobalId;
+
+            const objetoActualizado = precastElements.find((objeto) => objeto.GlobalId === docGlobalId);
+
+            if (objetoActualizado) {
+                const updatedFields = {};
+
+                for (const [key, value] of Object.entries(objetoActualizado)) {
+                    if (
+                        !existingDocData.hasOwnProperty(key) ||
+                        existingDocData[key] !== value ||
+                        (value === "" && existingDocData[key] !== "")
+                    ) {
+                        updatedFields[key] = value;
+                    }
+                }
+
+                if (Object.keys(updatedFields).length > 0) {
+                    const updatePromise = updateDoc(docRef, updatedFields);
+                    updatePromises.push(updatePromise);
+                    console.log(
+                        `Documento ${docSnapshot.id} actualizado con los campos modificados:`,
+                        updatedFields
+                    );
+                }
+            }
+        });
+
+        await Promise.all(updatePromises);
+
+        console.log('Todos los documentos actualizados correctamente.');
+    } catch (error) {
+        console.error('Error al actualizar los documentos:', error);
+    }
+}
+
+
+
+// async function actualizarBaseDeDatos() {
+    //UPDATE FIREBASE, CUANDO UN ELEMENTO DEL VISOR PASA A UN CAMION LOS DATOS SE ACTUALIZAN EN LA COLECCION CORRESPONDIENTE
+//     try {
+//         const collectionRef = collection(db, projectName);
+//         const querySnapshot = await getDocs(collectionRef);
+
+//         const updatePromises = [];
+
+//         querySnapshot.docs.forEach((docSnapshot) => {
+//             const existingDocData = docSnapshot.data();
+//             const docRef = doc(db, projectName, docSnapshot.id);
+//             const docGlobalId = existingDocData.GlobalId;
+
+//             const objetoActualizado = precastElements.find((objeto) => objeto.GlobalId === docGlobalId);
+
+//             if (objetoActualizado) {
+//                 const newProperties = {};
+
+//                 for (const [key, value] of Object.entries(objetoActualizado)) {
+//                     if (!existingDocData.hasOwnProperty(key) || existingDocData[key] !== value) {
+//                         newProperties[key] = value;
+//                     }
+//                 }
+
+//                 if (Object.keys(newProperties).length > 0) {
+//                     const updatePromise = updateDoc(docRef, newProperties);
+//                     updatePromises.push(updatePromise);
+//                     console.log(
+//                         `Documento ${docSnapshot.id} actualizado con los nuevos campos:`,
+//                         newProperties
+//                     );
+//                 }
+//             }
+//         });
+
+//         await Promise.all(updatePromises);
+
+//         console.log('Todos los documentos actualizados correctamente.');
+//     } catch (error) {
+//         console.error('Error al actualizar los documentos:', error);
+//     }
+// }
+
+
+
 // Leer datos de una colección
 async function obtenerDatos() {
-        const querySnapshot = await getDocs(collection(db, "Elementos"));
+        const querySnapshot = await getDocs(collection(db, ));
         querySnapshot.forEach((doc) => {
-        console.log(doc.id, "=>", doc.data());
+        // console.log(doc.id, "=>", doc.data());
     });
 }
-obtenerDatos();
+// obtenerDatos();
 
 
 
@@ -116,7 +373,8 @@ async function loadModel(url) {
     allIDs = getAllIds(model); 
     idsTotal=getAllIds(model); 
     console.log(idsTotal.length+" total de elementos en modelo inicial");
-    const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
+    obtieneNameProject(url);
+    // const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
     let subset = getWholeSubset(viewer, model, allIDs);
     replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
@@ -132,7 +390,6 @@ async function loadModel(url) {
 }
 // async function descargarArchivoJSON(properties) {
 //     const file = new File(properties, 'properties.json');
-  
 //     const link = document.createElement('a');
 //     document.body.appendChild(link);
 //     link.href = URL.createObjectURL(file);
@@ -140,6 +397,7 @@ async function loadModel(url) {
 //     link.click();
 //     link.remove();
 //   }
+
 
 const camera = viewer.context.getCamera();
 const scena2=viewer.context.getScene();
@@ -179,7 +437,6 @@ function toggleSelectionBoxVisibility(visible) {
     }
 }
 
-
 function createSelectionBoxAndHelper() {
     if (!selectionBox && keyCtrl) {
         selectionBox = new SelectionBox(camera, scena2);
@@ -195,7 +452,58 @@ function removeSelectionBoxAndHelper() {
     }
 }
 
+document.addEventListener("pointerdown", function(event) { 
+    if (keyCtrl && selectionBox) { 
+        selectionBox.startPoint.set( 
+            viewer.context.mouse.position.x, 
+            viewer.context.mouse.position.y, 
+            0.5 
+        ); 
+    } 
+}); 
 
+document.addEventListener("pointerup", function(event) { 
+    if (keyCtrl && selectionBox) { 
+        selectionBox.endPoint.set( 
+            (event.clientX / window.innerWidth) * 2 - 1, 
+            -(event.clientY / window.innerHeight) * 2 + 1, 
+            0.5 
+        ); 
+        const allSelected = selectionBox.select(scene, camera, selectionBox); 
+        console.log(allSelected);
+    } 
+});
+// document.addEventListener("pointermove", function(event) {
+//     if (keyCtrl && selectionBox && helper.isDown) {
+//         console.log("en movimiento RATON")
+//         selectionBox.endPoint.set(
+//             viewer.context.mouse.position.x,
+//             viewer.context.mouse.position.y,
+//             0.5
+//         );
+        
+//     }
+// });
+
+// document.addEventListener("pointerup", function(event) {
+//     if (keyCtrl && selectionBox) {
+//         console.log("Levanto")
+//         for ( let i = 0; i < selectionBox.collection.length; i ++ ) {
+
+// 						selectionBox.collection[ i ].material.emissive.set( 0x000000 );
+
+// 					}
+
+// 					selectionBox.endPoint.set(
+// 						( event.clientX / window.innerWidth ) * 2 - 1,
+// 						- ( event.clientY / window.innerHeight ) * 2 + 1,
+// 						0.5 );
+
+// 					const allSelected = selectionBox.select();
+
+					
+//     }
+// });
 
 const btnModifica = document.getElementById('modificaProp');
 let isClickedModifica = false;
@@ -384,7 +692,6 @@ inputText.addEventListener('change', function() {
     }
 });
 
-
 checkBox.addEventListener('change', function() {
     const textoInput = inputText.value.trim();
     if (textoInput) {
@@ -396,7 +703,6 @@ checkBox.addEventListener('change', function() {
         }
     }
 });
-
 
 //Nave cube
 viewer.container = container;
@@ -418,7 +724,7 @@ async function crearBotonPrecasFuisonados(){
     btnCreaPrecastFusionados.classList.add("button");
     btnCreaPrecastFusionados.id = "btnCreaPrecastFusionados";
     btnCreaPrecastFusionados.className;
-    btnCreaPrecastFusionados.textContent = "Fusiona";// Agrega el texto que deseas que aparezca en el botón
+    btnCreaPrecastFusionados.textContent = "Fusiona";
 
     //  referencia al último botón existente
     var ultimoBoton = document.querySelector(".button-container .button:last-of-type");
@@ -457,16 +763,15 @@ async function crearBotonPrecasFuisonados(){
         ifcCompleto.style.display="block";
         const btnModifica= document.getElementById("modificaProp")
         btnModifica.style.display = "block";
-        });
-        
-        
+        });    
 }
 
 function eliminarElementosAssembly() {
     precastElements = precastElements.filter(element => element.ifcType !== 'IFCELEMENTASSEMBLY');
     console.log("TOTAL DE ELEMNTOS EN PRECAST: "+precastElements.length);
     // insertar array precastEleemt en firebase
-    insertaFirebaseObra();
+    insertaModeloFire();
+    
 }
 
 
@@ -767,6 +1072,7 @@ window.ondblclick = async () => {
         const pesoCamion = document.getElementById("pesoCamion");
         pesoCamion.textContent = pesoTotal.toString();
     }
+    actualizarBaseDeDatos();
 };
 
    //evento dblClic carga al camion elementos
@@ -1682,6 +1988,7 @@ listaElementos.addEventListener('dblclick', function(event) {
                     }
                 }
             });
+            
 
         }
         else {
@@ -1711,6 +2018,7 @@ listaElementos.addEventListener('dblclick', function(event) {
                         
             // checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
         }
+        actualizarBaseDeDatos();
     }
     let numCamion=parseInt(document.getElementById("numCamion").textContent);
     const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
@@ -2386,6 +2694,8 @@ for (let i = 0; i < toggler.length; i++) {
 //++++++++++++++++++++++++
 async function createTreeMenu(modelID){
     const ifcProject = await viewer.IFC.getSpatialStructure (modelID);
+    //console.log(ifcProject);
+    
     removeAllChildren(GUI.tree); //elimina la estructura html ejemplo creada para ver como lo vamos a montar
 
     const ifcProjectNode = createNestedChildren(GUI.tree, ifcProject);
@@ -3114,6 +3424,7 @@ function generarTabla(expressIDs, camion) {
     contenedorTabla.appendChild(tabla);
     thElemento.classList.add('cabecera-tabla');
     divTabla.appendChild(contenedorTabla);
+    actualizarBaseDeDatos();
 }
 
 let ultimaCeldaSeleccionada = null;
@@ -3308,7 +3619,8 @@ function posicionesCamion(tabla, cabeceraValor) {
                 
                 cajon.addEventListener("dblclick", function (event) {
                     limpiaPosicion(cajon, tabla);
-                    actualizarTablaDerecha()
+                    actualizarTablaDerecha();
+                    actualizarBaseDeDatos();
                 });
                 
                 cajon.addEventListener("click", async function (event) {
