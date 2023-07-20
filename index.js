@@ -84,8 +84,9 @@ async function insertaModeloFire() {
                 } else {
                     console.log('La colección tiene diferencias en documentos o campos.');
                     mostrarElementosRestantes();
-            clasificarPorTipoTransporte();
-            actualizaDesplegables();
+                    clasificarPorTipoTransporte();
+                    actualizaDesplegables();
+                    nuevoCamionEstructuraBtn.click();
                 }
             } else {
                 console.log('La cantidad de documentos no coincide con precastElements.length.');
@@ -2991,6 +2992,49 @@ let transporteA = [];
 let transporteC = [];
 let transporteE = [];
 let transporteTu = [];
+
+// function clasificarPorTipoTransporte() {
+//     const transporteA = [];
+//     const transporteC = [];
+//     const transporteE = [];
+//     const transporteTu = [];
+
+//     for (let i = 0; i < precastElements.length; i++) {
+//         const tipoTransporte = precastElements[i].tipoTransporte;
+
+//         if (tipoTransporte) {
+//             const letra = tipoTransporte.charAt(tipoTransporte.length - 1);
+
+//             switch (letra) {
+//                 case "A":
+//                     transporteA.push(precastElements[i]);
+//                     break;
+
+//                 case "C":
+//                     transporteC.push(precastElements[i]);
+//                     break;
+
+//                 case "E":
+//                     transporteE.push(precastElements[i]);
+//                     break;
+
+//                 case "Tu":
+//                     transporteTu.push(precastElements[i]);
+//                     break;
+//             }
+//         } else {
+//             // Código para manejar el caso en que no existe la propiedad tipoTransporte en el objeto
+//             // Por ejemplo, puedes ignorar este objeto o realizar alguna otra acción adecuada
+//             console.warn('El objeto en la posición', i, 'no tiene la propiedad tipoTransporte');
+//         }
+//     }
+
+//     buscaMaxTransporte(transporteA);
+//     buscaMaxTransporte(transporteC);
+//     buscaMaxTransporte(transporteE);
+//     buscaMaxTransporte(transporteTu);
+// }
+
 function clasificarPorTipoTransporte() {
     for (let i = 0; i < precastElements.length; i++) {
         const tipoTransporte = precastElements[i].tipoTransporte;
@@ -3017,7 +3061,6 @@ function clasificarPorTipoTransporte() {
     buscaMaxTransporte(transporteC);
     buscaMaxTransporte(transporteE);
     buscaMaxTransporte(transporteTu);
-
 }
 
 function buscaMaxTransporte(transporteA){
