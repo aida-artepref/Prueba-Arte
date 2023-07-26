@@ -2993,75 +2993,75 @@ let transporteC = [];
 let transporteE = [];
 let transporteTu = [];
 
-// function clasificarPorTipoTransporte() {
-//     const transporteA = [];
-//     const transporteC = [];
-//     const transporteE = [];
-//     const transporteTu = [];
-
-//     for (let i = 0; i < precastElements.length; i++) {
-//         const tipoTransporte = precastElements[i].tipoTransporte;
-
-//         if (tipoTransporte) {
-//             const letra = tipoTransporte.charAt(tipoTransporte.length - 1);
-
-//             switch (letra) {
-//                 case "A":
-//                     transporteA.push(precastElements[i]);
-//                     break;
-
-//                 case "C":
-//                     transporteC.push(precastElements[i]);
-//                     break;
-
-//                 case "E":
-//                     transporteE.push(precastElements[i]);
-//                     break;
-
-//                 case "Tu":
-//                     transporteTu.push(precastElements[i]);
-//                     break;
-//             }
-//         } else {
-//             // Código para manejar el caso en que no existe la propiedad tipoTransporte en el objeto
-//             // Por ejemplo, puedes ignorar este objeto o realizar alguna otra acción adecuada
-//             console.warn('El objeto en la posición', i, 'no tiene la propiedad tipoTransporte');
-//         }
-//     }
-
-//     buscaMaxTransporte(transporteA);
-//     buscaMaxTransporte(transporteC);
-//     buscaMaxTransporte(transporteE);
-//     buscaMaxTransporte(transporteTu);
-// }
-
 function clasificarPorTipoTransporte() {
+    const transporteA = [];
+    const transporteC = [];
+    const transporteE = [];
+    const transporteTu = [];
+
     for (let i = 0; i < precastElements.length; i++) {
         const tipoTransporte = precastElements[i].tipoTransporte;
-        const letra = tipoTransporte.charAt(tipoTransporte.length - 1);
-        switch (letra) {
-            case "A":
-            transporteA.push(precastElements[i]);
-            break;
 
-            case "C":
-            transporteC.push(precastElements[i]);
-            break;
+        if (tipoTransporte) {
+            const letra = tipoTransporte.charAt(tipoTransporte.length - 1);
 
-            case "E":
-            transporteE.push(precastElements[i]);
-            break;
-            
-            case "Tu":
-            transporteE.push(precastElements[i]);
-            break;
+            switch (letra) {
+                case "A":
+                    transporteA.push(precastElements[i]);
+                    break;
+
+                case "C":
+                    transporteC.push(precastElements[i]);
+                    break;
+
+                case "E":
+                    transporteE.push(precastElements[i]);
+                    break;
+
+                case "Tu":
+                    transporteTu.push(precastElements[i]);
+                    break;
+            }
+        } else {
+            // Código para manejar el caso en que no existe la propiedad tipoTransporte en el objeto
+            // Por ejemplo, puedes ignorar este objeto o realizar alguna otra acción adecuada
+            // console.warn('El objeto en la posición', i, 'no tiene la propiedad tipoTransporte');
         }
     }
+
     buscaMaxTransporte(transporteA);
     buscaMaxTransporte(transporteC);
     buscaMaxTransporte(transporteE);
     buscaMaxTransporte(transporteTu);
 }
+
+// function clasificarPorTipoTransporte() {
+//     for (let i = 0; i < precastElements.length; i++) {
+//         const tipoTransporte = precastElements[i].tipoTransporte;
+//         const letra = tipoTransporte.charAt(tipoTransporte.length - 1);
+//         switch (letra) {
+//             case "A":
+//             transporteA.push(precastElements[i]);
+//             break;
+
+//             case "C":
+//             transporteC.push(precastElements[i]);
+//             break;
+
+//             case "E":
+//             transporteE.push(precastElements[i]);
+//             break;
+            
+//             case "Tu":
+//             transporteE.push(precastElements[i]);
+//             break;
+//         }
+//     }
+//     buscaMaxTransporte(transporteA);
+//     buscaMaxTransporte(transporteC);
+//     buscaMaxTransporte(transporteE);
+//     buscaMaxTransporte(transporteTu);
+// }
 
 function buscaMaxTransporte(transporteA){
     let camionMaximo = null;
