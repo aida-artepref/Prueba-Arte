@@ -610,7 +610,7 @@ btnIfcCompleto.addEventListener('click', async function(){
         const materialSolid = new MeshLambertMaterial({
             
             transparent: true,
-            opacity: 0.5,
+            opacity: 0.3,
             color: 0x54a2c4,
         });
         
