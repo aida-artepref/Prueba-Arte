@@ -36,7 +36,6 @@ const db = getFirestore(app); // Obtén una referencia a la base de datos Firest
 
 
 let collectionRef =null;
-
 async function insertaModeloFire() {
     try {
         collectionRef = collection(db, projectName);
@@ -49,32 +48,36 @@ async function insertaModeloFire() {
             console.log('La colección ya existe: ' + projectName);
             console.log('Número de piezas existentes en: ' + projectName, existingDocsCount);
 
+            // Volcar los datos de Firebase en un array auxiliar
+            const auxiliar = querySnapshot.docs.map((doc) => doc.data());
+
             if (existingDocsCount === precastElements.length) {
                 let documentosIguales = true;
 
-                for (const doc of querySnapshot.docs) {
-                    const existingDocData = doc.data();
-                    const matchingObject = precastElements.find((objeto) => objeto.GlobalId === doc.id);
+                for (const matchingObject of precastElements) {
+                    const existingDocData = auxiliar.find((objeto) => objeto.GlobalId === matchingObject.GlobalId);
 
-                    if (!matchingObject) {
-                        console.log('Documento faltante:', doc.id);
+                    if (!existingDocData) {
+                        console.log('Documento faltante:', matchingObject.GlobalId);
                         documentosIguales = false;
                     } else {
                         const fields = Object.keys(existingDocData);
+                        let hasChanges = false;
 
                         for (const field of fields) {
                             if (field === 'expressID') {
                                 if (existingDocData[field] !== matchingObject[field]) {
-                                    // console.log(`Diferencia en el campo ${field} del documento ${doc.id}:`, existingDocData[field], '!==', matchingObject[field]);
-                                    documentosIguales = false;
-                                    await updateDoc(doc.ref, { ExpressID: matchingObject[field] });
+                                    hasChanges = true;
                                     matchingObject[field] = existingDocData[field]; // Actualizar el campo en el objeto del array
                                 }
                             } else if (existingDocData[field] !== matchingObject[field]) {
-                                // console.log(`DiferenciaAAAA en el campo ${field} del documento ${doc.id}:`, existingDocData[field], '!==', matchingObject[field]);
-                                documentosIguales = false;
+                                hasChanges = true;
                                 matchingObject[field] = existingDocData[field]; // Actualizar el campo en el objeto del array
                             }
+                        }
+
+                        if (hasChanges) {
+                            documentosIguales = false;
                         }
                     }
                 }
@@ -93,6 +96,7 @@ async function insertaModeloFire() {
             }
             
         } else {
+            console.log('La colección está vacía. Agregando documentos...');
             for (const objeto of precastElements) {
                 const docRef = doc(db, projectName, objeto.GlobalId);
                 await setDoc(docRef, objeto);
@@ -104,6 +108,75 @@ async function insertaModeloFire() {
         console.error('Error al agregar los documentos:', error);
     }
 }
+
+
+// async function insertaModeloFire() {
+//     try {
+//         collectionRef = collection(db, projectName);
+//         const q = query(collectionRef);
+
+//         const querySnapshot = await getDocs(q);
+//         const existingDocsCount = querySnapshot.docs.length;
+
+//         if (existingDocsCount > 0) {
+//             console.log('La colección ya existe: ' + projectName);
+//             console.log('Número de piezas existentes en: ' + projectName, existingDocsCount);
+
+//             if (existingDocsCount === precastElements.length) {
+//                 let documentosIguales = true;
+
+//                 for (const doc of querySnapshot.docs) {
+//                     const existingDocData = doc.data();
+//                     const matchingObject = precastElements.find((objeto) => objeto.GlobalId === doc.id);
+
+//                     if (!matchingObject) {
+//                         console.log('Documento faltante:', doc.id);
+//                         documentosIguales = false;
+//                     } else {
+//                         const fields = Object.keys(existingDocData);
+
+//                         for (const field of fields) {
+//                             if (field === 'expressID') {
+//                                 if (existingDocData[field] !== matchingObject[field]) {
+//                                     // console.log(`Diferencia en el campo ${field} del documento ${doc.id}:`, existingDocData[field], '!==', matchingObject[field]);
+//                                     documentosIguales = false;
+//                                     await updateDoc(doc.ref, { ExpressID: matchingObject[field] });
+//                                     matchingObject[field] = existingDocData[field]; // Actualizar el campo en el objeto del array
+//                                 }
+//                             } else if (existingDocData[field] !== matchingObject[field]) {
+//                                 // console.log(`DiferenciaAAAA en el campo ${field} del documento ${doc.id}:`, existingDocData[field], '!==', matchingObject[field]);
+//                                 documentosIguales = false;
+//                                 matchingObject[field] = existingDocData[field]; // Actualizar el campo en el objeto del array
+//                             }
+//                         }
+//                     }
+//                 }
+
+//                 if (documentosIguales) {
+//                     console.log('La colección tiene los mismos documentos y campos.');
+//                 } else {
+//                     console.log('La colección tiene diferencias en documentos o campos.');
+//                     mostrarElementosRestantes();
+//                     clasificarPorTipoTransporte();
+//                     actualizaDesplegables();
+//                     nuevoCamionEstructuraBtn.click();
+//                 }
+//             } else {
+//                 console.log('La cantidad de documentos no coincide con precastElements.length.');
+//             }
+            
+//         } else {
+//             for (const objeto of precastElements) {
+//                 const docRef = doc(db, projectName, objeto.GlobalId);
+//                 await setDoc(docRef, objeto);
+//                 console.log('Documento agregado:', objeto);
+//             }
+            
+//         }
+//     } catch (error) {
+//         console.error('Error al agregar los documentos:', error);
+//     }
+// }
 
 
 
@@ -174,66 +247,6 @@ async function insertaModeloFire() {
 
 
 
-
-
-// async function insertaModeloFire() {
-//     try {
-//         collectionRef = collection(db, projectName);
-//         const q = query(collectionRef);
-
-//         const querySnapshot = await getDocs(q);
-//         const existingDocsCount = querySnapshot.docs.length; //cantidad de documentos existentes en la colección
-
-//         if (existingDocsCount > 0) {
-//         console.log('La colección ya existe: '+ projectName);
-//         console.log('Número de piezas existentes en :'+projectName, existingDocsCount);
-
-//         let documentosIguales = true;
-//         // itera sobre cada documento en el snapshot
-//         querySnapshot.docs.forEach((doc) => {
-//             const existingDocData = doc.data();
-//             // Busca un objeto en el array precastElements que tenga el mismo GlobalId que el documento
-//             const matchingObject = precastElements.find(
-//             (objeto) => objeto.GlobalId === doc.id
-//             );
-
-//             if (!matchingObject) {
-//             console.log('Falta algun elemento en el IFC, respecto a los datos almacenados anteriormente:', doc.id);
-//             documentosIguales = false;
-//             } else {
-//             // Comparar los valores de los campos en el documento existente y el objeto correspondiente
-//             const fields = Object.keys(existingDocData);
-//             fields.forEach((field) => {
-//                 if (existingDocData[field] !== matchingObject[field]) {
-//                 console.log(
-//                     `Diferencia en el campo ${field} del documento ${doc.id}:`,
-//                     existingDocData[field],
-//                     '!==',
-//                     matchingObject[field]
-//                 );
-//                 documentosIguales = false;
-//                 }
-//             });
-//             }
-//         });
-
-//         if (documentosIguales) {
-//             console.log('La colección tiene los mismos documentos y campos.');
-//         } else {
-//             console.log('La colección tiene diferencias en documentos o campos.');
-//         }
-//         } else {
-//             precastElements.forEach(async (objeto) => {
-//                 const docRef = doc(db, projectName, objeto.GlobalId);
-//                 await setDoc(docRef, objeto);
-//                 console.log('Documento agregado:', objeto);
-//             });
-//             console.log('Todos los documentos agregados correctamente.');
-//         }
-//     } catch (error) {
-//         console.error('Error al agregar los documentos:', error);
-//     }
-// }
 
 
 let precastCollectionRef=null;
