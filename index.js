@@ -9,7 +9,7 @@ import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.js';
 
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs,  addDoc, doc, setDoc, query, updateDoc   } from "firebase/firestore";
+import { getFirestore, collection, getDocs,  addDoc, doc, setDoc, query, updateDoc, where, runTransaction, getDoc  } from "firebase/firestore";
 
 
 const firebaseConfig = {
@@ -36,79 +36,146 @@ const db = getFirestore(app); // Obtén una referencia a la base de datos Firest
 
 
 let collectionRef =null;
-async function insertaModeloFire() {
-    try {
-        collectionRef = collection(db, projectName);
-        const q = query(collectionRef);
+async function coleccionExistente(refColeccion, precastElements) {
+    const querySnapshot = await getDocs(refColeccion);
+    const cantidadDocsExistente = querySnapshot.docs.length;
 
-        const querySnapshot = await getDocs(q);
-        const existingDocsCount = querySnapshot.docs.length;
+    if (cantidadDocsExistente > 0) {
+        console.log('La colección ya existe: ' + projectName);
+        console.log('Número de piezas existentes en: ' + projectName, cantidadDocsExistente);
 
-        if (existingDocsCount > 0) {
-            console.log('La colección ya existe: ' + projectName);
-            console.log('Número de piezas existentes en: ' + projectName, existingDocsCount);
+        const auxiliar = querySnapshot.docs.reduce((acc, doc) => {
+            acc[doc.data().GlobalId] = doc.data();
+            return acc;
+        }, {});
 
-            // Volcar los datos de Firebase en un array auxiliar
-            const auxiliar = querySnapshot.docs.map((doc) => doc.data());
+        if (cantidadDocsExistente === precastElements.length) {
+            let documentosIguales = true;
 
-            if (existingDocsCount === precastElements.length) {
-                let documentosIguales = true;
+            for (const matchingObject of precastElements) {
+                const existingDocData = auxiliar[matchingObject.GlobalId];
 
-                for (const matchingObject of precastElements) {
-                    const existingDocData = auxiliar.find((objeto) => objeto.GlobalId === matchingObject.GlobalId);
+                if (!existingDocData) {
+                    console.log('Documento faltante:', matchingObject.GlobalId);
+                    documentosIguales = false;
+                } else {
+                    const campos = Object.keys(existingDocData);
+                    let hayCambios = false;
 
-                    if (!existingDocData) {
-                        console.log('Documento faltante:', matchingObject.GlobalId);
-                        documentosIguales = false;
-                    } else {
-                        const fields = Object.keys(existingDocData);
-                        let hasChanges = false;
-
-                        for (const field of fields) {
-                            if (field === 'expressID') {
-                                if (existingDocData[field] !== matchingObject[field]) {
-                                    hasChanges = true;
-                                    matchingObject[field] = existingDocData[field]; // Actualizar el campo en el objeto del array
-                                }
-                            } else if (existingDocData[field] !== matchingObject[field]) {
-                                hasChanges = true;
-                                matchingObject[field] = existingDocData[field]; // Actualizar el campo en el objeto del array
+                    for (const campo of campos) {
+                        if (campo === 'expressID') {
+                            if (existingDocData[campo] !== matchingObject[campo]) {
+                                hayCambios = true;
+                                matchingObject[campo] = existingDocData[campo]; // Actualizar el campo en el objeto del array
                             }
-                        }
-
-                        if (hasChanges) {
-                            documentosIguales = false;
+                        } else if (existingDocData[campo] !== matchingObject[campo]) {
+                            hayCambios = true;
+                            matchingObject[campo] = existingDocData[campo]; // Actualizar el campo en el objeto del array
                         }
                     }
-                }
 
-                if (documentosIguales) {
-                    console.log('La colección tiene los mismos documentos y campos.');
-                } else {
-                    console.log('La colección tiene diferencias en documentos o campos.');
-                    mostrarElementosRestantes();
-                    clasificarPorTipoTransporte();
-                    actualizaDesplegables();
-                    nuevoCamionEstructuraBtn.click();
+                    if (hayCambios) {
+                        documentosIguales = false;
+                    }
                 }
+            }
+
+            if (documentosIguales) {
+                console.log('La colección tiene los mismos documentos y campos.');
             } else {
-                console.log('La cantidad de documentos no coincide con precastElements.length.');
+                console.log('La colección tiene diferencias en documentos o campos.');
+                mostrarElementosRestantes();
+                clasificarPorTipoTransporte();
+                actualizaDesplegables();
+                nuevoCamionEstructuraBtn.click();
             }
-            
         } else {
-            console.log('La colección está vacía. Agregando documentos...');
-            for (const objeto of precastElements) {
-                const docRef = doc(db, projectName, objeto.GlobalId);
-                await setDoc(docRef, objeto);
-                console.log('Documento agregado:', objeto);
-            }
-            
+            console.log('La cantidad de documentos no coincide con precastElements.length.');
         }
+    } else {
+        console.log('La colección está vacía. Agregando documentos...');
+        await agregarDocumentosAColeccion(refColeccion, precastElements);
+    }
+}
+
+
+
+
+function comprobarIgualdadDocumentos(precastElements, auxiliar) {
+    let documentosIguales = true;
+
+    for (const matchingObject of precastElements) {
+        const existingDocData = auxiliar.find((objeto) => objeto.GlobalId === matchingObject.GlobalId);
+
+        if (!existingDocData) {
+            console.log('Documento faltante:', matchingObject.GlobalId);
+            documentosIguales = false;
+        } else {
+            const campos = Object.keys(existingDocData);
+            let hayCambios = false;
+
+            for (const campo of campos) {
+                if (campo === 'expressID') {
+                    if (existingDocData[campo] !== matchingObject[campo]) {
+                        hayCambios = true;
+                        matchingObject[campo] = existingDocData[campo]; // Actualizar el campo en el objeto del array
+                    }
+                } else if (existingDocData[campo] !== matchingObject[campo]) {
+                    hayCambios = true;
+                    matchingObject[campo] = existingDocData[campo]; // Actualizar el campo en el objeto del array
+                }
+            }
+
+            if (hayCambios) {
+                documentosIguales = false;
+            }
+        }
+    }
+
+    return documentosIguales;
+}
+
+async function agregarDocumentosAColeccion(refColeccion, precastElements) {
+    try {
+        // Realizar todas las operaciones de lectura fuera de la transacción
+        const docSnapshots = await Promise.all(
+            precastElements.map((objeto) => {
+                const refDocumento = doc(refColeccion, objeto.GlobalId);
+                return getDoc(refDocumento);
+            })
+        );
+
+        await runTransaction(refColeccion.firestore, async (transaction) => {
+            for (let i = 0; i < precastElements.length; i++) {
+                const objeto = precastElements[i];
+                const docSnapshot = docSnapshots[i];
+                const refDocumento = doc(refColeccion, objeto.GlobalId);
+
+                if (!docSnapshot.exists()) {
+                    transaction.set(refDocumento, objeto);
+                    console.log('Documento agregado:', objeto);
+                } else {
+                    console.log('El documento ya existe:', objeto);
+                }
+            }
+        });
     } catch (error) {
         console.error('Error al agregar los documentos:', error);
     }
 }
 
+
+
+
+async function insertaModeloFire() {
+    try {
+        const refColeccion = collection(db, projectName);
+        const consulta = query(refColeccion);
+        await coleccionExistente(refColeccion, precastElements);
+    } catch (error) {
+        console.error('Error al agregar los documentos:', error);
+    }
+}
 
 // async function insertaModeloFire() {
 //     try {
@@ -122,32 +189,36 @@ async function insertaModeloFire() {
 //             console.log('La colección ya existe: ' + projectName);
 //             console.log('Número de piezas existentes en: ' + projectName, existingDocsCount);
 
+//             // Volcar los datos de Firebase en un array auxiliar
+//             const auxiliar = querySnapshot.docs.map((doc) => doc.data());
+
 //             if (existingDocsCount === precastElements.length) {
 //                 let documentosIguales = true;
 
-//                 for (const doc of querySnapshot.docs) {
-//                     const existingDocData = doc.data();
-//                     const matchingObject = precastElements.find((objeto) => objeto.GlobalId === doc.id);
+//                 for (const matchingObject of precastElements) {
+//                     const existingDocData = auxiliar.find((objeto) => objeto.GlobalId === matchingObject.GlobalId);
 
-//                     if (!matchingObject) {
-//                         console.log('Documento faltante:', doc.id);
+//                     if (!existingDocData) {
+//                         console.log('Documento faltante:', matchingObject.GlobalId);
 //                         documentosIguales = false;
 //                     } else {
 //                         const fields = Object.keys(existingDocData);
+//                         let hasChanges = false;
 
 //                         for (const field of fields) {
 //                             if (field === 'expressID') {
 //                                 if (existingDocData[field] !== matchingObject[field]) {
-//                                     // console.log(`Diferencia en el campo ${field} del documento ${doc.id}:`, existingDocData[field], '!==', matchingObject[field]);
-//                                     documentosIguales = false;
-//                                     await updateDoc(doc.ref, { ExpressID: matchingObject[field] });
+//                                     hasChanges = true;
 //                                     matchingObject[field] = existingDocData[field]; // Actualizar el campo en el objeto del array
 //                                 }
 //                             } else if (existingDocData[field] !== matchingObject[field]) {
-//                                 // console.log(`DiferenciaAAAA en el campo ${field} del documento ${doc.id}:`, existingDocData[field], '!==', matchingObject[field]);
-//                                 documentosIguales = false;
+//                                 hasChanges = true;
 //                                 matchingObject[field] = existingDocData[field]; // Actualizar el campo en el objeto del array
 //                             }
+//                         }
+
+//                         if (hasChanges) {
+//                             documentosIguales = false;
 //                         }
 //                     }
 //                 }
@@ -166,6 +237,7 @@ async function insertaModeloFire() {
 //             }
             
 //         } else {
+//             console.log('La colección está vacía. Agregando documentos...');
 //             for (const objeto of precastElements) {
 //                 const docRef = doc(db, projectName, objeto.GlobalId);
 //                 await setDoc(docRef, objeto);
@@ -177,75 +249,6 @@ async function insertaModeloFire() {
 //         console.error('Error al agregar los documentos:', error);
 //     }
 // }
-
-
-
-// async function insertaModeloFire() {
-//     try {
-//         collectionRef = collection(db, projectName);
-//         const q = query(collectionRef);
-    
-//         const querySnapshot = await getDocs(q);
-//         const existingDocsCount = querySnapshot.docs.length;
-    
-//         if (existingDocsCount > 0) {
-//             console.log('La colección ya existe: ' + projectName);
-//             console.log('Número de piezas existentes en: ' + projectName, existingDocsCount);
-    
-//             if (existingDocsCount === precastElements.length) {
-//                 let documentosIguales = true;
-        
-//                 querySnapshot.docs.forEach(async (doc) => {
-//                     const existingDocData = doc.data();
-//                     const matchingObject = precastElements.find((objeto) => objeto.GlobalId === doc.id);
-        
-//                     if (!matchingObject) {
-//                         console.log('Documento faltante:', doc.id);
-//                         documentosIguales = false;} 
-//                     else {
-//                         const fields = Object.keys(existingDocData);
-            
-//                         fields.forEach(async (field) => {
-//                             if (field === 'expressID') {
-//                                 if (existingDocData[field] !== matchingObject[field]) {
-//                                     console.log(`Diferencia en el campo ${field} del documento ${doc.id}:`,existingDocData[field],'!==',matchingObject[field]);
-//                                     documentosIguales = false;
-//                                     // console.log(`Actualizando ExpressID del documento ${doc.id} a:`, matchingObject[field]);
-//                                     // const docRef = doc(db, projectName, docSnapshot.id);
-//                                     // const docRef = doc(collectionRef, doc.id);
-
-//                                     await updateDoc(docRef, { ExpressID: matchingObject[field] });
-//                                 }
-//                             } else if (existingDocData[field] !== matchingObject[field]) {
-//                                 console.log(`DiferenciaAAAA en el campo ${field} del documento ${doc.id}:`,existingDocData[field],'!==', matchingObject[field] );
-//                                 documentosIguales = false;
-//                             }
-//                         });
-//                     }
-//                 });
-        
-//                 if (documentosIguales) {
-//                     console.log('La colección tiene los mismos documentos y campos.');
-//                 } else {
-//                     console.log('La colección tiene diferencias en documentos o campos.');
-//                 }
-//             } else {
-//             console.log('La cantidad de documentos no coincide con precastElements.length.');
-//             }
-//         } else {
-//             precastElements.forEach(async (objeto) => {
-//             const docRef = doc(db, projectName, objeto.GlobalId);
-//             await setDoc(docRef, objeto);
-//             console.log('Documento agregado:', objeto);
-//             });
-//             console.log('Todos los documentos agregados correctamente.');
-//         }
-//     } catch (error) {
-//         console.error('Error al agregar los documentos:', error);
-//     }
-// }
-
-
 
 
 
@@ -319,60 +322,6 @@ async function actualizarBaseDeDatos() {
 }
 
 
-
-// async function actualizarBaseDeDatos() {
-    //UPDATE FIREBASE, CUANDO UN ELEMENTO DEL VISOR PASA A UN CAMION LOS DATOS SE ACTUALIZAN EN LA COLECCION CORRESPONDIENTE
-//     try {
-//         const collectionRef = collection(db, projectName);
-//         const querySnapshot = await getDocs(collectionRef);
-
-//         const updatePromises = [];
-
-//         querySnapshot.docs.forEach((docSnapshot) => {
-//             const existingDocData = docSnapshot.data();
-//             const docRef = doc(db, projectName, docSnapshot.id);
-//             const docGlobalId = existingDocData.GlobalId;
-
-//             const objetoActualizado = precastElements.find((objeto) => objeto.GlobalId === docGlobalId);
-
-//             if (objetoActualizado) {
-//                 const newProperties = {};
-
-//                 for (const [key, value] of Object.entries(objetoActualizado)) {
-//                     if (!existingDocData.hasOwnProperty(key) || existingDocData[key] !== value) {
-//                         newProperties[key] = value;
-//                     }
-//                 }
-
-//                 if (Object.keys(newProperties).length > 0) {
-//                     const updatePromise = updateDoc(docRef, newProperties);
-//                     updatePromises.push(updatePromise);
-//                     console.log(
-//                         `Documento ${docSnapshot.id} actualizado con los nuevos campos:`,
-//                         newProperties
-//                     );
-//                 }
-//             }
-//         });
-
-//         await Promise.all(updatePromises);
-
-//         console.log('Todos los documentos actualizados correctamente.');
-//     } catch (error) {
-//         console.error('Error al actualizar los documentos:', error);
-//     }
-// }
-
-
-
-// Leer datos de una colección
-async function obtenerDatos() {
-        const querySnapshot = await getDocs(collection(db, ));
-        querySnapshot.forEach((doc) => {
-        // console.log(doc.id, "=>", doc.data());
-    });
-}
-// obtenerDatos();
 
 
 
@@ -842,7 +791,7 @@ function eliminarElementosAssembly() {
     precastElements = precastElements.filter(element => element.ifcType !== 'IFCELEMENTASSEMBLY');
     console.log("TOTAL DE ELEMNTOS EN PRECAST: "+precastElements.length);
     // insertar array precastEleemt en firebase
-    insertaModeloFire();
+     insertaModeloFire();
     
 }
 
@@ -909,50 +858,70 @@ function cargaGlobalIdenPrecast(){
         
 }
 
+
 function addBotonCheckboxListeners() {
     const buttons = document.querySelectorAll('.btnCheck');
-    for (let i = 0; i < buttons.length; i++) {
-        buttons[i].addEventListener('click', function() {
+
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
             const letter = this.dataset.artPieza;
             const isChecked = this.checked;
             const artPieza = this.getAttribute('data-art-pieza');
             const visibleIds = [];
-            const parentText = this.parentNode.textContent.trim();
-            let prevEl = null;
+
             precastElements.forEach(function(el, index) {
                 if (allIDs.includes(el.expressID)) {
-                    if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" ||el.ART_Pieza=== undefined) {
-                        return ;
-                    }
-                    if (el.ART_Pieza.charAt(0).toUpperCase() === artPieza) {
+                    const firstLetters = getFirstLetters(el.ART_Pieza);
+
+                    // Comparar si las dos primeras letras son iguales
+                    if (firstLetters === artPieza) {
                         visibleIds.push(el.expressID);
-                        }
+                    }
                 }
             });
+
             if (this.classList.contains('pulsado')) {
-                this.classList.remove('pulsado');
-                removeLabels(visibleIds);
-            } else {
-                this.classList.add('pulsado');
-                generateLabels(visibleIds);
-            }
+    this.classList.remove('pulsado');
+    removeLabels(visibleIds);
+} else {
+    this.classList.add('pulsado');
+    generateLabels(visibleIds);
+}
         });
-    }
+    });
 }
 
 
+
+function getFirstLetters(artPieza) {
+    if (artPieza === undefined || artPieza === null) {
+        return ""; // Devolver una cadena vacía para valores undefined o null
+    }
+
+    const trimmedArtPieza = artPieza.trim();
+    if (trimmedArtPieza.length >= 2 && isNaN(trimmedArtPieza.charAt(1))) {
+        return trimmedArtPieza.substring(0, 2).toUpperCase();
+    } else if (trimmedArtPieza.length >= 1) {
+        return trimmedArtPieza.charAt(0).toUpperCase();
+    } else {
+        return "";
+    }
+}
+
 let groupedElements;
+
 function generateCheckboxes(precastElements) {
     groupedElements = precastElements.reduce((acc, el) => {
-        if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" || el.ART_Pieza === undefined) {
-            return acc;
-        }
-        const firstLetter = el.ART_Pieza.charAt(0).toUpperCase();
-        if (!acc[firstLetter]) {
-            acc[firstLetter] = [];
-        }
-        acc[firstLetter].push(el);
+      if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" || el.ART_Pieza === undefined) {
         return acc;
+      }
+  
+      const firstLetters = getFirstLetters(el.ART_Pieza);
+      if (!acc[firstLetters]) {
+        acc[firstLetters] = [];
+      }
+      acc[firstLetters].push(el);
+      return acc;
     }, {});
 
     const checktiposIfcContainer = document.getElementById('checktiposIfc');
@@ -993,10 +962,10 @@ function generateCheckboxes(precastElements) {
         checktiposIfcContainer.appendChild(checkboxContainer);
     });
 
-    setTimeout(() => {
+    // setTimeout(() => {
         addCheckboxListeners();
         addBotonCheckboxListeners();
-    }, 0);
+    // }, 0);
 }
 
 function updateMissingCamionCount() {
@@ -1018,16 +987,29 @@ function updateMissingCamionCount() {
 }
 
 
+// function removeLabels(expressIDs) {
+//     const labels = document.querySelectorAll('.pieza-label'); // Buscar todos los elementos con la clase "pieza-label"
+//     for (let i = 0; i < labels.length; i++) {
+//         const label = labels[i];
+//         const labelID = parseInt(label.id);
+//         if (expressIDs.includes(labelID)) {
+//             label.style.visibility = 'hidden';
+//         }
+//     }
+// }
 function removeLabels(expressIDs) {
     const labels = document.querySelectorAll('.pieza-label'); // Buscar todos los elementos con la clase "pieza-label"
     for (let i = 0; i < labels.length; i++) {
         const label = labels[i];
         const labelID = parseInt(label.id);
-        if (expressIDs.includes(labelID)) {
+        const labelART_Pieza = label.getAttribute('data-art-pieza');
+        
+        if (expressIDs.includes(labelID) || expressIDs.includes(labelART_Pieza)) {
             label.style.visibility = 'hidden';
         }
     }
 }
+
 
 async function generateLabels(expressIDs) {
     for (let i = 0; i < expressIDs.length; i++) {
@@ -1073,25 +1055,64 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
     }
 }
 
+// const labelRenderer = new CSS2DRenderer();
+// labelRenderer.setSize( window.innerWidth, window.innerHeight );
+// labelRenderer.domElement.style.position = 'absolute';
+// labelRenderer.domElement.style.pointerEvents = 'none';
+// labelRenderer.domElement.style.top = '0px';
+// document.body.appendChild( labelRenderer.domElement );
+// window.addEventListener("resize", () => {
+//     labelRenderer.setSize(viewer.clientWidth, viewer.clientHeight);
+//   });
 
+// function addCheckboxListeners() {
+//     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+//     checkboxes.forEach(function(checkbox) {
+//     checkbox.addEventListener('change', function() {
+//         viewer.IFC.selector.unpickIfcItems();
+//         const isChecked = this.checked;
+//         const artPieza = this.getAttribute('data-art-pieza');
+//         const matchingIds = [];
+//         precastElements.forEach(function(element) {
+//             if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" ||element.ART_Pieza=== undefined) {
+//                 return;
+//             }
+//             if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza ) {
+//                 if (!element.hasOwnProperty('Camion') || element.Camion === "") {
+//                     matchingIds.push(element.expressID);
+//                 }
+//             }
+//         });
+//             if (isChecked) {
+//                 showAllItems(viewer, matchingIds);
+//             } else {
+//                 hideAllItems(viewer, matchingIds);
+//             }
+//         });
+//     });
+// }
 function addCheckboxListeners() {
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach(function(checkbox) {
-    checkbox.addEventListener('change', function() {
-        viewer.IFC.selector.unpickIfcItems();
-        const isChecked = this.checked;
-        const artPieza = this.getAttribute('data-art-pieza');
-        const matchingIds = [];
-        precastElements.forEach(function(element) {
-            if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" ||element.ART_Pieza=== undefined) {
-                return;
-            }
-            if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza ) {
-                if (!element.hasOwnProperty('Camion') || element.Camion === "") {
-                    matchingIds.push(element.expressID);
+        checkbox.addEventListener('change', function() {
+            viewer.IFC.selector.unpickIfcItems();
+            const isChecked = this.checked;
+            const artPieza = this.getAttribute('data-art-pieza');
+            const matchingIds = [];
+
+            precastElements.forEach(function(element) {
+                if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
+                    return;
                 }
-            }
-        });
+
+                // Comparar las dos primeras letras de ART_Pieza con artPieza
+                if (element.ART_Pieza.substring(0, artPieza.length).toUpperCase() === artPieza.toUpperCase()) {
+                    if (!element.hasOwnProperty('Camion') || element.Camion === "") {
+                        matchingIds.push(element.expressID);
+                    }
+                }
+            });
+
             if (isChecked) {
                 showAllItems(viewer, matchingIds);
             } else {
@@ -1100,6 +1121,7 @@ function addCheckboxListeners() {
         });
     });
 }
+
 
  ////-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -2136,7 +2158,9 @@ function updateElementVisor() {
             if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
                 return;
             }
-            if (checkedArtPiezas.includes(element.ART_Pieza.charAt(0).toUpperCase())) {
+            // if (checkedArtPiezas.includes(element.ART_Pieza.charAt(0).toUpperCase())) {
+                // if (checkedArtPiezas.includes(element.ART_Pieza.slice(0, 2).toUpperCase())) {
+            if (checkedArtPiezas.includes(element.ART_Pieza.charAt(0).toUpperCase()) ||checkedArtPiezas.includes(element.ART_Pieza.slice(0, 2).toUpperCase())) {
                 if (!element.hasOwnProperty('Camion') || element.Camion === "") {
                 matchingIds.push(element.expressID);
                 }
@@ -2149,73 +2173,73 @@ let camionesActuales = [];
 let coloresCamiones = {};
 
 async function listarOcultos(elementosOcultos) {
-  const itemList = document.querySelector(".item-list-elementos-cargados");
-  itemList.innerHTML = "";
-  const table = document.createElement("table");
-  table.classList.add("table");
+    const itemList = document.querySelector(".item-list-elementos-cargados");
+    itemList.innerHTML = "";
+    const table = document.createElement("table");
+    table.classList.add("table");
 
-  const thead = document.createElement("thead");
-  thead.innerHTML = "<tr><th>ID</th><th>C</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Long</th></tr>";
-  table.appendChild(thead);
+    const thead = document.createElement("thead");
+    thead.innerHTML = "<tr><th>ID</th><th>C</th><th>Trans</th><th>Nombre</th><th>Peso</th><th>Alto</th><th>Ancho</th><th>Long</th></tr>";
+    table.appendChild(thead);
 
-  const tbody = document.createElement("tbody");
-  const groupedRows = {};
+    const tbody = document.createElement("tbody");
+    const groupedRows = {};
 
-  for (let i = elementosOcultos.length - 1; i >= 0; i--) {
-    const id = elementosOcultos[i];
-    const elemento = precastElements.find((elemento) => elemento.expressID === id);
-    if (!elemento) {
-      throw new Error(`No se encontró el elemento con expressID = ${id}`);
+    for (let i = elementosOcultos.length - 1; i >= 0; i--) {
+        const id = elementosOcultos[i];
+        const elemento = precastElements.find((elemento) => elemento.expressID === id);
+        if (!elemento) {
+        throw new Error(`No se encontró el elemento con expressID = ${id}`);
+        }
+        const trans = elemento.tipoTransporte;
+        const peso = parseFloat(elemento.ART_Peso).toFixed(2);
+        const altura = parseFloat(elemento.ART_Alto).toFixed(2);
+        const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
+        const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
+
+        const tr = document.createElement("tr");
+        tr.classList.add("item-list-elemento");
+        const alturaCell = document.createElement("td");
+        alturaCell.classList.add("altura");
+        if (parseFloat(altura) > 2.60) {
+        alturaCell.style.color = "red";
+        }
+        alturaCell.textContent = altura;
+
+        const longitudCell = document.createElement("td");
+        longitudCell.classList.add("longitud");
+        if (parseFloat(longitud) > 13.60) {
+        longitudCell.style.color = "red";
+        }
+        longitudCell.textContent = longitud;
+
+        tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.Camion}</td><td>${trans}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
+        tr.appendChild(alturaCell);
+        tr.innerHTML += `<td>${ancho}</td>`;
+        tr.appendChild(longitudCell);
+
+        let backgroundColor;
+        if (camionesActuales.includes(elemento.Camion)) {
+        backgroundColor = coloresCamiones[elemento.Camion];
+        } else {
+        const newColor = getRandomColor();
+        coloresCamiones[elemento.Camion] = newColor;
+        camionesActuales.push(elemento.Camion);
+        backgroundColor = newColor;
+        }
+        tr.style.backgroundColor = backgroundColor;
+
+        if (!groupedRows[trans]) {
+        groupedRows[trans] = [];
+        }
+        groupedRows[trans].push(tr);
+        tbody.appendChild(tr);
     }
-    const trans = elemento.tipoTransporte;
-    const peso = parseFloat(elemento.ART_Peso).toFixed(2);
-    const altura = parseFloat(elemento.ART_Alto).toFixed(2);
-    const ancho = parseFloat(elemento.ART_Ancho).toFixed(2);
-    const longitud = parseFloat(elemento.ART_Longitud).toFixed(2);
+    table.appendChild(tbody);
+    itemList.appendChild(table);
+    $(table).tablesorter();
 
-    const tr = document.createElement("tr");
-    tr.classList.add("item-list-elemento");
-    const alturaCell = document.createElement("td");
-    alturaCell.classList.add("altura");
-    if (parseFloat(altura) > 2.60) {
-      alturaCell.style.color = "red";
-    }
-    alturaCell.textContent = altura;
-
-    const longitudCell = document.createElement("td");
-    longitudCell.classList.add("longitud");
-    if (parseFloat(longitud) > 13.60) {
-      longitudCell.style.color = "red";
-    }
-    longitudCell.textContent = longitud;
-
-    tr.innerHTML = `<td>${elemento.expressID}</td><td>${elemento.Camion}</td><td>${trans}</td><td>${elemento.ART_Pieza}</td><td>${peso}</td>`;
-    tr.appendChild(alturaCell);
-    tr.innerHTML += `<td>${ancho}</td>`;
-    tr.appendChild(longitudCell);
-
-    let backgroundColor;
-    if (camionesActuales.includes(elemento.Camion)) {
-      backgroundColor = coloresCamiones[elemento.Camion];
-    } else {
-      const newColor = getRandomColor();
-      coloresCamiones[elemento.Camion] = newColor;
-      camionesActuales.push(elemento.Camion);
-      backgroundColor = newColor;
-    }
-    tr.style.backgroundColor = backgroundColor;
-
-    if (!groupedRows[trans]) {
-      groupedRows[trans] = [];
-    }
-    groupedRows[trans].push(tr);
-    tbody.appendChild(tr);
-  }
-  table.appendChild(tbody);
-  itemList.appendChild(table);
-  $(table).tablesorter();
-
-  updateMissingCamionCount();
+    updateMissingCamionCount();
 }
 
 
@@ -3294,7 +3318,10 @@ function generaBotonesNumCamion(camionesUnicos) {
                     if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
                         return;
                     }
-                    if (checkedArtPiezas.includes(element.ART_Pieza.charAt(0).toUpperCase())) {
+                    if (
+                        checkedArtPiezas.includes(element.ART_Pieza.charAt(0).toUpperCase()) ||
+                        checkedArtPiezas.includes(element.ART_Pieza.slice(0, 2).toUpperCase())
+                    ) {
                         if (!element.hasOwnProperty('Camion') || element.Camion === "") {
                             matchingIds.push(element.expressID);
                         }
