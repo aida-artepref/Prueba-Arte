@@ -36,67 +36,161 @@ const db = getFirestore(app); // Obtén una referencia a la base de datos Firest
 
 
 let collectionRef =null;
+// async function coleccionExistente(refColeccion, precastElements) {
+//     const querySnapshot = await getDocs(refColeccion);
+//     const cantidadDocsExistente = querySnapshot.docs.length;
+
+//     if (cantidadDocsExistente > 0) {
+//         console.log('La colección ya existe: ' + projectName);
+//         console.log('Número de piezas existentes en: ' + projectName, cantidadDocsExistente);
+
+//         const auxiliar = querySnapshot.docs.reduce((acc, doc) => {
+//             acc[doc.data().GlobalId] = doc.data();
+//             return acc;
+//         }, {});
+
+//         if (cantidadDocsExistente === precastElements.length) {
+//             let documentosIguales = true;
+
+//             for (const matchingObject of precastElements) {
+//                 const existingDocData = auxiliar[matchingObject.GlobalId];
+
+//                 if (!existingDocData) {
+//                     console.log('Documento faltante:', matchingObject.GlobalId);
+//                     documentosIguales = false;
+//                 } else {
+//                     const campos = Object.keys(existingDocData);
+//                     let hayCambios = false;
+
+//                     for (const campo of campos) {
+//                         if (campo === 'expressID') {
+//                             if (existingDocData[campo] !== matchingObject[campo]) {
+//                                 hayCambios = true;
+//                                 matchingObject[campo] = existingDocData[campo]; // Actualizar el campo en el objeto del array
+//                             }
+//                         } else if (existingDocData[campo] !== matchingObject[campo]) {
+//                             hayCambios = true;
+//                             matchingObject[campo] = existingDocData[campo]; // Actualizar el campo en el objeto del array
+//                         }
+//                     }
+
+//                     if (hayCambios) {
+//                         documentosIguales = false;
+//                     }
+//                 }
+//             }
+
+//             if (documentosIguales) {
+//                 console.log('La colección tiene los mismos documentos y campos.');
+//             } else {
+//                 console.log('La colección tiene diferencias en documentos o campos.');
+//                 mostrarElementosRestantes();
+//                 clasificarPorTipoTransporte();
+//                 actualizaDesplegables();
+//                 nuevoCamionEstructuraBtn.click();
+//             }
+//         } else {
+//             console.log('La cantidad de documentos no coincide con precastElements.length.');
+//         }
+//     } else {
+//         console.log('La colección está vacía. Agregando documentos...');
+//         await agregarDocumentosAColeccion(refColeccion, precastElements);
+//     }
+// }
+// async function coleccionExistente(refColeccion, precastElements) {
+//     const querySnapshot = await getDocs(refColeccion);
+//     const cantidadDocsExistente = querySnapshot.size;
+
+//     if (cantidadDocsExistente > 0) {
+//         console.log('La colección ya existe: ' + projectName);
+//         console.log('Número de piezas existentes en: ' + projectName, cantidadDocsExistente);
+
+//         const docDataMap = new Map();
+//         querySnapshot.forEach(doc => {
+//             docDataMap.set(doc.data().GlobalId, doc.data());
+//         });
+
+//         const documentosIguales = precastElements.every(matchingObject => {
+//             const existingDocData = docDataMap.get(matchingObject.GlobalId);
+
+//             if (!existingDocData) {
+//                 console.log('Documento faltante:', matchingObject.GlobalId);
+//                 return false;
+//             } else {
+//                 let cambiosEnDocumento = false;
+//                 for (const campo in existingDocData) { // actualiza los datos en el array precastElements para que coincidan con los datos en la colección
+//                     if (existingDocData.hasOwnProperty(campo) && matchingObject.hasOwnProperty(campo)) {  //compara los valores de esos campos con los valores en los documentos existentes en la colección
+//                         if (existingDocData[campo] !== matchingObject[campo]) { //Si se encuentra una diferencia en algún campo, se actualiza el valor en el objeto predefinido para que coincida con el valor del campo en el documento existente
+//                             matchingObject[campo] = existingDocData[campo];
+//                             cambiosEnDocumento = true;
+//                         }
+//                     }
+//                 }
+//                 return !cambiosEnDocumento;
+//             }
+//         });
+
+//         if (documentosIguales) {
+//             console.log('La colección tiene los mismos documentos y campos.');
+//         } else {
+//             console.log('La colección tiene diferencias en documentos o campos.');
+//             mostrarElementosRestantes();
+//             clasificarPorTipoTransporte();
+//             actualizaDesplegables();
+//             nuevoCamionEstructuraBtn.click();
+//         }
+//     } else {
+//         console.log('La colección está vacía. Agregando documentos...');
+//         await agregarDocumentosAColeccion(refColeccion, precastElements);
+//     }
+// }
+
 async function coleccionExistente(refColeccion, precastElements) {
-    const querySnapshot = await getDocs(refColeccion);
-    const cantidadDocsExistente = querySnapshot.docs.length;
+    const querySnapshot = await getDocs(refColeccion); // Obtener una instantánea de la colección
+    const cantidadDocsExistente = querySnapshot.size;
+
+    const documentosFaltantes = [];
+    const documentosAgregados = [];
 
     if (cantidadDocsExistente > 0) {
         console.log('La colección ya existe: ' + projectName);
         console.log('Número de piezas existentes en: ' + projectName, cantidadDocsExistente);
 
-        const auxiliar = querySnapshot.docs.reduce((acc, doc) => {
-            acc[doc.data().GlobalId] = doc.data();
-            return acc;
-        }, {});
+        precastElements.forEach(matchingObject => {
+            const existingDoc = querySnapshot.docs.find(doc => doc.data().GlobalId === matchingObject.GlobalId);
 
-        if (cantidadDocsExistente === precastElements.length) {
-            let documentosIguales = true;
-
-            for (const matchingObject of precastElements) {
-                const existingDocData = auxiliar[matchingObject.GlobalId];
-
-                if (!existingDocData) {
-                    console.log('Documento faltante:', matchingObject.GlobalId);
-                    documentosIguales = false;
-                } else {
-                    const campos = Object.keys(existingDocData);
-                    let hayCambios = false;
-
-                    for (const campo of campos) {
-                        if (campo === 'expressID') {
-                            if (existingDocData[campo] !== matchingObject[campo]) {
-                                hayCambios = true;
-                                matchingObject[campo] = existingDocData[campo]; // Actualizar el campo en el objeto del array
-                            }
-                        } else if (existingDocData[campo] !== matchingObject[campo]) {
-                            hayCambios = true;
-                            matchingObject[campo] = existingDocData[campo]; // Actualizar el campo en el objeto del array
-                        }
-                    }
-
-                    if (hayCambios) {
-                        documentosIguales = false;
-                    }
-                }
-            }
-
-            if (documentosIguales) {
-                console.log('La colección tiene los mismos documentos y campos.');
+            if (!existingDoc) {
+                console.log('Documento faltante:', matchingObject.GlobalId);
+                documentosFaltantes.push(matchingObject);
             } else {
-                console.log('La colección tiene diferencias en documentos o campos.');
-                mostrarElementosRestantes();
-                clasificarPorTipoTransporte();
-                actualizaDesplegables();
-                nuevoCamionEstructuraBtn.click();
+                Object.assign(matchingObject, existingDoc.data());
             }
+        });
+
+        documentosAgregados.push(...querySnapshot.docs.filter(doc => !precastElements.some(obj => obj.GlobalId === doc.data().GlobalId)).map(doc => doc.data()));
+
+        if (documentosFaltantes.length === 0 && documentosAgregados.length === 0) {
+            console.log('La colección tiene los mismos documentos y actualiza precastElements');
         } else {
-            console.log('La cantidad de documentos no coincide con precastElements.length.');
+            console.log('La colección tiene diferencias en documentos o campos.');
+            if (documentosFaltantes.length > 0) {
+                console.log('Documentos faltantes:', documentosFaltantes);
+            }
+            if (documentosAgregados.length > 0) {
+                console.log('Documentos agregados:', documentosAgregados);
+            }
         }
+            mostrarElementosRestantes();
+            clasificarPorTipoTransporte();
+            actualizaDesplegables();
+            nuevoCamionEstructuraBtn.click();
     } else {
+        // Si la colección no existe en Firebase, crea la colección y añade los documentos
         console.log('La colección está vacía. Agregando documentos...');
         await agregarDocumentosAColeccion(refColeccion, precastElements);
     }
 }
+
 
 
 
@@ -137,32 +231,106 @@ function comprobarIgualdadDocumentos(precastElements, auxiliar) {
 
 async function agregarDocumentosAColeccion(refColeccion, precastElements) {
     try {
-        // Realizar todas las operaciones de lectura fuera de la transacción
-        const docSnapshots = await Promise.all(
-            precastElements.map((objeto) => {
-                const refDocumento = doc(refColeccion, objeto.GlobalId);
-                return getDoc(refDocumento);
-            })
-        );
+        const existingDocsQuery = query(refColeccion);
+        const existingDocsSnapshot = await getDocs(existingDocsQuery);
 
-        await runTransaction(refColeccion.firestore, async (transaction) => {
-            for (let i = 0; i < precastElements.length; i++) {
-                const objeto = precastElements[i];
-                const docSnapshot = docSnapshots[i];
-                const refDocumento = doc(refColeccion, objeto.GlobalId);
+        const existingDocIds = new Set();
+        existingDocsSnapshot.forEach((docSnapshot) => {
+            existingDocIds.add(docSnapshot.id);
+        });
 
-                if (!docSnapshot.exists()) {
-                    transaction.set(refDocumento, objeto);
-                    console.log('Documento agregado:', objeto);
-                } else {
-                    console.log('El documento ya existe:', objeto);
-                }
+        const transactionOperations = [];
+
+        precastElements.forEach((objeto) => {
+            const globalId = objeto.GlobalId;
+
+            if (!existingDocIds.has(globalId)) {
+                const refDocumento = doc(refColeccion, globalId);
+                transactionOperations.push(setDoc(refDocumento, objeto));
+                console.log('Documento agregado:', objeto);
+                existingDocIds.add(globalId); // Agregar el nuevo ID a la lista de existentes
+            } else {
+                console.log('El documento ya existe:', objeto);
             }
         });
+
+        if (transactionOperations.length > 0) {
+            await runTransaction(refColeccion.firestore, async (transaction) => {
+                transactionOperations.forEach((operation) => {
+                    operation(transaction);
+                });
+            });
+        }
     } catch (error) {
         console.error('Error al agregar los documentos:', error);
     }
 }
+
+// async function agregarDocumentosAColeccion(refColeccion, precastElements) {
+//     try {
+//         const existingDocsQuery = query(refColeccion);
+
+//         const existingDocsSnapshot = await getDocs(existingDocsQuery);
+//         const existingDocsMap = new Map();
+
+//         existingDocsSnapshot.forEach((docSnapshot) => {
+//             existingDocsMap.set(docSnapshot.id, docSnapshot);
+//         });
+
+//         const transactionOperations = [];
+
+//         precastElements.forEach((objeto) => {
+//             const globalId = objeto.GlobalId;
+//             const refDocumento = doc(refColeccion, globalId);
+
+//             if (!existingDocsMap.has(globalId)) {
+//                 transactionOperations.push(setDoc(refDocumento, objeto));
+//                 console.log('Documento agregado:', objeto);
+//             } else {
+//                 console.log('El documento ya existe:', objeto);
+//             }
+//         });
+
+//         if (transactionOperations.length > 0) {
+//             await runTransaction(refColeccion.firestore, async (transaction) => {
+//                 transactionOperations.forEach((operation) => {
+//                     operation(transaction);
+//                 });
+//             });
+//         }
+//     } catch (error) {
+//         console.error('Error al agregar los documentos:', error);
+//     }
+// }
+
+// async function agregarDocumentosAColeccion(refColeccion, precastElements) {
+//     try {
+//         // Realizar todas las operaciones de lectura fuera de la transacción
+//         const docSnapshots = await Promise.all(
+//             precastElements.map((objeto) => {
+//                 const refDocumento = doc(refColeccion, objeto.GlobalId);
+//                 return getDoc(refDocumento);
+//             })
+//         );
+
+//         await runTransaction(refColeccion.firestore, async (transaction) => {
+//             for (let i = 0; i < precastElements.length; i++) {
+//                 const objeto = precastElements[i];
+//                 const docSnapshot = docSnapshots[i];
+//                 const refDocumento = doc(refColeccion, objeto.GlobalId);
+
+//                 if (!docSnapshot.exists()) {
+//                     transaction.set(refDocumento, objeto);
+//                     console.log('Documento agregado:', objeto);
+//                 } else {
+//                     console.log('El documento ya existe:', objeto);
+//                 }
+//             }
+//         });
+//     } catch (error) {
+//         console.error('Error al agregar los documentos:', error);
+//     }
+// }
 
 
 
@@ -323,18 +491,12 @@ async function actualizarBaseDeDatos() {
 
 
 
-
-
-
-
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 const scene = viewer.context.scene.scene;
 //const camera = viewer.context.ifcCamera;
 // const camera = viewer.context.ifcCamera.cameraControls;
 const renderer=viewer.context.renderer.renderer;
-
-
 
 
 viewer.clipper.active = true;
