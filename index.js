@@ -34,53 +34,6 @@ async function insertaModeloFire() {
     }
 }
 
-
-// async function coleccionExistente(refColeccion, precastElements) {
-//     const querySnapshot = await getDocs(refColeccion); // Obtener una instantánea de la colección
-//     const cantidadDocsExistente = querySnapshot.size;
-
-    
-//     const documentosFaltantes = [];
-//     const documentosAgregados = [];
-
-//     if (cantidadDocsExistente > 0) {
-//         console.log('La colección ya existe: ' + projectName);
-//         console.log('Número de piezas existentes en: ' + projectName, cantidadDocsExistente);
-
-//         precastElements.forEach(matchingObject => {
-//             const existingDoc = querySnapshot.docs.find(doc => doc.data().GlobalId === matchingObject.GlobalId);
-
-//             if (!existingDoc) {
-//                 console.log('Documento faltante:', matchingObject.GlobalId);
-//                 documentosFaltantes.push(matchingObject);
-//             } else {
-//                 Object.assign(matchingObject, existingDoc.data());
-//             }
-//         });
-
-//         documentosAgregados.push(...querySnapshot.docs.filter(doc => !precastElements.some(obj => obj.GlobalId === doc.data().GlobalId)).map(doc => doc.data()));
-
-//         if (documentosFaltantes.length === 0 && documentosAgregados.length === 0) {
-//             console.log('La colección tiene los mismos documentos y actualiza precastElements');
-//         } else {
-//             console.log('La colección tiene diferencias en documentos o campos.');
-//             if (documentosFaltantes.length > 0) {
-//                 console.log('Documentos faltantes:', documentosFaltantes);
-//             }
-//             if (documentosAgregados.length > 0) {
-//                 console.log('Documentos agregados:', documentosAgregados);
-//             }
-//         }
-//             mostrarElementosRestantes();
-//             clasificarPorTipoTransporte();
-//             actualizaDesplegables();
-//             nuevoCamionEstructuraBtn.click();
-//     } else {
-//         // Si la colección no existe en Firebase, crea la colección y añade los documentos
-//         console.log('La colección está vacía. Agregando documentos...');
-//         await agregarDocumentosAColeccion(refColeccion, precastElements);
-//     }
-// }
 async function coleccionExistente(refColeccion, precastElements) {
     const querySnapshot = await getDocs(refColeccion); // Obtener una instantánea de la colección
     const cantidadDocsExistente = querySnapshot.size;
@@ -181,22 +134,27 @@ async function agregarDocumentosAColeccion(refColeccion, precastElements) {
 
 async function actualizarBaseDeDatos() {
     try {
-        const collectionRef = collection(db, projectName);
-        const querySnapshot = await getDocs(collectionRef);
-
+        const collectionRef = collection(db, projectName); // referencia hacia la coleccion usando el nombre del proyecto
+        const querySnapshot = await getDocs(collectionRef); //instancia hacia la coleccion
+        
         const updatePromises = [];
 
-        querySnapshot.docs.forEach(async (docSnapshot) => {
-            const existingDocData = docSnapshot.data();
-            const docRef = doc(db, projectName, docSnapshot.id);
-            const docGlobalId = existingDocData.GlobalId;
+        querySnapshot.docs.forEach(async (docSnapshot) => {  // Iterar a través de cada documento de la colección
+            const existingDocData = docSnapshot.data();  // obtiene los datos actuales del documento
+            const docRef = doc(db, projectName, docSnapshot.id);   //  referencia al documento específico usando el nombre del proyecto y el ID del documento
+        
+            const docGlobalId = existingDocData.GlobalId;  // obtiene el valor de 'GlobalId' del documento actual
 
-            const objetoActualizado = precastElements.find((objeto) => objeto.GlobalId === docGlobalId);
+            const objetoActualizado = precastElements.find((objeto) => objeto.GlobalId === docGlobalId);   // busca un objeto de precastElements que tenga el mismo 'GlobalId' que el documento actual
+    
+            if (objetoActualizado) {  //  si se encuentra un objeto para actualizar
+                const updatedFields = {};// inicializa un objeto para almacenar los campos actualizados
+                
 
-            if (objetoActualizado) {
-                const updatedFields = {};
+                for (const [key, value] of Object.entries(objetoActualizado)) {   // Iterar a través de cada clave-valor en el objeto actualizado
+                // Verificar si el campo no existe en los datos actuales del documento,
+                    // o si el valor es diferente, o si el valor es una cadena vacía y el valor existente no lo es
 
-                for (const [key, value] of Object.entries(objetoActualizado)) {
                     if (
                         !existingDocData.hasOwnProperty(key) ||
                         existingDocData[key] !== value ||
@@ -206,24 +164,66 @@ async function actualizarBaseDeDatos() {
                     }
                 }
 
-                if (Object.keys(updatedFields).length > 0) {
-                    const updatePromise = updateDoc(docRef, updatedFields);
-                    updatePromises.push(updatePromise);
-                    console.log(
-                        `Documento ${docSnapshot.id} actualizado con los campos modificados:`,
-                        updatedFields
-                    );
+                // si hay campos para actualizar
+                if (Object.keys(updatedFields).length > 0) {   
+                    const updatePromise = updateDoc(docRef, updatedFields);  // actualiza el documento con los campos modificados y obteniene una promesa de actualización
+                    updatePromises.push(updatePromise);  // agrega la promesa de actualización al arreglo de promesas
+                    
+                    console.log( `Documento ${docSnapshot.id} actualizado con los campos modificados:`,updatedFields);
                 }
             }
         });
 
-        await Promise.all(updatePromises);
+        await Promise.all(updatePromises);   // esperar a que se completen todas las promesas de actualización
 
         console.log('Todos los documentos actualizados correctamente.');
     } catch (error) {
         console.error('Error al actualizar los documentos:', error);
     }
 }
+
+async function actualizaFireExpress(expressId) {
+
+    
+    // obj axiliar para almacenar el resultado
+    let objetoAux = null;
+
+   
+    for (const objeto of precastElements) {
+        if (objeto.expressID === expressId) {
+        objetoAux = objeto; // almacena el objeto (pieza que cambia sus propiedades) encontrado en objetoAux
+        break; 
+        }
+    }
+   
+
+    if (objetoAux) {
+        try {
+
+            const docRef = doc(db, projectName, objetoAux.GlobalId);
+            // Obtener el documento actual
+            const docSnapshot = await getDoc(docRef);
+      
+            if (docSnapshot.exists()) {
+              // Obtener los datos actuales del documento
+              const currentData = docSnapshot.data();
+      
+              // Combinar los datos actuales con los nuevos valores de objetoAux
+              const newData = { ...currentData, ...objetoAux };
+      
+              // Actualizar el documento con los nuevos datos
+              await setDoc(docRef, newData);
+              console.log("Documento actualizado con éxito:", docSnapshot.id);
+            } else {
+              console.log("Documento no encontrado en la colección.");
+            }
+          } catch (error) {
+            console.error("Error al actualizar el documento:", error);
+          }
+        } else {
+          console.log("Objeto no encontrado en el array precastElements.");
+        }
+      }
 
 
 
@@ -1062,6 +1062,7 @@ window.ondblclick = async () => {
         return;
     }
     const id=found.id;
+    console.log("ID DE PIEZA SELECIONADA: "+id);
     const foundElement = precastElements.find(element => element.expressID === id);
     if (foundElement.ifcType !== "IFCBUILDINGELEMENTPROXY") {
         const nuevoCamionCerramiento = document.getElementById("nuevoCamionCerramiento");
@@ -1079,7 +1080,8 @@ window.ondblclick = async () => {
         const pesoCamion = document.getElementById("pesoCamion");
         pesoCamion.textContent = pesoTotal.toString();
     }
-    actualizarBaseDeDatos();
+    //actualizarBaseDeDatos();
+    actualizaFireExpress(id);
 };
 
    //evento dblClic carga al camion elementos
@@ -1956,6 +1958,8 @@ listaElementos.addEventListener('dblclick', function(event) {
     let elementoEliminadoTabla;
     if (target.tagName === 'TD') {
         elementoEliminadoTabla = target.parentNode.firstChild.textContent;
+        console.log("elemento eliminado TABLA: " +elementoEliminadoTabla);
+        
         target.parentNode.remove();
         let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
         if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
@@ -2025,7 +2029,9 @@ listaElementos.addEventListener('dblclick', function(event) {
                         
             // checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
         }
-        actualizarBaseDeDatos();
+        //actualizarBaseDeDatos();
+        let elEliminado=parseInt(elementoEliminadoTabla) 
+        actualizaFireExpress(elEliminado) ;
     }
     let numCamion=parseInt(document.getElementById("numCamion").textContent);
     const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
@@ -3471,7 +3477,9 @@ function generarTabla(expressIDs, camion) {
         updateMissingCamionCount();
         const nuevoPesoTotal = calcularPesoTotal(expressIDs);
         actualizarCabecera(nuevoPesoTotal);
-        actualizarBaseDeDatos();
+        let elEliminado= parseInt(elementoEliminadoTabla);
+        actualizaFireExpress(elEliminado)
+        //actualizarBaseDeDatos();
     });
     contenedorTabla.appendChild(tabla);
     thElemento.classList.add('cabecera-tabla');
@@ -3665,7 +3673,9 @@ function posicionesCamion(tabla, cabeceraValor) {
                         asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
                         actualizarTablaDerecha();
                         simularEventoClic();
-                        actualizarBaseDeDatos()
+                        let elAsignadaPosicion = parseInt(contenidoCelda);
+                        actualizaFireExpress(elAsignadaPosicion);
+                        //actualizarBaseDeDatos()
                     }
                     
                 });
@@ -3673,7 +3683,9 @@ function posicionesCamion(tabla, cabeceraValor) {
                 cajon.addEventListener("dblclick", function (event) {
                     limpiaPosicion(cajon, tabla);
                     actualizarTablaDerecha();
-                    actualizarBaseDeDatos();
+                    let elAsignadaPosicion = parseInt(contenidoCelda);
+                    actualizaFireExpress(elAsignadaPosicion);
+                    //actualizarBaseDeDatos();
                 });
                 
                 cajon.addEventListener("click", async function (event) {
