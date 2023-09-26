@@ -132,111 +132,99 @@ async function agregarDocumentosAColeccion(refColeccion, precastElements) {
 
 
 
-async function actualizarBaseDeDatos() {
-    try {
-        const collectionRef = collection(db, projectName); // referencia hacia la coleccion usando el nombre del proyecto
-        const querySnapshot = await getDocs(collectionRef); //instancia hacia la coleccion
+// async function actualizarBaseDeDatos() {
+//     try {
+//         const collectionRef = collection(db, projectName); // referencia hacia la coleccion usando el nombre del proyecto
+//         const querySnapshot = await getDocs(collectionRef); //instancia hacia la coleccion
         
-        const updatePromises = [];
+//         const updatePromises = [];
 
-        querySnapshot.docs.forEach(async (docSnapshot) => {  // Iterar a través de cada documento de la colección
-            const existingDocData = docSnapshot.data();  // obtiene los datos actuales del documento
-            const docRef = doc(db, projectName, docSnapshot.id);   //  referencia al documento específico usando el nombre del proyecto y el ID del documento
+//         querySnapshot.docs.forEach(async (docSnapshot) => {  // Iterar a través de cada documento de la colección
+//             const existingDocData = docSnapshot.data();  // obtiene los datos actuales del documento
+//             const docRef = doc(db, projectName, docSnapshot.id);   //  referencia al documento específico usando el nombre del proyecto y el ID del documento
         
-            const docGlobalId = existingDocData.GlobalId;  // obtiene el valor de 'GlobalId' del documento actual
+//             const docGlobalId = existingDocData.GlobalId;  // obtiene el valor de 'GlobalId' del documento actual
 
-            const objetoActualizado = precastElements.find((objeto) => objeto.GlobalId === docGlobalId);   // busca un objeto de precastElements que tenga el mismo 'GlobalId' que el documento actual
+//             const objetoActualizado = precastElements.find((objeto) => objeto.GlobalId === docGlobalId);   // busca un objeto de precastElements que tenga el mismo 'GlobalId' que el documento actual
     
-            if (objetoActualizado) {  //  si se encuentra un objeto para actualizar
-                const updatedFields = {};// inicializa un objeto para almacenar los campos actualizados
+//             if (objetoActualizado) {  //  si se encuentra un objeto para actualizar
+//                 const updatedFields = {};// inicializa un objeto para almacenar los campos actualizados
                 
 
-                for (const [key, value] of Object.entries(objetoActualizado)) {   // Iterar a través de cada clave-valor en el objeto actualizado
-                // Verificar si el campo no existe en los datos actuales del documento,
-                    // o si el valor es diferente, o si el valor es una cadena vacía y el valor existente no lo es
+//                 for (const [key, value] of Object.entries(objetoActualizado)) {   // Iterar a través de cada clave-valor en el objeto actualizado
+//                 // Verificar si el campo no existe en los datos actuales del documento,
+//                     // o si el valor es diferente, o si el valor es una cadena vacía y el valor existente no lo es
 
-                    if (
-                        !existingDocData.hasOwnProperty(key) ||
-                        existingDocData[key] !== value ||
-                        (value === "" && existingDocData[key] !== "")
-                    ) {
-                        updatedFields[key] = value;
-                    }
-                }
+//                     if (
+//                         !existingDocData.hasOwnProperty(key) ||
+//                         existingDocData[key] !== value ||
+//                         (value === "" && existingDocData[key] !== "")
+//                     ) {
+//                         updatedFields[key] = value;
+//                     }
+//                 }
 
-                // si hay campos para actualizar
-                if (Object.keys(updatedFields).length > 0) {   
-                    const updatePromise = updateDoc(docRef, updatedFields);  // actualiza el documento con los campos modificados y obteniene una promesa de actualización
-                    updatePromises.push(updatePromise);  // agrega la promesa de actualización al arreglo de promesas
+//                 // si hay campos para actualizar
+//                 if (Object.keys(updatedFields).length > 0) {   
+//                     const updatePromise = updateDoc(docRef, updatedFields);  // actualiza el documento con los campos modificados y obteniene una promesa de actualización
+//                     updatePromises.push(updatePromise);  // agrega la promesa de actualización al arreglo de promesas
                     
-                    console.log( `Documento ${docSnapshot.id} actualizado con los campos modificados:`,updatedFields);
-                }
-            }
-        });
+//                     console.log( `Documento ${docSnapshot.id} actualizado con los campos modificados:`,updatedFields);
+//                 }
+//             }
+//         });
 
-        await Promise.all(updatePromises);   // esperar a que se completen todas las promesas de actualización
+//         await Promise.all(updatePromises);   // esperar a que se completen todas las promesas de actualización
 
-        console.log('Todos los documentos actualizados correctamente.');
-    } catch (error) {
-        console.error('Error al actualizar los documentos:', error);
-    }
-}
+//         console.log('Todos los documentos actualizados correctamente.');
+//     } catch (error) {
+//         console.error('Error al actualizar los documentos:', error);
+//     }
+// }
 
 async function actualizaFireExpress(expressId) {
 
-    
     // obj axiliar para almacenar el resultado
     let objetoAux = null;
 
-   
     for (const objeto of precastElements) {
         if (objeto.expressID === expressId) {
-        objetoAux = objeto; // almacena el objeto (pieza que cambia sus propiedades) encontrado en objetoAux
-        break; 
+            objetoAux = objeto; // almacena el objeto (pieza que cambia sus propiedades) encontrado en objetoAux
+            break; 
         }
     }
-   
 
     if (objetoAux) {
         try {
-
             const docRef = doc(db, projectName, objetoAux.GlobalId);
             // Obtener el documento actual
             const docSnapshot = await getDoc(docRef);
-      
+
             if (docSnapshot.exists()) {
-              // Obtener los datos actuales del documento
-              const currentData = docSnapshot.data();
-      
-              // Combinar los datos actuales con los nuevos valores de objetoAux
-              const newData = { ...currentData, ...objetoAux };
-      
+                const currentData = docSnapshot.data();  // obtiene los datos actuales del documento
+                const newData = { ...currentData, ...objetoAux };// conbina los datos actuales con los nuevos valores de objetoAux
               // Actualizar el documento con los nuevos datos
-              await setDoc(docRef, newData);
-              console.log("Documento actualizado con éxito:", docSnapshot.id);
+                await setDoc(docRef, newData);
+                console.log("Documento actualizado con éxito:", docSnapshot.id);
             } else {
-              console.log("Documento no encontrado en la colección.");
+                console.log("Documento no encontrado en la colección.");
             }
-          } catch (error) {
+        } catch (error) {
             console.error("Error al actualizar el documento:", error);
-          }
-        } else {
-          console.log("Objeto no encontrado en el array precastElements.");
         }
-      }
-
-
+    } else {
+        console.log("Objeto no encontrado en el array precastElements.");
+    }
+}
 
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
 const scene = viewer.context.scene.scene;
 const renderer=viewer.context.renderer.renderer;
 
-
 viewer.clipper.active = true;
 // viewer.grid.setGrid(100,100);
 // viewer.axes.setAxes();
-
 
 document.addEventListener("keydown", function(event) {
     if (event.keyCode === 116) { // keyCode 116 es la tecla F5
@@ -921,22 +909,43 @@ function removeLabels(expressIDs) {
 }
 
 
+// async function generateLabels(expressIDs) {
+//     for (let i = 0; i < expressIDs.length; i++) {
+//         const currentExpressID = expressIDs[i];
+//         for (let j = 0; j < precastElements.length; j++) {
+//             const element = precastElements[j];
+//             if (element.expressID === currentExpressID) {
+//                 const { ART_Pieza, expressID } = element;
+//                 let ART_CoordX = element.ART_CoordX || element.ART_cdgX;
+//                 let ART_CoordY = element.ART_CoordY || element.ART_cdgY;
+//                 let ART_CoordZ = element.ART_CoordZ || element.ART_cdgZ;
+//                 muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
+//                 break; // Sale del bucle interno una vez que encuentra el elemento
+//             }
+//         }
+//     }
+// }
+
+
 async function generateLabels(expressIDs) {
-    for (let i = 0; i < expressIDs.length; i++) {
-        const currentExpressID = expressIDs[i];
-        for (let j = 0; j < precastElements.length; j++) {
-            const element = precastElements[j];
-            if (element.expressID === currentExpressID) {
-                const { ART_Pieza, expressID } = element;
-                let ART_CoordX = element.ART_CoordX || element.ART_cdgX;
-                let ART_CoordY = element.ART_CoordY || element.ART_cdgY;
-                let ART_CoordZ = element.ART_CoordZ || element.ART_cdgZ;
-                muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
-                break; // Sale del bucle interno una vez que encuentra el elemento
-            }
+    for (const expressID of expressIDs) {
+      let ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ;
+      
+      for (const precast of precastElements) {
+        if (precast.expressID === expressID) {
+          ART_Pieza = precast['ART_Pieza'];
+          ART_CoordX = precast['ART_cdgX'];
+          ART_CoordY = precast['ART_cdgY'];
+          ART_CoordZ = precast['ART_cdgZ'];
+          break;
         }
+      }
+      muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
+      console.log("ART_Pieza: "+ART_Pieza+" ART_CoordX: "+ART_CoordX +" ART_CoordY: "+ART_CoordY +" ART_CoordZ: "+ART_CoordZ, + "expressID: "+expressID)
+      muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
     }
-}
+    
+  }
 
 function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
@@ -959,7 +968,14 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
             label.classList.add('pieza-label');
             label.id = expressID;
             const labelObject = new CSS2DObject(label);
-            labelObject.position.set(parseFloat(ART_CoordX) / 1000, parseFloat(ART_CoordZ) / 1000, (-parseFloat(ART_CoordY) / 1000));
+            const adjustedX = parseFloat(ART_CoordX) / 1000;
+            const adjustedY = -parseFloat(ART_CoordY) / 1000;
+            const adjustedZ = parseFloat(ART_CoordZ) / 1000;
+            labelObject.position.set(adjustedX, adjustedZ, adjustedY); // Ajustar coordenadas Y debido a la conversión de ejes
+        
+             console.log("Coordenadas ajustadas:", adjustedX, adjustedY, adjustedZ);
+            // console.log(labelObject.scale);
+            // console.log(labelObject.rotation);
             scene.add(labelObject);
         }
     }
@@ -1124,6 +1140,14 @@ function showAllItems(viewer, ids) {
 }
 
 function hideAllItems(viewer, ids) {
+    viewer.IFC.loader.ifcManager.removeFromSubset(
+        0,
+        ids,
+        'full-model-subset',
+    );
+}
+
+function hideAllItemsFor(viewer, ids) {
 	ids.forEach(function(id) {
         viewer.IFC.loader.ifcManager.removeFromSubset(
             0,
@@ -3186,21 +3210,23 @@ function generaBotonesNumCamion(camionesUnicos) {
             //, elimina los elementos del visor y desactiva el botón
                 viewer.IFC.selector.unpickIfcItems();
                 activeExpressIDs = activeExpressIDs.filter(id => !expressIDs.includes(id));
-                hideAllItems(viewer, expressIDs);
+                // hideAllItems(viewer, expressIDs);
                 btn.classList.remove("active");
                 btn.style.justifyContent = "center";
                 btn.style.color = "";
+                botonesActivos--;
                 eliminarTabla(camion);
                 const posicionCamion = document.getElementById("posicionCamion");
                 posicionCamion.innerHTML = ""; // limpia el contenido previo del div
-                botonesActivos--;
+                
                 btnsCamionActivo = false;
                 removeLabels(expressIDs);
+                hideAllItems(viewer, expressIDs);
                 verificarPosicionYAsignarColor(camion, btn);
             } else {
                 const btnCheckPulsado = document.querySelectorAll('.btnCheck.pulsado');
                 btnCheckPulsado.forEach(function(btn) {
-                btn.classList.remove('pulsado');
+                    btn.classList.remove('pulsado');
                 });
 
                 // Ocultar los elementos de la clase "PIEZA-LABEL"
@@ -3218,7 +3244,7 @@ function generaBotonesNumCamion(camionesUnicos) {
                 generarTabla(expressIDs, camion);
                 botonesActivos++;
                 btnsCamionActivo = true;
-                generateLabels(expressIDs);
+                generateLabels(activeExpressIDs);
             }
             if (botonesActivos === 0) {
                 enableCheckboxes();
