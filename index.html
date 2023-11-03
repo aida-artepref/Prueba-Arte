@@ -7,7 +7,7 @@
     <title>CARGAS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,400;1,100&family=Zen+Dots&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:ital,wght@0,100;0,400;1,100&family=Zen+Dots&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     
@@ -29,6 +29,8 @@
       </div> -->
       <div id="propiedades-container"></div>
         <div id="viewer-container">
+          
+    
             <div class="divCargas"  style="display: none;" >
               <div class="titleCargas" >
                 <div id="tipoCarga" style="display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 0.5fr 0.5fr; ">
@@ -47,7 +49,8 @@
                   <button id="iconoA" class="icono-ojo"data-letra="A"><i class="far fa-eye-slash"></i></button>
                   <button id="iconoC" class="icono-ojo"data-letra="C"><i class="far fa-eye-slash"></i></button>
                   <button id="iconoTu" class="icono-ojo"data-letra="Tu"><i class="far fa-eye-slash"></i></button>
-                </div><div id="numCamionContainer">
+                </div>
+                <div id="numCamionContainer">
                   <span id="numCamion">{{numCamion}}</span>
                 </div>
                 <div id="infoCamion" >
@@ -92,6 +95,10 @@
                       </svg>
                     </a>
                     
+                    <a title="Plantas" id="btn-lateral-plantas" class="button" style="display: none;">
+                      <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M24 23h-20c-2.208 0-4-1.792-4-4v-15.694c.313-1.071 1.285-2.306 3-2.306 1.855 0 2.769 1.342 2.995 2.312l.005 1.688h18v18zm-2-16h-16v11s-.587-1-1.922-1c-1.104 0-2.078.896-2.078 2s.896 2 2 2h18v-14zm-2 12h-12v-10h12v10zm-8-9h-3v8h10v-8h-6v3h6v1h-2v3h-1v-3h-3v3h-1v-7z" /></svg>
+                  </a>
+
                     <a title="Buscar" class="button" id="buscarButton" style="display: none;">
                       <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
                           <path d="M18.617 17.382l5.759 5.758-1.236 1.236-5.759-5.758c-1.777 1.366-4.035 2.18-6.482 2.18-5.526 0-10-4.474-10-10s4.474-10 10-10 10 4.474 10 10c0 2.447-.814 4.705-2.18 6.482zm-13.117-7.382c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8-8-3.589-8-8z"/>
@@ -131,9 +138,10 @@
                     
                   </div>
             </div>
+            
         </div>  
         
-        
+        <div class="button-containerP" id="button-containerP"></div>
         <div id="main-container" style="display: none;" > <!---->
           <button id="close-btn" style="position: absolute; top: 0; right: 0;">X</button>
 

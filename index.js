@@ -29,9 +29,11 @@ async function insertaModeloFire() {
         const refColeccion = collection(db, projectName);
         const consulta = query(refColeccion);
         await coleccionExistente(refColeccion, precastElements);
+        //descargarDatosFirestore(refColeccion)
     } catch (error) {
         console.error('Error al agregar los documentos:', error);
     }
+    
 }
 
 async function coleccionExistente(refColeccion, precastElements) {
@@ -131,56 +133,28 @@ async function agregarDocumentosAColeccion(refColeccion, precastElements) {
 }
 
 
+async function descargarDatosFirestore(refColeccion) {
+    try {
+        const querySnapshot = await getDocs(refColeccion);
+        const data = [];
 
-// async function actualizarBaseDeDatos() {
-//     try {
-//         const collectionRef = collection(db, projectName); // referencia hacia la coleccion usando el nombre del proyecto
-//         const querySnapshot = await getDocs(collectionRef); //instancia hacia la coleccion
-        
-//         const updatePromises = [];
+        querySnapshot.forEach((doc) => {
+            data.push(doc.data());
+        });
 
-//         querySnapshot.docs.forEach(async (docSnapshot) => {  // Iterar a través de cada documento de la colección
-//             const existingDocData = docSnapshot.data();  // obtiene los datos actuales del documento
-//             const docRef = doc(db, projectName, docSnapshot.id);   //  referencia al documento específico usando el nombre del proyecto y el ID del documento
-        
-//             const docGlobalId = existingDocData.GlobalId;  // obtiene el valor de 'GlobalId' del documento actual
+        const jsonData = JSON.stringify(data, null, 2);
 
-//             const objetoActualizado = precastElements.find((objeto) => objeto.GlobalId === docGlobalId);   // busca un objeto de precastElements que tenga el mismo 'GlobalId' que el documento actual
-    
-//             if (objetoActualizado) {  //  si se encuentra un objeto para actualizar
-//                 const updatedFields = {};// inicializa un objeto para almacenar los campos actualizados
-                
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'datos_firestore.json';
+        link.click();
 
-//                 for (const [key, value] of Object.entries(objetoActualizado)) {   // Iterar a través de cada clave-valor en el objeto actualizado
-//                 // Verificar si el campo no existe en los datos actuales del documento,
-//                     // o si el valor es diferente, o si el valor es una cadena vacía y el valor existente no lo es
-
-//                     if (
-//                         !existingDocData.hasOwnProperty(key) ||
-//                         existingDocData[key] !== value ||
-//                         (value === "" && existingDocData[key] !== "")
-//                     ) {
-//                         updatedFields[key] = value;
-//                     }
-//                 }
-
-//                 // si hay campos para actualizar
-//                 if (Object.keys(updatedFields).length > 0) {   
-//                     const updatePromise = updateDoc(docRef, updatedFields);  // actualiza el documento con los campos modificados y obteniene una promesa de actualización
-//                     updatePromises.push(updatePromise);  // agrega la promesa de actualización al arreglo de promesas
-                    
-//                     console.log( `Documento ${docSnapshot.id} actualizado con los campos modificados:`,updatedFields);
-//                 }
-//             }
-//         });
-
-//         await Promise.all(updatePromises);   // esperar a que se completen todas las promesas de actualización
-
-//         console.log('Todos los documentos actualizados correctamente.');
-//     } catch (error) {
-//         console.error('Error al actualizar los documentos:', error);
-//     }
-// }
+        console.log('Datos de Firestore descargados y guardados en datos_firestore.json');
+    } catch (error) {
+        console.error('Error al descargar datos de Firestore:', error);
+    }
+}
 
 async function actualizaFireExpress(expressId) {
 
@@ -270,18 +244,20 @@ GUI.input.onchange = async (event) => {
 
 async function loadModel(url) {
     model = await viewer.IFC.loadIfcUrl(url);
-    viewer.shadowDropper.renderShadow(model.modelID);
+    getPlantas(model);
+    //viewer.shadowDropper.renderShadow(model.modelID);
     viewer.context.renderer.usePostproduction.active=true;
     createTreeMenu(model.modelID);
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
     idsTotal=getAllIds(model); 
     console.log(idsTotal.length+" total de elementos en modelo inicial");
-    obtieneNameProject(url);
+    await obtieneNameProject(url);
+    
     // const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
     document.getElementById("checktiposIfc").style.display = "block"; //hace visible el divCheck 
     let subset = getWholeSubset(viewer, model, allIDs);
-    replaceOriginalModelBySubset(viewer, model, subset); //reemplaza el modelo original por el subconjunto.
+    replaceOriginalModelBySubset(viewer, model, subset);
     viewer.context.fitToFrame();
     await cargaGlobalIdenPrecast();
     await  crearBotonPrecas(); 
@@ -289,11 +265,148 @@ async function loadModel(url) {
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
     
-    // const properties = await viewer.IFC.properties.serializeAllProperties(model);
-    // await descargarArchivoJSON(properties);
+    buscaCentroModelo();
+    //Hace la peticion a BBDD
+    buscaJSONmodelo(3)
+    .then(() => {
+        if (!intentosSuperados) {
+            atributoARTPieza(Transporte);
+            console.log("TRANS Tcon arte Pieza : ", Transporte);
+        }
+    })
+    .catch(error => {
+        if (!intentosSuperados) {
+            // Si no se superaron los intentos, muestra el mensaje de error
+           // alert("has superado el número de intentos. Comprueba el nombre válido y recarga de nuevo el modelo.");
+            container.style.backgroundColor = "#FF0000"; // Cambia el fondo a rojo (#FF0000)
+            container.style.height = "100%";
+        }
+    });
+    
 }
 
-let precastCollectionRef=null;
+function buscaCentroModelo(){
+    // Obtener el centro del edificio
+    boxHelper = new BoxHelper(model, 0xff0000);
+    geometry = boxHelper.geometry;
+    centro = geometry.boundingSphere.center;
+}
+function atributoARTPieza(transporteArray) {
+    // Verificar si el array tiene al menos un objeto
+    if (transporteArray.length > 0) {
+        Transporte.forEach(objeto => {
+            // Extrae la parte antes del guion y las cifras después del guion
+           // const match = objeto.ART_Pieza.match(/^([A-Z]+)(\d{3})-(\d{3})$/);
+            const match = objeto.ART_Pieza.match(/^([A-Z]{1,2})(\d{3})-(\d{3})$/);
+            if (match) {
+              // Obtiene la letra y las cifras
+              const [, letra, cifras1] = match;
+          
+              // Procesa las cifras según las reglas especificadas
+              const cifrasProcesadas = cifras1.replace(/^0+/, '') || '0';
+          
+              // Construye el nuevo valor y agrégalo al objeto
+              objeto.ART_PiezaT = letra + cifrasProcesadas;
+            } else {
+                const partes = objeto.ART_Pieza.split('-');
+                objeto.ART_PiezaT = partes[0];
+            }
+          });
+        ordenarValoreArrayTrans(Transporte)  
+    } else {
+        console.log('El array de transporte está vacío.');
+    }
+}
+
+function ordenarValoreArrayTrans(transporteArray) {
+    // Verificar si el array tiene al menos un objeto
+    if (transporteArray.length > 0) {
+        transporteArray.forEach(objeto => {
+            const temp = objeto.ART_Pieza;
+            objeto.ART_Pieza = objeto.ART_PiezaT;
+            objeto.ART_PiezaT = temp;
+        });
+    } else {
+        console.log('El array de transporte está vacío.');
+    }
+}
+
+let Transporte;
+
+let intentosSuperados = false;
+
+
+function buscaJSONmodelo(maxAttempts) {
+    return new Promise((resolve, reject) => {
+        const requestURL = 'http://10.20.20.85:8000/transporte/' + encodeURIComponent(projectName);
+        let attempts = 0;
+        let noCoincide = false; 
+
+        function hacerPeticion(url, callback) {
+            const request = new XMLHttpRequest();
+            request.open("GET", url);
+            request.responseType = "json";
+            request.onload = function () {
+                if (request.status === 200) {
+                    const transporteData = request.response;
+                    callback(transporteData);
+                } else {
+                    // Si la respuesta no es 200 (éxito)
+                    alert("NO HAY RESPUESTA DEL SERVIDOR");
+                    intentosSuperados = false; 
+                    reject("Error en la conexión a la base de datos");
+                }
+            };
+            request.onerror = function () {
+                // En caso de error en la conexión
+                alert("NO HAY CONEXIÓN A BD");
+                container.style.backgroundColor = "#FF0000"; 
+                    container.style.height = "100%";
+                intentosSuperados = true; 
+                reject("Error en la conexión a la base de datos");
+            };
+            request.send();
+        }
+
+        function solicitarModelo() {
+            if (attempts >= maxAttempts) {
+                if (noCoincide) {
+                    alert("Has superado el número de intentos. Comprueba el nombre válido y recarga de nuevo el modelo.");
+                    container.style.backgroundColor = "#FF0000"; // Cambia el fondo a rojo (#FF0000)
+                    container.style.height = "100%";
+                }
+                reject("Se superó el número máximo de intentos");
+            } else {
+                attempts++;
+                const modeloManual = prompt("El modelo no se ha encontrado en la base de datos. Introduce nombre obra:");
+                const nuevaRequestURL = 'http://10.20.20.85:8000/transporte/' + encodeURIComponent(modeloManual);
+                hacerPeticion(nuevaRequestURL, function (transporteData) {
+                    if (transporteData.length === 0) {
+                        solicitarModelo();
+                        noCoincide = true; // Marca la variable como true si el nombre no coincide
+                    } else {
+                        console.log("Modelo válido encontrado:", transporteData);
+                        Transporte = transporteData;
+                        resolve();
+                    }
+                });
+            }
+        }
+
+        // Cambiar el lugar donde se llama hacerPeticion para manejar la conexión inicial
+        hacerPeticion(requestURL, function (transporteData) {
+            if (transporteData.length === 0) {
+                solicitarModelo();
+                noCoincide = true; // Marca la variable como true si el nombre no coincide
+            } else {
+                console.log("Modelo válido encontrado:", transporteData);
+                Transporte = transporteData;
+                resolve();
+            }
+        });
+    });
+}
+
 let projectName = null;
 async function obtieneNameProject(url){
     const response = await fetch(url);
@@ -316,7 +429,6 @@ async function obtieneNameProject(url){
         console.log('No se encontró el nombre del proyecto');
     }
 }
-
 
 const camera = viewer.context.getCamera();
 const scena2=viewer.context.getScene();
@@ -392,37 +504,6 @@ document.addEventListener("pointerup", function(event) {
         console.log(allSelected);
     } 
 });
-// document.addEventListener("pointermove", function(event) {
-//     if (keyCtrl && selectionBox && helper.isDown) {
-//         console.log("en movimiento RATON")
-//         selectionBox.endPoint.set(
-//             viewer.context.mouse.position.x,
-//             viewer.context.mouse.position.y,
-//             0.5
-//         );
-        
-//     }
-// });
-
-// document.addEventListener("pointerup", function(event) {
-//     if (keyCtrl && selectionBox) {
-//         console.log("Levanto")
-//         for ( let i = 0; i < selectionBox.collection.length; i ++ ) {
-
-// 						selectionBox.collection[ i ].material.emissive.set( 0x000000 );
-
-// 					}
-
-// 					selectionBox.endPoint.set(
-// 						( event.clientX / window.innerWidth ) * 2 - 1,
-// 						- ( event.clientY / window.innerHeight ) * 2 + 1,
-// 						0.5 );
-
-// 					const allSelected = selectionBox.select();
-
-					
-//     }
-// });
 
 const btnModifica = document.getElementById('modificaProp');
 let isClickedModifica = false;
@@ -438,10 +519,309 @@ btnModifica.addEventListener('click', async function() {
     }
 });
 
+function findNodeWithExpressID(node, expressID) {
+    if (node.expressID === expressID) {
+        return node;
+    }
+
+    for (const childNode of node.children) {
+        const foundNode = findNodeWithExpressID(childNode, expressID);
+        if (foundNode) {
+            return foundNode;
+        }
+    }
+    return null;
+}
+
+let elementsArray = [];
+async function getPlantas(model) {
+    await viewer.plans.computeAllPlanViews(model.modelID);
+
+    const lineMaterial = new LineBasicMaterial({ color: 'black' });
+    const baseMaterial = new MeshBasicMaterial({
+        polygonOffset: true,
+        polygonOffsetFactor: 1, 
+        polygonOffsetUnits: 1,
+    });
+
+    viewer.edges.create('example', model.modelID, lineMaterial, baseMaterial);
+    
+    const containerForPlans = document.getElementById('button-containerP');
+    const buttonGroup = document.createElement('div'); // nuevo div para agrupar botones
+    containerForPlans.appendChild(buttonGroup);
+    buttonGroup.style.flexDirection = 'column'; // Establecer la dirección a columna
+    buttonGroup.style.flexWrap = 'wrap'; // Permitir el ajuste de contenido en varias líneas
+
+    const allPlans = viewer.plans.getAll(model.modelID);
+
+    for (const plan of allPlans) {
+    
+        const currentPlan = viewer.plans.planLists[model.modelID][plan]; //Información  de cada planta
+
+        const divBotonesPlantas = document.createElement('div'); //contenedor para cada fila de botones
+        buttonGroup.appendChild(divBotonesPlantas);
+        divBotonesPlantas.style.display = 'flex'; 
+        divBotonesPlantas.style.alignItems = 'center';
+        
+        
+
+        const button = document.createElement('button');
+        divBotonesPlantas.appendChild(button); 
+        button.textContent = currentPlan.name; 
+        button.setAttribute('data-express-id', currentPlan.expressID);
+
+        const btnLabelPlantas = document.createElement('button');
+        divBotonesPlantas.appendChild(btnLabelPlantas); 
+        btnLabelPlantas.textContent = 'N';
+        btnLabelPlantas.style.width = '30px'; 
+        btnLabelPlantas.style.marginLeft = '5px'; 
+        btnLabelPlantas.style.visibility = 'hidden';
+        btnLabelPlantas.classList.add('btnLabelPlanta');
+
+
+        const btn2DPlantas = document.createElement('button');
+        divBotonesPlantas.appendChild(btn2DPlantas); 
+        btn2DPlantas.textContent = '2D';
+        btn2DPlantas.style.width = '30px'; 
+        btn2DPlantas.style.marginLeft = '5px'; 
+        btn2DPlantas.style.visibility = 'hidden';
+        btn2DPlantas.classList.add('btn2DPlanta');
+        
+
+        button.onclick = async () => {
+            ocultarLabels();
+            viewer.IFC.selector.unpickIfcItems();
+            const expressIDplanta = parseInt(button.dataset.expressId);
+            console.log("ExpressId: " + expressIDplanta + " de la planta: " + button.textContent);
+        
+            
+        
+            //comprueba si algun btn2D está pulsado
+            var container = document.querySelector('.button-containerP');
+            var elementos = container.querySelectorAll('.activoBtn2DPlanta');
+        
+            // Verificar si alguno de los elementos contiene la clase deseada
+            var contieneClase = false;
+            for (var i = 0; i < elementos.length; i++) {
+                if (elementos[i].classList.contains('activoBtn2DPlanta')) {
+                    contieneClase = true;
+                    break;
+                }
+            }
+        
+            if (contieneClase) {
+                viewer.context.ifcCamera.toggleProjection();
+                viewer.context.ifcCamera.cameraControls.setLookAt(posicionInicial.x, posicionInicial.y, posicionInicial.z, centro.x, centro.y, centro.z);
+            }
+        
+            //elementsArray = elementsArraysByPlan[currentPlan.name] || []; // Obtén el array existente o recién creado
+            try {
+                const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID);
+        
+                function findElementsInChildren(node) {
+                    for (const childNode of node.children) {
+                        if (!elementsArray.includes(childNode.expressID)) {
+                            elementsArray.push(childNode.expressID);
+                        }
+                        findElementsInChildren(childNode);
+                    }
+                }
+                function removeElementsInChildren(node) {
+                    for (const childNode of node.children) {
+                        // Eliminar el expressID del nodo hijo actual del array
+                        const index = elementsArray.indexOf(childNode.expressID);
+                        if (index !== -1) {
+                            elementsArray.splice(index, 1);
+                        }
+                        removeElementsInChildren(childNode);
+                    }
+                }
+        
+                // busca el nodo de la planta deseada en la estructura 
+                const plantaNode = findNodeWithExpressID(ifcProject, expressIDplanta);
+                console.log(plantaNode)
+        
+                if (plantaNode) {
+                    
+                    hideAllItems(viewer, idsTotal);
+                    if (button.classList.contains('activo')) {
+                        button.classList.remove('activo');
+                        removeElementsInChildren(plantaNode);
+                    }
+                    else{
+                        button.classList.add('activo');
+                        findElementsInChildren(plantaNode);
+                    }
+                    showAllItems(viewer, elementsArray);
+        
+                    const btnLabelPlantasList = document.querySelectorAll('.btnLabelPlanta');
+                    btnLabelPlantasList.forEach((btnLabel) => {
+                        btnLabel.style.visibility = 'hidden';
+                    });
+        
+                    btnLabelPlantas.style.visibility = 'visible';
+                    const btn2DPlantasList = document.querySelectorAll('.btn2DPlanta');
+                    btn2DPlantasList.forEach((btn2D) => {
+                        btn2D.style.visibility = 'hidden';
+                        btn2D.classList.remove('activoBtn2DPlanta');
+                    });
+        
+                    btn2DPlantas.style.visibility = 'visible';
+        
+                } else {
+                    console.log('No se encontró el nodo de la planta');
+                }
+            } catch (error) {
+                console.log('Error al obtener la estructura espacial:', error);
+            }
+        };
+
+        btnLabelPlantas.onclick = async () => {
+        const activeBtnLabelPlanta = document.querySelector('.btnLabelPlanta.activoBtnLabelPlanta');
+        
+        // Si hay un botón activo y es el mismo que se hizo clic, quitar la clase
+        if (activeBtnLabelPlanta === btnLabelPlantas) {
+            btnLabelPlantas.classList.remove('activoBtnLabelPlanta');
+            removeLabels(elementsArray);
+        } else {
+            // Si hay un botón activo y no es el mismo que se hizo clic, eliminar la clase
+            if (activeBtnLabelPlanta) {
+            activeBtnLabelPlanta.classList.remove('activoBtnLabelPlanta');
+            }
+            btnLabelPlantas.classList.add('activoBtnLabelPlanta');
+            generateLabels(elementsArray);
+        }
+        }
+        
+        let plantaActivo = false;
+        
+        btn2DPlantas.onclick = () => {
+        if (btn2DPlantas.classList.contains('activoBtn2DPlanta')) {
+            btn2DPlantas.classList.remove('activoBtn2DPlanta');
+            plantaActivo = false;
+            generatePlanta2D(plantaActivo);
+        } else {
+            btn2DPlantas.classList.add('activoBtn2DPlanta');
+            plantaActivo = true;
+            if (!posicionInicial) {
+            // Almacenar la posición actual de la cámara antes de cambiarla
+            const camera = viewer.context.getCamera();
+            posicionInicial = {
+                x: camera.position.x,
+                y: camera.position.y,
+                z: camera.position.z
+            };
+            }
+            generatePlanta2D(plantaActivo);
+        }
+        };
+        
+    }
+
+    
+    let posicionInicial = null;
+    function generatePlanta2D(plantaActivo) {
+        //const screenShot = viewer.context.renderer.newScreenshot(camera);
+        // CREA UN IMAGEN DE LA CAMARA EN ESA POSICION
+
+        if (plantaActivo) {
+            viewer.context.ifcCamera.cameraControls.setLookAt(0, 50, 0, 0, 0, 0);
+            viewer.context.ifcCamera.toggleProjection();
+            
+        } else {
+            if (posicionInicial) {
+            viewer.context.ifcCamera.cameraControls.setLookAt(posicionInicial.x, posicionInicial.y, posicionInicial.z, 0, 0, 0);
+            viewer.context.ifcCamera.toggleProjection();
+            posicionInicial=null;
+            }
+        }
+    }
+
+    const button = document.createElement('button');
+    containerForPlans.appendChild(button);
+    button.textContent = 'Exit floorplans';
+    button.onclick = () => {
+
+        ocultarLabels();
+        const activeButtons = containerForPlans.querySelectorAll('button.activo');
+        activeButtons.forEach((activeButton) => {
+            activeButton.classList.remove('activo');
+        });
+        ocultaBtnRemoveClass();
+        const buttonContainer = document.getElementById('button-containerP');
+        buttonContainer.style.visibility = 'hiden';
+        const btnLateralPlantas = document.getElementById('btn-lateral-plantas');
+
+        btnLateralPlantas.click();
+    };
+}
+
+// Floorplans button
+let floorplansActive = false;
+const floorplanButton = document.getElementById('btn-lateral-plantas');
+let floorplansButtonContainer = document.getElementById('button-containerP');
+floorplanButton.onclick = () => {
+
+    // Obtener el div con id "divNumCamiones"
+const divNumCamiones = document.getElementById("divNumCamiones");
+
+// Verificar si el div existe
+if (divNumCamiones) {
+    // Obtener todos los elementos hijos del div
+    const elementosHijos = divNumCamiones.children;
+
+    // Iterar sobre los elementos hijos
+    for (let i = 0; i < elementosHijos.length; i++) {
+        const elemento = elementosHijos[i];
+
+        // Verificar si el elemento tiene la clase "active"
+        if (elemento.classList.contains("active")) {
+            // Hacer clic en el elemento
+            elemento.click();
+        }
+    }
+} 
+    const btnFiltraTipos = document.getElementById('filtraTipos');
+    const backgroundColor = window.getComputedStyle(btnFiltraTipos).backgroundColor;
+    if (backgroundColor === 'rgb(128, 128, 128)' || backgroundColor === 'gray') {
+        btnFiltraTipos.click();
+    }
+
+    if(floorplansActive) {
+        floorplansActive = !floorplansActive;
+        floorplanButton.style.backgroundColor = 'transparent';
+        floorplansButtonContainer.classList.remove('visible');
+        elementsArray=[];
+        
+        hideAllItems(viewer, idsTotal );
+        showAllItems(viewer, idsTotal);
+        floorplansButtonContainer.style.visibility = 'hidden';
+    
+        hideAllItems(viewer, idsTotal );
+        showAllItems(viewer, allIDs);
+        //desactiva los botones de plantas cuando se apaga el boton que genera los planos
+        const containerForButtons = document.getElementById('button-containerP');
+        const buttons = containerForButtons.querySelectorAll('button');
+        for (const button of buttons) {
+        if (button.classList.contains('activo')) {
+            button.classList.remove('activo');
+        }
+        }
+        ocultaBtnRemoveClass();
+        ocultarLabels();
+        
+    } else {
+        floorplansActive = !floorplansActive;
+        floorplanButton.style.backgroundColor = 'gray';
+        floorplansButtonContainer = document.getElementById('button-containerP');
+        floorplansButtonContainer.style.visibility = 'visible';
+        
+    };
+};
+
 let modelCopyCompleto = null; 
 const btnIfcCompleto=document.getElementById('ifcCompleto');
 let ifcCompletoClicked = false;
-
 btnIfcCompleto.addEventListener('click', async function(){
     ifcCompletoClicked=!ifcCompletoClicked;
     if(ifcCompletoClicked){
@@ -485,8 +865,38 @@ btnIfcCompleto.addEventListener('click', async function(){
         scene.remove(modelCopyCompleto); 
     }
 })
-let expressIDsUniones = []; 
 
+function ocultaBtnRemoveClass(){
+    const btnLabelPlantasList = document.querySelectorAll('.btnLabelPlanta');
+    btnLabelPlantasList.forEach((btnLabel) => {
+        btnLabel.style.visibility = 'hidden';
+        btnLabel.classList.remove('activoBtnLabelPlanta');  
+            
+    });
+    const btn2DPlantasList = document.querySelectorAll('.btn2DPlanta');
+        btn2DPlantasList.forEach((btn2D) => {
+        btn2D.style.visibility = 'hidden';
+        btn2D.classList.remove('activoBtn2DPlanta');  
+    });
+  //viewer.context.ifcCamera.cameraControls.setLookAt(posicionInicial.x, posicionInicial.y, posicionInicial.z, 0, 0, 0);
+}
+
+function ocultarLabels() {
+    const piezaLabels = document.querySelectorAll('.pieza-label');
+    const expressIDsOcultar = [];
+    
+    piezaLabels.forEach((element) => {
+        if (element.style.visibility !== 'hidden') {
+            const id = parseInt(element.id);
+                if (!isNaN(id)) {
+                    expressIDsOcultar.push(id);
+                }
+            }
+        });
+    removeLabels(expressIDsOcultar);
+}
+
+let expressIDsUniones = []; 
 const btnFiltrarUnion = document.getElementById('filtraUniones');
 let isButtonClickedUniones = false;
 btnFiltrarUnion.addEventListener('click', async function() {
@@ -636,7 +1046,6 @@ closeBtn.addEventListener('click', function() {
     mainContainer.style.display = 'none';
 });
 
-
 async function crearBotonPrecasFuisonados(){
     // Crea un nuevo botón
     var btnCreaPrecastFusionados= document.createElement("button");
@@ -663,6 +1072,8 @@ async function crearBotonPrecasFuisonados(){
 
         const btnFiltrosUnion=document.getElementById('filtraUniones');
         btnFiltrosUnion.style.display="block";
+        
+        addAtributosBDprecast();
 
         btnFiltros.addEventListener('click', function() {
         if (btnFiltros.classList.contains('active')) {
@@ -673,6 +1084,15 @@ async function crearBotonPrecasFuisonados(){
             btnFiltros.classList.add('active');
             btnFiltros.style.backgroundColor = 'gray';
             divFiltros.style.display = 'block';
+
+            const btnPlantas = document.getElementById('btn-lateral-plantas');
+            const backgroundColor = window.getComputedStyle(btnPlantas).backgroundColor;
+            if (backgroundColor === 'rgb(128, 128, 128)' || backgroundColor === 'gray') {
+                btnPlantas.click();
+                btnFiltros.click();
+            }
+
+
         }
         });
 
@@ -682,17 +1102,106 @@ async function crearBotonPrecasFuisonados(){
         ifcCompleto.style.display="block";
         const btnModifica= document.getElementById("modificaProp")
         btnModifica.style.display = "block";
+        const btnPlantas=document.getElementById('btn-lateral-plantas');
+        btnPlantas.style.display="block";
         });    
+        
 }
+
+
+function addAtributosBDprecast2() {
+    const objetosUsados = {};
+
+    precastElements.forEach((precastElement, index) => {
+        const ART_PiezaActual = precastElement.ART_Pieza;
+        const indexTransporte = Transporte.findIndex(transporte => transporte.ART_Pieza === ART_PiezaActual);
+
+        if (indexTransporte !== -1) {
+            const objetoTransporte = Transporte[indexTransporte];
+            Object.assign(precastElement, objetoTransporte);
+
+            objetosUsados[objetoTransporte.ART_Pieza] = true;
+
+            // Eliminar el objeto de Transporte
+            Transporte.splice(indexTransporte, 1);
+        }
+    });
+    if (Transporte.length > 0) {
+        let mensaje = "Se encuentran "+Transporte.length+" elementos en produccion que no se encuentran en el modelo cargado"+"\n";
+        
+        Transporte.forEach(objetoTransporte => {
+            for (const clave in objetoTransporte) {
+                if (clave === 'ART_Pieza') {
+                    mensaje += `* ${clave}: ${objetoTransporte[clave]}\n`;
+                } 
+                // else {
+                //     mensaje += `${clave}: ${objetoTransporte[clave]}\n`;
+                // }
+            }
+            mensaje += "\n"; // Agregar un espacio en blanco entre objetos
+        });
+    
+        alert(mensaje);
+        alert("Debe cargar un modelo actualizado donde los elementos coincidan.")
+    }
+    
+    
+    
+}
+
+async function addAtributosBDprecast() {
+    const objetosUsados = {};
+    const precastElementsSinAsignar = [];
+
+    precastElements.forEach((precastElement, index) => {
+        const ART_PiezaActual = precastElement.ART_Pieza;
+        const indexTransporte = Transporte.findIndex(transporte => transporte.ART_Pieza === ART_PiezaActual);
+    
+        if (indexTransporte !== -1) {
+            const objetoTransporte = Transporte[indexTransporte];
+            Object.assign(precastElement, objetoTransporte);
+    
+            objetosUsados[objetoTransporte.ART_Pieza] = true;
+    
+            // Eliminar el objeto de Transporte
+            Transporte.splice(indexTransporte, 1);
+        } else {
+            // Agregar a precastElementsSinAsignar si no se encontró en Transporte
+            precastElementsSinAsignar.push(precastElement.expressID);
+        }
+    });
+
+    if (Transporte.length > 0) {
+        let mensaje = "Se encuentran " + Transporte.length + " elementos en producción que no se encuentran en el modelo cargado" + "\n";
+    
+        Transporte.forEach(objetoTransporte => {
+            for (const clave in objetoTransporte) {
+                if (clave === 'ART_Pieza') {
+                    mensaje += `* ${clave}: ${objetoTransporte[clave]}\n`;
+                }
+                // else {
+                //     mensaje += `${clave}: ${objetoTransporte[clave]}\n`;
+                // }
+            }
+            mensaje += "\n"; 
+        });
+    
+        alert(mensaje);
+        hideAllItems(viewer, idsTotal);
+        showAllItems(viewer, precastElementsSinAsignar);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+    }
+}
+
 
 function eliminarElementosAssembly() {
     precastElements = precastElements.filter(element => element.ifcType !== 'IFCELEMENTASSEMBLY');
     console.log("TOTAL DE ELEMNTOS EN PRECAST: "+precastElements.length);
     // insertar array precastEleemt en firebase
-     insertaModeloFire();
+    insertaModeloFire();
     
 }
-
 
 async function crearBotonPrecas(){
     var btnCreaPrecast = document.createElement("button");
@@ -756,7 +1265,6 @@ function cargaGlobalIdenPrecast(){
         
 }
 
-
 function addBotonCheckboxListeners() {
     const buttons = document.querySelectorAll('.btnCheck');
 
@@ -789,8 +1297,6 @@ function addBotonCheckboxListeners() {
     });
 }
 
-
-
 function getFirstLetters(artPieza) {
     if (artPieza === undefined || artPieza === null) {
         return ""; // Devolver una cadena vacía para valores undefined o null
@@ -810,16 +1316,16 @@ let groupedElements;
 
 function generateCheckboxes(precastElements) {
     groupedElements = precastElements.reduce((acc, el) => {
-      if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" || el.ART_Pieza === undefined) {
+        if (el.ART_Pieza === 0 || el.ART_Pieza === "0" || el.ART_Pieza === "" || el.ART_Pieza === undefined) {
+            return acc;
+        }
+    
+        const firstLetters = getFirstLetters(el.ART_Pieza);
+        if (!acc[firstLetters]) {
+            acc[firstLetters] = [];
+        }
+        acc[firstLetters].push(el);
         return acc;
-      }
-  
-      const firstLetters = getFirstLetters(el.ART_Pieza);
-      if (!acc[firstLetters]) {
-        acc[firstLetters] = [];
-      }
-      acc[firstLetters].push(el);
-      return acc;
     }, {});
 
     const checktiposIfcContainer = document.getElementById('checktiposIfc');
@@ -868,33 +1374,23 @@ function generateCheckboxes(precastElements) {
 
 function updateMissingCamionCount() {
     const checkboxGroups = document.getElementsByClassName('checkbox-group');
-  
+
     Array.from(checkboxGroups).forEach((checkboxGroup) => {
-      const artPieza = checkboxGroup.querySelector('input[type="checkbox"]').getAttribute('data-art-pieza');
-      const elements = groupedElements[artPieza];
-  
-      const elementsWithCamion = elements.filter(el => el.Camion !== undefined && el.Camion !== "");
-      const missingCamionCount = elements.length - elementsWithCamion.length;
-  
-      const missingCamionLabel = checkboxGroup.querySelector('label:last-child');
-  
-      if (missingCamionLabel) {
-        missingCamionLabel.textContent = ` / ${missingCamionCount}`;
-      }
+        const artPieza = checkboxGroup.querySelector('input[type="checkbox"]').getAttribute('data-art-pieza');
+        const elements = groupedElements[artPieza];
+    
+        const elementsWithCamion = elements.filter(el => el.Camion !== undefined && el.Camion !== "");
+        const missingCamionCount = elements.length - elementsWithCamion.length;
+    
+        const missingCamionLabel = checkboxGroup.querySelector('label:last-child');
+    
+        if (missingCamionLabel) {
+            missingCamionLabel.textContent = ` / ${missingCamionCount}`;
+        }
     });
 }
 
 
-// function removeLabels(expressIDs) {
-//     const labels = document.querySelectorAll('.pieza-label'); // Buscar todos los elementos con la clase "pieza-label"
-//     for (let i = 0; i < labels.length; i++) {
-//         const label = labels[i];
-//         const labelID = parseInt(label.id);
-//         if (expressIDs.includes(labelID)) {
-//             label.style.visibility = 'hidden';
-//         }
-//     }
-// }
 function removeLabels(expressIDs) {
     const labels = document.querySelectorAll('.pieza-label'); // Buscar todos los elementos con la clase "pieza-label"
     for (let i = 0; i < labels.length; i++) {
@@ -907,25 +1403,6 @@ function removeLabels(expressIDs) {
         }
     }
 }
-
-
-// async function generateLabels(expressIDs) {
-//     for (let i = 0; i < expressIDs.length; i++) {
-//         const currentExpressID = expressIDs[i];
-//         for (let j = 0; j < precastElements.length; j++) {
-//             const element = precastElements[j];
-//             if (element.expressID === currentExpressID) {
-//                 const { ART_Pieza, expressID } = element;
-//                 let ART_CoordX = element.ART_CoordX || element.ART_cdgX;
-//                 let ART_CoordY = element.ART_CoordY || element.ART_cdgY;
-//                 let ART_CoordZ = element.ART_CoordZ || element.ART_cdgZ;
-//                 muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
-//                 break; // Sale del bucle interno una vez que encuentra el elemento
-//             }
-//         }
-//     }
-// }
-
 
 async function generateLabels(expressIDs) {
     for (const expressID of expressIDs) {
@@ -945,7 +1422,7 @@ async function generateLabels(expressIDs) {
       muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
     }
     
-  }
+}
 
 function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
@@ -981,34 +1458,28 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
     }
 }
 
-// const labelRenderer = new CSS2DRenderer();
-// labelRenderer.setSize( window.innerWidth, window.innerHeight );
-// labelRenderer.domElement.style.position = 'absolute';
-// labelRenderer.domElement.style.pointerEvents = 'none';
-// labelRenderer.domElement.style.top = '0px';
-// document.body.appendChild( labelRenderer.domElement );
-// window.addEventListener("resize", () => {
-//     labelRenderer.setSize(viewer.clientWidth, viewer.clientHeight);
-//   });
-
 // function addCheckboxListeners() {
 //     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
 //     checkboxes.forEach(function(checkbox) {
-//     checkbox.addEventListener('change', function() {
-//         viewer.IFC.selector.unpickIfcItems();
-//         const isChecked = this.checked;
-//         const artPieza = this.getAttribute('data-art-pieza');
-//         const matchingIds = [];
-//         precastElements.forEach(function(element) {
-//             if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" ||element.ART_Pieza=== undefined) {
-//                 return;
-//             }
-//             if (element.ART_Pieza.charAt(0).toUpperCase() === artPieza ) {
-//                 if (!element.hasOwnProperty('Camion') || element.Camion === "") {
-//                     matchingIds.push(element.expressID);
+//         checkbox.addEventListener('change', function() {
+//             viewer.IFC.selector.unpickIfcItems();
+//             const isChecked = this.checked;
+//             const artPieza = this.getAttribute('data-art-pieza');
+//             const matchingIds = [];
+
+//             precastElements.forEach(function(element) {
+//                 if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
+//                     return;
 //                 }
-//             }
-//         });
+
+//                 // Comparar las dos primeras letras de ART_Pieza con artPieza
+//                 if (element.ART_Pieza.substring(0, artPieza.length).toUpperCase() === artPieza.toUpperCase()) {
+//                     if (!element.hasOwnProperty('Camion') || element.Camion === "") {
+//                         matchingIds.push(element.expressID);
+//                     }
+//                 }
+//             });
+
 //             if (isChecked) {
 //                 showAllItems(viewer, matchingIds);
 //             } else {
@@ -1017,37 +1488,133 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
 //         });
 //     });
 // }
+
 function addCheckboxListeners() {
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach(function(checkbox) {
+        const container = document.createElement('label');
+        container.className = 'checkbox-container';
+    
+        checkbox.parentNode.insertBefore(container, checkbox);
+        const eyeIcon = document.createElement('span');
+        eyeIcon.className = 'eye-icon2';
+        eyeIcon.innerHTML = '👁️'; 
+        const artPiezaValue = checkbox.getAttribute('data-art-pieza');
+    
+        eyeIcon.setAttribute('data-art-pieza-ojo', artPiezaValue);
+        container.appendChild(eyeIcon);
+    
         checkbox.addEventListener('change', function() {
             viewer.IFC.selector.unpickIfcItems();
             const isChecked = this.checked;
             const artPieza = this.getAttribute('data-art-pieza');
             const matchingIds = [];
-
+    
             precastElements.forEach(function(element) {
                 if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
                     return;
                 }
-
-                // Comparar las dos primeras letras de ART_Pieza con artPieza
+        
                 if (element.ART_Pieza.substring(0, artPieza.length).toUpperCase() === artPieza.toUpperCase()) {
                     if (!element.hasOwnProperty('Camion') || element.Camion === "") {
-                        matchingIds.push(element.expressID);
+                    matchingIds.push(element.expressID);
                     }
                 }
-            });
-
+                });
             if (isChecked) {
                 showAllItems(viewer, matchingIds);
             } else {
                 hideAllItems(viewer, matchingIds);
             }
         });
+        const eyeIcons = document.querySelectorAll('.eye-icon2');
+        let activeIcon = null;
+        
+        eyeIcons.forEach(function (icon) {
+            icon.addEventListener('click', function () {
+            if (activeIcon === icon) {
+                icon.classList.remove('active-ojo');
+                // hideAllItems(viewer, allIDs);
+                // showAllItems(viewer, allIDs);
+                activeIcon = null;
+                const activeEyeIcon = document.querySelector('.eye-icon2.active-ojo');
+                if (!activeEyeIcon) {
+                    checkboxes.forEach(function (cb) {
+                        cb.disabled = false;
+                    });
+                    console.log('Checkboxes enabled');
+        
+                    let expressCheck=expressCheckActivos();
+                    hideAllItems(viewer, allIDs);
+                    const checkExpressNoCargados = [];
+
+                    for (let i = 0; i < expressCheck.length; i++) {
+                        const element = expressCheck[i];
+                        if (allIDs.includes(element)) {
+                            checkExpressNoCargados.push(element);
+                    
+                        }
+                    }
+
+                    showAllItems(viewer, checkExpressNoCargados);
+                }
+            } else {
+                if (activeIcon) {
+                    activeIcon.classList.remove('active-ojo');
+                }
+                icon.classList.add('active-ojo');
+                activeIcon = icon;
+        
+                const artPiezaOjoValue = icon.getAttribute('data-art-pieza-ojo');
+                const expressOjo = [];
+        
+                precastElements.forEach(function (element) {
+                    if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
+                        return;
+                    }
+                    
+                    if (element.ART_Pieza.substring(0, artPiezaOjoValue.length).toUpperCase() === artPiezaOjoValue.toUpperCase()) {
+                        if (!element.hasOwnProperty('Camion') || element.Camion === "") {
+                            expressOjo.push(element.expressID);
+                        }
+                    }
+                });
+                hideAllItems(viewer, allIDs);
+                showAllItems(viewer, expressOjo);
+                const activeEyeIcon = document.querySelector('.eye-icon2.active-ojo');
+                if (activeEyeIcon) {
+                    // Si hay un icono ojo activo, desactivar todos los checkboxes
+                    checkboxes.forEach(function (cb) {
+                    cb.disabled = true;
+                    });
+                } 
+                }
+            });
+        });
     });
 }
 
+function expressCheckActivos() {
+    const divChecktiposIfc = document.getElementById('checktiposIfc');
+    if (divChecktiposIfc) {
+        const checkboxes = divChecktiposIfc.querySelectorAll('input[type="checkbox"]');
+        const matchingExpress = [];
+        checkboxes.forEach(function (checkbox) {
+            if (checkbox.checked) {
+            const dataClassValue = checkbox.getAttribute('data-art-pieza');
+            for (let i = 0; i < precastElements.length; i++) {
+                const element = precastElements[i];
+                if (element.hasOwnProperty('ART_Pieza')) {
+                    if (element.ART_Pieza.charAt(0) === dataClassValue) {
+                        matchingExpress.push(element.expressID);
+                    }
+                }
+            }
+            }
+        });
+        return matchingExpress;
+    }
+}
 
  ////-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -1145,16 +1712,6 @@ function hideAllItems(viewer, ids) {
         ids,
         'full-model-subset',
     );
-}
-
-function hideAllItemsFor(viewer, ids) {
-	ids.forEach(function(id) {
-        viewer.IFC.loader.ifcManager.removeFromSubset(
-            0,
-            [id],
-            'full-model-subset',
-        );
-    }); 
 }
 
 function hideAllItem(viewer, id) {
@@ -1718,14 +2275,16 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-
+let boxHelper;
+let geometry;
+let centro;
 nuevoCamionTubularBtn.addEventListener("click", function() {
     setProjectionMode("orthographic");
         
         // Obtener el centro del edificio
-        const boxHelper = new BoxHelper(model, 0xff0000);
-        const geometry = boxHelper.geometry;
-        const centro = geometry.boundingSphere.center;
+        // boxHelper = new BoxHelper(model, 0xff0000);
+        // geometry = boxHelper.geometry;
+        // centro = geometry.boundingSphere.center;
 
         //  cámara en el punto centro desplazada 50 unidades en el eje Y
         const camera = viewer.context.ifcCamera.cameraControls;
@@ -2024,36 +2583,7 @@ listaElementos.addEventListener('dblclick', function(event) {
                 }
             });
             
-
         }
-        else {
-            // const matchingIds = [];
-            // const checkedArtPiezas = [];
-            // const divCheck = document.getElementById("checktiposIfc");
-            // const checkboxes = divCheck.querySelectorAll("input[type='checkbox']");
-            
-            // checkboxes.forEach(function (checkbox) {
-            //     if (checkbox.checked) {
-            //     checkedArtPiezas.push(checkbox.getAttribute('data-art-pieza'));
-            //     }
-            // });
-
-            // precastElements.forEach(function (element) {
-            //     if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
-            //     return;
-            //     }
-            //     if (checkedArtPiezas.includes(element.ART_Pieza.charAt(0).toUpperCase())) {
-            //     if (!element.hasOwnProperty('Camion') || element.Camion === "") {
-            //         matchingIds.push(element.expressID);
-            //     }
-            //     }
-            // });
-
-            // showAllItems(viewer, matchingIds);
-                        
-            // checkboxes.forEach(checkbox => checkbox.checked = true);// Activa los checkbox
-        }
-        //actualizarBaseDeDatos();
         let elEliminado=parseInt(elementoEliminadoTabla) 
         actualizaFireExpress(elEliminado) ;
     }
@@ -2553,7 +3083,6 @@ function muestraPropiedades(ART_Pieza, ART_Longitud, ART_Ancho, ART_Alto, ART_Pe
 }
 
 
-
 function muestraPropiedadesExpressId(expressID) {
     const container=document.getElementById('propiedades-container');
     container.style.visibility="visible";
@@ -2688,7 +3217,7 @@ function updatePropertyMenu (props){
     //console.log(properties2);
 }
 
-//para construir un menu de propiedades 
+// construye un menu de propiedades 
 function createPropertyEntry(key,propertyValue){
     const root=document.createElement ('div');  //crea elemento div contenedor
     root.classList.add('property-root');// y este div le asignamos la clase
@@ -2862,8 +3391,6 @@ function exportCSVmethod(){
     
 }
 
-
-
 GUI.importer.addEventListener("change", function(e) {
     e.preventDefault();
     const input = e.target.files[0];
@@ -3012,33 +3539,6 @@ function clasificarPorTipoTransporte() {
     buscaMaxTransporte(transporteTu);
 }
 
-// function clasificarPorTipoTransporte() {
-//     for (let i = 0; i < precastElements.length; i++) {
-//         const tipoTransporte = precastElements[i].tipoTransporte;
-//         const letra = tipoTransporte.charAt(tipoTransporte.length - 1);
-//         switch (letra) {
-//             case "A":
-//             transporteA.push(precastElements[i]);
-//             break;
-
-//             case "C":
-//             transporteC.push(precastElements[i]);
-//             break;
-
-//             case "E":
-//             transporteE.push(precastElements[i]);
-//             break;
-            
-//             case "Tu":
-//             transporteE.push(precastElements[i]);
-//             break;
-//         }
-//     }
-//     buscaMaxTransporte(transporteA);
-//     buscaMaxTransporte(transporteC);
-//     buscaMaxTransporte(transporteE);
-//     buscaMaxTransporte(transporteTu);
-// }
 
 function buscaMaxTransporte(transporteA){
     let camionMaximo = null;
@@ -3116,9 +3616,7 @@ function obtenerValorCamion(precastElements) {
     return Array.from(valoresCamion);
 }
 
-
 let activeExpressIDs = [];
-
 function generaBotonesNumCamion(camionesUnicos) {
     viewer.IFC.selector.unpickIfcItems();
     const btnNumCamiones = document.getElementById("divNumCamiones");
@@ -3193,6 +3691,14 @@ function generaBotonesNumCamion(camionesUnicos) {
         });
         btnNumCamiones.appendChild(btn);
         btn.addEventListener("click", function() {
+
+            const btnCero= document.getElementById("botonCero")
+            if(btnCero.classList.contains("active")){
+                btnCero.click();
+               // botonesActivos--;
+            }
+
+
             let checkboxStates = {};
             const checkboxes = document.querySelectorAll('input[type="checkbox"]');
                 checkboxes.forEach(function (checkbox) {
@@ -3315,13 +3821,15 @@ function generaBotonesNumCamion(camionesUnicos) {
     }
 }
 
-function agregarBotonCero() {
+function  agregarBotonCero() {
     viewer.IFC.selector.unpickIfcItems();
     const btnCero = document.createElement("button");
     btnCero.setAttribute("class","btnNumCamion")
+    btnCero.setAttribute("id","botonCero")
     divNumCamiones.appendChild(btnCero);
     const iconoPlay = document.createElement("i");
     iconoPlay.setAttribute("class", "fas fa-play");
+    
     btnCero.appendChild(iconoPlay);
 
     btnCero.addEventListener("click", function() {
@@ -3329,11 +3837,33 @@ function agregarBotonCero() {
         if (isActive) {
             hideAllItems(viewer, idsTotal);
             showAllItems(viewer, allIDs);
+           
             btnCero.classList.remove("active");
             btnCero.style.justifyContent = "center";
             btnCero.style.color = "";
         } else {
+            
+            // Obtener el div con id "divNumCamiones"
+            const divNumCamiones = document.getElementById("divNumCamiones");
+
+            // Verificar si el div existe
+            if (divNumCamiones) {
+                // Obtener todos los elementos hijos del div
+                const elementosHijos = divNumCamiones.children;
+
+                // Iterar sobre los elementos hijos
+                for (let i = 0; i < elementosHijos.length; i++) {
+                    const elemento = elementosHijos[i];
+
+                    // Verificar si el elemento tiene la clase "active"
+                    if (elemento.classList.contains("active")) {
+                        // Hacer clic en el elemento
+                        elemento.click();
+                    }
+                }
+            } 
             hideAllItems(viewer, idsTotal);
+            removeLabels(idsTotal);
             const botones = document.querySelectorAll('#divNumCamiones button');
             botones.forEach(function(boton) {
                 boton.classList.remove('active');
@@ -3344,8 +3874,9 @@ function agregarBotonCero() {
             document.getElementById("posicionCamion").innerHTML = "";
             btnCero.classList.add("active");
             btnCero.style.justifyContent = "center";
-            
+            removeLabels(idsTotal);
             showElementsByCamion(viewer, precastElements);
+            //btnCero.classList.remove('active');
         }
     });
 }
@@ -3541,7 +4072,6 @@ function celdaSeleccionadaColor(celdaSeleccionada) {
     }
     ultimaCeldaSeleccionada = celdaSeleccionada;
 }
-
 
 function resaltarTabla(tabla, cabeceraValor) {
     const tablas = document.querySelectorAll("#datosCamiones table");
@@ -3875,7 +4405,6 @@ function actualizarTablaDerecha() {
     const cabeceraTablaDerecha = tablaDerecha.getElementsByTagName('th')[0];
     cabeceraTablaDerecha.innerText = `Peso Total: ${pesoTotal.toFixed(2)}`;
 }
-
 
 function cambiarIdsTablaA(tabla) {
     const nuevosIds = [1, 2, 9, 10, 3, 4, 11, 12, 5, 6, 13, 14, 7, 8, 15, 16];
