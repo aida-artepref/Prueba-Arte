@@ -11,194 +11,197 @@ import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs,  addDoc, doc, setDoc, query, updateDoc, where, runTransaction, getDoc  } from "firebase/firestore";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDTlGsBq7VwlM3SXw2woBBqHsasVjXQgrc",
-    authDomain: "cargas-917bc.firebaseapp.com",
-    projectId: "cargas-917bc",
-    storageBucket: "cargas-917bc.appspot.com",
-    messagingSenderId: "996650908621",
-    appId: "1:996650908621:web:b550fd82697fc26933a284"
-};
+//let rutaServidor="10.20.20.85"
+let rutaServidor="10.20.20.52"
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app); // Obtén una referencia a la base de datos Firestore
+//CONEXION A FIREBASE *************************************
 
+// const firebaseConfig = {
+//     apiKey: "AIzaSyDTlGsBq7VwlM3SXw2woBBqHsasVjXQgrc",
+//     authDomain: "cargas-917bc.firebaseapp.com",
+//     projectId: "cargas-917bc",
+//     storageBucket: "cargas-917bc.appspot.com",
+//     messagingSenderId: "996650908621",
+//     appId: "1:996650908621:web:b550fd82697fc26933a284"
+// };
 
-async function insertaModeloFire() {
-    try {
-        const refColeccion = collection(db, projectName);
-        const consulta = query(refColeccion);
-        await coleccionExistente(refColeccion, precastElements);
-        //descargarDatosFirestore(refColeccion)
-    } catch (error) {
-        console.error('Error al agregar los documentos:', error);
-    }
-    
-}
+// const app = initializeApp(firebaseConfig);
+// const db = getFirestore(app); // Obtén una referencia a la base de datos Firestore
 
-async function coleccionExistente(refColeccion, precastElements) {
-    const querySnapshot = await getDocs(refColeccion); // Obtener una instantánea de la colección
-    const cantidadDocsExistente = querySnapshot.size;
-    const documentosExistentes = {};
+// async function insertaModeloFire() {
+//     try {
+//         const refColeccion = collection(db, projectName);
+//         const consulta = query(refColeccion);
+//         await coleccionExistente(refColeccion, precastElements);
+//         //descargarDatosFirestore(refColeccion)
+//     } catch (error) {
+//         console.error('Error al agregar los documentos:', error);
+//     }  
+// }
 
-    querySnapshot.forEach(doc => {
-        documentosExistentes[doc.data().GlobalId] = doc.data();
-    });
+// async function coleccionExistente(refColeccion, precastElements) {
+//     const querySnapshot = await getDocs(refColeccion); // Obtener una instantánea de la colección
+//     const cantidadDocsExistente = querySnapshot.size;
+//     const documentosExistentes = {};
 
-    const documentosFaltantes = [];
-    const documentosAgregados = [];
+//     querySnapshot.forEach(doc => {
+//         documentosExistentes[doc.data().GlobalId] = doc.data();
+//     });
 
-    if (cantidadDocsExistente > 0) {
-        precastElements.forEach(matchingObject => {
-            const existingDoc = documentosExistentes[matchingObject.GlobalId];
+//     const documentosFaltantes = [];
+//     const documentosAgregados = [];
 
-            if (!existingDoc) {
-                console.log('Documento faltante:', matchingObject.GlobalId);
-                documentosFaltantes.push(matchingObject);
-            } else {
-                Object.assign(matchingObject, existingDoc);
-            }
-        });
+//     if (cantidadDocsExistente > 0) {
+//         precastElements.forEach(matchingObject => {
+//             const existingDoc = documentosExistentes[matchingObject.GlobalId];
 
-        for (const docId in documentosExistentes) {
-            if (!precastElements.some(obj => obj.GlobalId === docId)) {
-                documentosAgregados.push(documentosExistentes[docId]);
-            }
-        }
+//             if (!existingDoc) {
+//                 console.log('Documento faltante:', matchingObject.GlobalId);
+//                 documentosFaltantes.push(matchingObject);
+//             } else {
+//                 Object.assign(matchingObject, existingDoc);
+//             }
+//         });
+//         for (const docId in documentosExistentes) {
+//             if (!precastElements.some(obj => obj.GlobalId === docId)) {
+//                 documentosAgregados.push(documentosExistentes[docId]);
+//             }
+//         }
+//         if (documentosFaltantes.length === 0 && documentosAgregados.length === 0) {
+//             console.log('La colección tiene los mismos documentos y actualiza precastElements');
+//         } else {
+//             console.log('La colección tiene diferencias en documentos o campos.');
+//             if (documentosFaltantes.length > 0) {
+//                 console.log('Documentos faltantes:', documentosFaltantes);
+//             }
+//             if (documentosAgregados.length > 0) {
+//                 console.log('Documentos agregados:', documentosAgregados);
+//             }
+//         }
+//         mostrarElementosRestantes();
+//         clasificarPorTipoTransporte();
+//         actualizaDesplegables();
+//         nuevoCamionEstructuraBtn.click();
+//     } else {
+//         // Si la colección no existe en Firebase, crea la colección y añade los documentos
+//         console.log('La colección está vacía. Agregando documentos...');
+//         await agregarDocumentosAColeccion(refColeccion, precastElements);
+//     }
+// }
 
-        if (documentosFaltantes.length === 0 && documentosAgregados.length === 0) {
-            console.log('La colección tiene los mismos documentos y actualiza precastElements');
-        } else {
-            console.log('La colección tiene diferencias en documentos o campos.');
-            if (documentosFaltantes.length > 0) {
-                console.log('Documentos faltantes:', documentosFaltantes);
-            }
-            if (documentosAgregados.length > 0) {
-                console.log('Documentos agregados:', documentosAgregados);
-            }
-        }
+// async function agregarDocumentosAColeccion(refColeccion, precastElements) {
+//     try {
+//         const existingDocsQuery = query(refColeccion);
+//         const existingDocsSnapshot = await getDocs(existingDocsQuery);
 
-        mostrarElementosRestantes();
-        clasificarPorTipoTransporte();
-        actualizaDesplegables();
-        nuevoCamionEstructuraBtn.click();
-    } else {
-        // Si la colección no existe en Firebase, crea la colección y añade los documentos
-        console.log('La colección está vacía. Agregando documentos...');
-        await agregarDocumentosAColeccion(refColeccion, precastElements);
-    }
-    
-}
+//         const existingDocIds = new Set();
+//         existingDocsSnapshot.forEach((docSnapshot) => {
+//             existingDocIds.add(docSnapshot.id);
+//         });
 
+//         const transactionOperations = [];
+//         let documentosAgregados = 0;
 
-async function agregarDocumentosAColeccion(refColeccion, precastElements) {
-    try {
-        const existingDocsQuery = query(refColeccion);
-        const existingDocsSnapshot = await getDocs(existingDocsQuery);
+//         precastElements.forEach((objeto) => {
+//             const globalId = objeto.GlobalId;
 
-        const existingDocIds = new Set();
-        existingDocsSnapshot.forEach((docSnapshot) => {
-            existingDocIds.add(docSnapshot.id);
-        });
+//             if (!existingDocIds.has(globalId)) {
+//                 const refDocumento = doc(refColeccion, globalId);
+//                 transactionOperations.push(setDoc(refDocumento, objeto));
+//                 //console.log('Documento agregado:', objeto);
+//                 existingDocIds.add(globalId); // Agregar el nuevo ID a la lista de existentes
+//                 documentosAgregados++;
+//             } else {
+//                 console.log('El documento ya existe:', objeto);
+//             }
+//         });
 
-        const transactionOperations = [];
-        let documentosAgregados = 0;
+//         // if (transactionOperations.length > 0) {
+//         //     await runTransaction(refColeccion.firestore, async (transaction) => {
+//         //         transactionOperations.forEach((operation) => {
+//         //             operation(transaction);
+//         //         });
+//         //     });
+//         // }
+//         console.log(`Total de documentos agregados a la colección ${refColeccion.id}:`, documentosAgregados);
 
-        precastElements.forEach((objeto) => {
-            const globalId = objeto.GlobalId;
+//     } catch (error) {
+//         console.error('Error al agregar los documentos:', error);
+//     }
+// }
 
-            if (!existingDocIds.has(globalId)) {
-                const refDocumento = doc(refColeccion, globalId);
-                transactionOperations.push(setDoc(refDocumento, objeto));
-                //console.log('Documento agregado:', objeto);
-                existingDocIds.add(globalId); // Agregar el nuevo ID a la lista de existentes
-                documentosAgregados++;
-            } else {
-                console.log('El documento ya existe:', objeto);
-            }
-        });
+// async function descargarDatosFirestore(refColeccion) {
+//     try {
+//         const querySnapshot = await getDocs(refColeccion);
+//         const data = [];
 
-        // if (transactionOperations.length > 0) {
-        //     await runTransaction(refColeccion.firestore, async (transaction) => {
-        //         transactionOperations.forEach((operation) => {
-        //             operation(transaction);
-        //         });
-        //     });
-        // }
-        console.log(`Total de documentos agregados a la colección ${refColeccion.id}:`, documentosAgregados);
+//         querySnapshot.forEach((doc) => {
+//             data.push(doc.data());
+//         });
 
-    } catch (error) {
-        console.error('Error al agregar los documentos:', error);
-    }
-}
+//         const jsonData = JSON.stringify(data, null, 2);
 
+//         const blob = new Blob([jsonData], { type: 'application/json' });
+//         const link = document.createElement('a');
+//         link.href = URL.createObjectURL(blob);
+//         link.download = 'datos_firestore.json';
+//         link.click();
 
-async function descargarDatosFirestore(refColeccion) {
-    try {
-        const querySnapshot = await getDocs(refColeccion);
-        const data = [];
+//         console.log('Datos de Firestore descargados y guardados en datos_firestore.json');
+//     } catch (error) {
+//         console.error('Error al descargar datos de Firestore:', error);
+//     }
+// }
 
-        querySnapshot.forEach((doc) => {
-            data.push(doc.data());
-        });
+// async function actualizaFireExpress(expressId) {
 
-        const jsonData = JSON.stringify(data, null, 2);
+//     // obj axiliar para almacenar el resultado
+//     let objetoAux = null;
 
-        const blob = new Blob([jsonData], { type: 'application/json' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'datos_firestore.json';
-        link.click();
+//     for (const objeto of precastElements) {
+//         if (objeto.expressID === expressId) {
+//             objetoAux = objeto; // almacena el objeto (pieza que cambia sus propiedades) encontrado en objetoAux
+//             break; 
+//         }
+//     }
 
-        console.log('Datos de Firestore descargados y guardados en datos_firestore.json');
-    } catch (error) {
-        console.error('Error al descargar datos de Firestore:', error);
-    }
-}
+//     if (objetoAux) {
+//         try {
+//             const docRef = doc(db, projectName, objetoAux.GlobalId);
+//             // Obtener el documento actual
+//             const docSnapshot = await getDoc(docRef);
 
-async function actualizaFireExpress(expressId) {
+//             if (docSnapshot.exists()) {
+//                 const currentData = docSnapshot.data();  // obtiene los datos actuales del documento
+//                 const newData = { ...currentData, ...objetoAux };// conbina los datos actuales con los nuevos valores de objetoAux
+//               // Actualizar el documento con los nuevos datos
+//                 await setDoc(docRef, newData);
+//                // console.log("Documento actualizado con éxito:", docSnapshot.id);
+//             } else {
+//                 console.log("Documento no encontrado en la colección.");
+//             }
+//         } catch (error) {
+//             console.error("Error al actualizar el documento:", error);
+//         }
+//     } else {
+//         console.log("Objeto no encontrado en el array precastElements.");
+//     }
+// }
+// *********************************************************** 
 
-    // obj axiliar para almacenar el resultado
-    let objetoAux = null;
-
-    for (const objeto of precastElements) {
-        if (objeto.expressID === expressId) {
-            objetoAux = objeto; // almacena el objeto (pieza que cambia sus propiedades) encontrado en objetoAux
-            break; 
-        }
-    }
-
-    if (objetoAux) {
-        try {
-            const docRef = doc(db, projectName, objetoAux.GlobalId);
-            // Obtener el documento actual
-            const docSnapshot = await getDoc(docRef);
-
-            if (docSnapshot.exists()) {
-                const currentData = docSnapshot.data();  // obtiene los datos actuales del documento
-                const newData = { ...currentData, ...objetoAux };// conbina los datos actuales con los nuevos valores de objetoAux
-              // Actualizar el documento con los nuevos datos
-                await setDoc(docRef, newData);
-                console.log("Documento actualizado con éxito:", docSnapshot.id);
-            } else {
-                console.log("Documento no encontrado en la colección.");
-            }
-        } catch (error) {
-            console.error("Error al actualizar el documento:", error);
-        }
-    } else {
-        console.log("Objeto no encontrado en el array precastElements.");
-    }
-}
 
 const container = document.getElementById('viewer-container');
 const viewer = new IfcViewerAPI({container, backgroundColor: new Color("#E8E8E8")});
+
 const scene = viewer.context.scene.scene;
 const renderer=viewer.context.renderer.renderer;
 
 viewer.clipper.active = true;
 // viewer.grid.setGrid(100,100);
 // viewer.axes.setAxes();
+viewer.context.renderer.usePostproduction = true;
+viewer.IFC.selector.defSelectMat.color = new Color(127, 255, 0);
+
 
 document.addEventListener("keydown", function(event) {
     if (event.keyCode === 116) { // keyCode 116 es la tecla F5
@@ -206,8 +209,6 @@ document.addEventListener("keydown", function(event) {
     }
 });
 
-viewer.context.renderer.usePostproduction = true;
-viewer.IFC.selector.defSelectMat.color = new Color(127, 255, 0);
 
 const GUI={
     input: document.getElementById("file-input"),
@@ -225,7 +226,6 @@ document.getElementById("file-input").addEventListener("change", function() {
 });
 
 GUI.loader.onclick = () => GUI.input.click();  //al hacer clic al boton abre cuadro de dialogo para cargar archivo
-
 GUI.importloader.onclick = () => GUI.importer.click();
 
 let allIDs;
@@ -251,7 +251,6 @@ async function loadModel(url) {
     tree= await viewer.IFC.getSpatialStructure(model.modelID);
     allIDs = getAllIds(model); 
     idsTotal=getAllIds(model); 
-    console.log(idsTotal.length+" total de elementos en modelo inicial");
     await obtieneNameProject(url);
     
     // const ifcProject = await viewer.IFC.getSpatialStructure(model.modelID); //ifcProyect parametro necesario para obtener los elementos de IFC del modelo
@@ -261,28 +260,53 @@ async function loadModel(url) {
     viewer.context.fitToFrame();
     await cargaGlobalIdenPrecast();
     await  crearBotonPrecas(); 
-    // verNumPrecast();
     const divCargas = document.querySelector('.divCargas');
     divCargas.style.display = "block";
     
     buscaCentroModelo();
-    //Hace la peticion a BBDD
-    buscaJSONmodelo(3)
+    buscaJSONmodelo()
     .then(() => {
-        if (!intentosSuperados) {
-            atributoARTPieza(Transporte);
-            console.log("TRANS Tcon arte Pieza : ", Transporte);
-        }
+        obtenerIdentificadores();
+        
+        //atributoARTPieza(Transporte);
+        
     })
     .catch(error => {
-        if (!intentosSuperados) {
-            // Si no se superaron los intentos, muestra el mensaje de error
-           // alert("has superado el número de intentos. Comprueba el nombre válido y recarga de nuevo el modelo.");
-            container.style.backgroundColor = "#FF0000"; // Cambia el fondo a rojo (#FF0000)
-            container.style.height = "100%";
-        }
+        console.error('Error en buscaJSONmodelo:', error);
+        // container.style.backgroundColor = "#FF0000";
+        // container.style.height = "100%";
     });
     
+}
+let idAlveolar;
+let idEstruCerra;
+
+async function obtenerIdentificadores() {
+    const url = `http://${rutaServidor}:8000/identificadores/${encodeURIComponent(nombreObra)}`;
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        const idTTE = data.find(item => item.tabla === 'tte');
+        if (idTTE) {
+            idEstruCerra = idTTE.identificador;
+        } else {console.error('No se encontró el identificador de tte en la respuesta de la API.');}
+        const idAlveolarItem = data.find(item => item.tabla === 'alv');
+        if (idAlveolarItem) {
+            idAlveolar = idAlveolarItem.identificador;
+        } //else {console.log('La tabla "alv" no está presente en la respuesta de la API.');}
+        console.log("ID estructura y cerramiento: "+idEstruCerra);
+        console.log("ID alveolar: "+idAlveolar);
+    } catch (error) {
+        console.error('Error al obtener identificadores:', error);
+    }
 }
 
 function buscaCentroModelo(){
@@ -291,30 +315,30 @@ function buscaCentroModelo(){
     geometry = boxHelper.geometry;
     centro = geometry.boundingSphere.center;
 }
+
 function atributoARTPieza(transporteArray) {
-    // Verificar si el array tiene al menos un objeto
-    if (transporteArray.length > 0) {
-        Transporte.forEach(objeto => {
-            // Extrae la parte antes del guion y las cifras después del guion
-           // const match = objeto.ART_Pieza.match(/^([A-Z]+)(\d{3})-(\d{3})$/);
-            const match = objeto.ART_Pieza.match(/^([A-Z]{1,2})(\d{3})-(\d{3})$/);
-            if (match) {
-              // Obtiene la letra y las cifras
-              const [, letra, cifras1] = match;
-          
-              // Procesa las cifras según las reglas especificadas
-              const cifrasProcesadas = cifras1.replace(/^0+/, '') || '0';
-          
-              // Construye el nuevo valor y agrégalo al objeto
-              objeto.ART_PiezaT = letra + cifrasProcesadas;
-            } else {
-                const partes = objeto.ART_Pieza.split('-');
-                objeto.ART_PiezaT = partes[0];
-            }
-          });
-        ordenarValoreArrayTrans(Transporte)  
-    } else {
+    if(transporteArray){
+        if (transporteArray.length > 0  ) {
+            Transporte.forEach(objeto => {
+                // Extrae la parte antes del guion y las cifras después del guion
+            // const match = objeto.ART_Pieza.match(/^([A-Z]+)(\d{3})-(\d{3})$/);
+                const match = objeto.ART_Pieza.match(/^([A-Z]{1,2})(\d{3})-(\d{3})$/);
+                if (match) {
+                // Obtiene la letra y las cifras
+                    const [, letra, cifras1] = match;
+                // Procesa las cifras según las reglas especificadas
+                    const cifrasProcesadas = cifras1.replace(/^0+/, '') || '0';
+                // Construye el nuevo valor y agrégalo al objeto
+                    objeto.ART_PiezaT = letra + cifrasProcesadas;
+                } else {
+                    const partes = objeto.ART_Pieza.split('-');
+                    objeto.ART_PiezaT = partes[0];
+                }
+            });
+            ordenarValoreArrayTrans(Transporte)  
+        } else {
         console.log('El array de transporte está vacío.');
+        }
     }
 }
 
@@ -331,81 +355,912 @@ function ordenarValoreArrayTrans(transporteArray) {
     }
 }
 
+
+
+let nombreObra='';
+let nombreObraSelect='';
 let Transporte;
-
-let intentosSuperados = false;
-
-
-function buscaJSONmodelo(maxAttempts) {
+let Produccion;
+function buscaJSONmodelo() {
     return new Promise((resolve, reject) => {
-        const requestURL = 'http://10.20.20.85:8000/transporte/' + encodeURIComponent(projectName);
-        let attempts = 0;
-        let noCoincide = false; 
+        const requestURL = `http://${rutaServidor}:8000/transporte/` + encodeURIComponent(projectName);
+        const requestURLPro = `http://${rutaServidor}:8000/produccion/` + encodeURIComponent(projectName);
 
-        function hacerPeticion(url, callback) {
+        function hacerPeticionBDCargas(url, callback) {
             const request = new XMLHttpRequest();
             request.open("GET", url);
             request.responseType = "json";
             request.onload = function () {
                 if (request.status === 200) {
-                    const transporteData = request.response;
-                    callback(transporteData);
+                    const data = request.response;
+                    callback(data);
+                    nombreObra=projectName;
+                    //console.log("NOMBRE DE LA OBRA CUANDO cargamodelo: "+nombreObra)
+                    if (nombreObraSelect!=''){
+                        nombreObra=nombreObraSelect;
+                        //console.log("NOMBRE DE LA OBRA despues de selct: "+nombreObra)
+                    }
                 } else {
-                    // Si la respuesta no es 200 (éxito)
                     alert("NO HAY RESPUESTA DEL SERVIDOR");
-                    intentosSuperados = false; 
                     reject("Error en la conexión a la base de datos");
                 }
             };
             request.onerror = function () {
-                // En caso de error en la conexión
                 alert("NO HAY CONEXIÓN A BD");
-                container.style.backgroundColor = "#FF0000"; 
-                    container.style.height = "100%";
-                intentosSuperados = true; 
+                container.style.backgroundColor = "#FF0000";
+                container.style.height = "100%";
                 reject("Error en la conexión a la base de datos");
             };
             request.send();
         }
-
-        function solicitarModelo() {
-            if (attempts >= maxAttempts) {
-                if (noCoincide) {
-                    alert("Has superado el número de intentos. Comprueba el nombre válido y recarga de nuevo el modelo.");
-                    container.style.backgroundColor = "#FF0000"; // Cambia el fondo a rojo (#FF0000)
-                    container.style.height = "100%";
-                }
-                reject("Se superó el número máximo de intentos");
-            } else {
-                attempts++;
-                const modeloManual = prompt("El modelo no se ha encontrado en la base de datos. Introduce nombre obra:");
-                const nuevaRequestURL = 'http://10.20.20.85:8000/transporte/' + encodeURIComponent(modeloManual);
-                hacerPeticion(nuevaRequestURL, function (transporteData) {
-                    if (transporteData.length === 0) {
-                        solicitarModelo();
-                        noCoincide = true; // Marca la variable como true si el nombre no coincide
-                    } else {
-                        console.log("Modelo válido encontrado:", transporteData);
-                        Transporte = transporteData;
+        let selectedObra;
+        function hacerPeticionBDProduccion() {
+            hacerPeticionBDCargas(requestURLPro, function (produccionData) {
+                if (produccionData.length === 0) {
+                    // Si no hay datos en array Produccion, debes buscar el nombre de la obra a través de la lista
+                    // const obrasList = document.getElementById("obrasList");
+                    // selectedObra = obrasList.value;
+                    const nuevaRequestURL = `http://${rutaServidor}:8000/produccion/` + encodeURIComponent(selectedObra);
+        
+                    hacerPeticionBDCargas(nuevaRequestURL, function (nuevaProduccionData) {
+                        Produccion = nuevaProduccionData;
+                        closeModal();
                         resolve();
-                    }
-                });
-            }
+                    }, function (error) {
+                        console.error('Error en la segunda solicitud:', error);
+                        alert('Error en la segunda solicitud.');
+                        reject(error);
+                    });
+                } else {
+                    Produccion = produccionData;
+                    resolve();
+                }
+            }, function (error) {
+                console.error('Error en la primera solicitud:', error);
+                alert('Error en la primera solicitud.');
+                reject(error);
+            });
+        }
+    
+        function ordenarListaAlfabeticamente() {
+            const opciones = Array.from(obrasList.options);
+            opciones.sort((a, b) => a.text.localeCompare(b.text));
+            obrasList.innerHTML = ""; // Limpiar la lista actual
+            opciones.forEach(opcion => obrasList.appendChild(opcion));
         }
 
-        // Cambiar el lugar donde se llama hacerPeticion para manejar la conexión inicial
-        hacerPeticion(requestURL, function (transporteData) {
+        function createModal(obrasData) {
+            const modal = document.createElement("div");
+            modal.classList.add("modal");
+        
+            const modalContent = document.createElement("div");
+            modalContent.classList.add("modal-content");
+        
+            const leftContent = document.createElement("div");
+            leftContent.style.float = "left";
+            leftContent.style.width = "50%";
+        
+            const rightContent = document.createElement("div");
+            rightContent.style.float = "right";
+            rightContent.style.width = "50%";
+        
+            const header = document.createElement("h2");
+            header.innerText = "Selecciona una obra";
+        
+            const obrasList = document.createElement("select");
+            obrasList.id = "obrasList";
+        
+            const selectButton = document.createElement("button");
+            selectButton.classList.add("selectButton");
+            selectButton.innerText = "Seleccionar";
+            selectButton.id="btnSelecionObraModal";
+            selectButton.onclick = selectObra;
+            selectButton.style.borderRadius = "5px";
+            selectButton.style.boxShadow="solid 2px 2"
+        
+            
+            const sortButton = document.createElement("button");
+            sortButton.classList.add("sort-button");
+            sortButton.onclick = ordenarListaAlfabeticamente;
+
+            const sortIcon = document.createElement("i");
+            sortIcon.classList.add("fas", "fa-sort-alpha-up");  
+            sortButton.appendChild(sortIcon);
+        
+        
+            const closeButton = document.createElement("span");
+            closeButton.classList.add("close");
+            closeButton.innerHTML = "×";
+            closeButton.onclick = closeModal;
+            closeButton.style.position = "absolute";
+            closeButton.style.right = "10px";
+            closeButton.style.top = "10px";
+        
+            leftContent.appendChild(header);
+            leftContent.appendChild(obrasList);
+            leftContent.appendChild(selectButton);
+            leftContent.appendChild(sortButton); 
+
+            const newObraHeader = document.createElement("h2");
+            newObraHeader.innerText = "Crear nueva";
+            const newObraButton = document.createElement("button");
+            newObraButton.classList.add("newObraButton");
+            newObraButton.innerText = "Crear nueva obra";
+            newObraButton.style.borderRadius = "5px";
+            newObraButton.onclick= creaNuevaObra;
+            
+            rightContent.appendChild(newObraHeader);
+            rightContent.appendChild(newObraButton);
+            
+            modalContent.appendChild(closeButton);
+            modalContent.appendChild(leftContent);
+            modalContent.appendChild(rightContent);
+            modal.appendChild(modalContent);
+        
+            document.body.appendChild(modal);
+        
+            obrasData.forEach(obra => {
+                const option = document.createElement("option");
+                option.value = obra.obra;
+                option.text = obra.obra;
+                obrasList.appendChild(option);
+            });
+        
+            modal.style.display = "block";
+            modal.style.zIndex = "9999";
+        }
+        
+
+        function closeModal() {
+            const modal = document.querySelector(".modal");
+            if(modal && modal.style.display == "block"){
+                modal.style.display = "none";
+                modal.remove();
+            }
+            
+            
+        }
+
+        function creaNuevaObra() {
+            
+            solicitaDatosNuevaObra(); 
+            closeModal();
+        }
+
+
+        function solicitaDatosNuevaObra() {
+            var modal = document.createElement('div');
+            modal.id = 'modalDatosNuevaObra';
+        
+            var modalContent = document.createElement('div');
+            modalContent.id = 'modal-contentDatosNuevaObra';
+        
+            var modalTitle = document.createElement('h2');
+            modalTitle.textContent = 'Datos de la Nueva Obra';
+            modalContent.appendChild(modalTitle);
+            
+            var fields = ['ref_obra', 'nombre', 'localidad', 'direccion'];
+            fields.forEach(function (field) {
+                var label = document.createElement('label');
+                label.setAttribute('for', field);
+                label.textContent = field.charAt(0).toUpperCase() + field.slice(1) + ':';
+                label.style.display='block'
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.id = field;
+                input.required = true;
+                input.style.width='100%';
+                input.style.marginBottom='1rem';
+            
+                modalContent.appendChild(label);
+                modalContent.appendChild(input);
+            });
+            var crearBtn = document.createElement('button');
+            crearBtn.id="btnCrearObra"
+            crearBtn.textContent = 'Crear';
+            crearBtn.onclick = crearObra;
+            modalContent.appendChild(crearBtn);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+        }
+
+        function crearObra() {
+            var ref_obra = document.getElementById('ref_obra').value;
+            var nombre = document.getElementById('nombre').value.toUpperCase();
+            var localidad = document.getElementById('localidad').value;
+            var direccion = document.getElementById('direccion').value;
+        
+            // Realizar la solicitud para obtener el listado de obras
+            fetch(`http://${rutaServidor}:8000/obrastransporte`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(obras => {
+                const obrasEnMayusculas = obras.map(obra => obra.obra.toUpperCase());
+        
+                if (obrasEnMayusculas.includes(nombre)) {
+                    alert('El nombre de la obra ya existe. Por favor, elige otro nombre.');
+                    const modal = document.getElementById('modalDatosNuevaObra');
+                    modal.remove();
+                    fetch(`http://${rutaServidor}:8000/obrastransporte`, {
+                        method: 'GET',
+                        headers: {
+                            'accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        createModal(data);
+                    });
+                } else {
+                    var obraData = {
+                        idobra: 0,
+                        refobra: ref_obra,
+                        nombre: nombre,
+                        localidad: localidad,
+                        direccion: direccion,
+                        terminada: false
+                    };
+                    nombreObra=nombre;
+                    fetch(`http://${rutaServidor}:8000/creaobrastransporte/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(obraData)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Respuesta de la API:', data);
+                        
+                        // Llama a obtenerIdentificadores() y buscaJSONmodelo() después de que la obra se ha creado correctamente
+                        obtenerIdentificadores();
+                        buscaJSONmodelo();
+                        
+                        document.getElementById('modalDatosNuevaObra').style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error al enviar datos a la API:', error);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error al obtener el listado de obras:', error);
+            });
+        }
+        
+        function selectObra() {
+            const obrasList = document.getElementById("obrasList");
+            selectedObra = obrasList.value;
+            const nuevaRequestURL = `http://${rutaServidor}:8000/transporte/` + encodeURIComponent(selectedObra);
+            const nuevaRequestURLProd = `http://${rutaServidor}:8000/produccion/` + encodeURIComponent(selectedObra);
+            nombreObraSelect=selectedObra;
+            hacerPeticionBDCargas(nuevaRequestURL, function (transporteData) {
+                Transporte = transporteData;
+                closeModal();
+                resolve();
+            }, function (error) {
+                console.error('Error en la solicitud de la obra seleccionada:', error);
+                alert('Error en la solicitud de la obra seleccionada.');
+                reject(error);
+            });
+            hacerPeticionBDProduccion(nuevaRequestURLProd, function (produccionData) {
+                Produccion = produccionData;
+                obtenerIdentificadores();
+                closeModal();
+                resolve();
+            }, function (error) {
+                console.error('Error en la solicitud de la obra seleccionada:', error);
+                alert('Error en la solicitud de la obra seleccionada.');
+                reject(error);
+            });
+        }
+
+        hacerPeticionBDCargas(requestURL, function (transporteData) {
             if (transporteData.length === 0) {
-                solicitarModelo();
-                noCoincide = true; // Marca la variable como true si el nombre no coincide
+                fetch(`http://${rutaServidor}:8000/obrastransporte`, {
+                    method: 'GET',
+                    headers: {
+                        'accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    createModal(data);
+                })
+                .catch(error => {
+                    console.error('Error en la solicitud de nombres de obras:', error);
+                    alert('Error en la solicitud de nombres de obras.');
+                    reject(error);
+                });
             } else {
                 console.log("Modelo válido encontrado:", transporteData);
                 Transporte = transporteData;
                 resolve();
+                hacerPeticionBDProduccion();
             }
         });
     });
 }
+
+function asignarTipoCamion(tabla, obra, nCamion, tipoCamion) {
+    const url = `http://${rutaServidor}:8000/camionesupdatetipo/`;
+
+    const data = {
+        tabla: tabla,
+        obra: obra,
+        n_camion: nCamion,
+        tipo_camion: tipoCamion
+    };
+
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+    };
+
+    fetch(url, options)
+        .then(response => response.json())
+        .then(jsonResponse => {
+            console.log('Respuesta del servidor:', jsonResponse);
+            // Puedes manejar la respuesta del servidor aquí si es necesario
+        })
+        .catch(error => {
+            console.error('Error al realizar la solicitud:', error.message);
+        });
+}
+
+function seleccionarTipoCamion(jsonResponse, jsonData) {
+    const obra = jsonData.obra;
+    const tabla = jsonData.tabla;
+    const nCamion = jsonData.n_camion;
+    console.log('El valor de "tabla" es:', tabla);
+    let tipoCamion = 'NORMAL';
+
+    if (tabla === 'estructura') {
+        let tieneMedidaLongitud18 = false;
+        for (const medida in jsonResponse) {
+            if (jsonResponse.hasOwnProperty(medida)) {
+                const valorMedida = parseFloat(jsonResponse[medida]);
+                if (jsonResponse[medida] ) {
+                    if (!isNaN(valorMedida) && valorMedida > 18) {
+                        tieneMedidaLongitud18 = true;
+                        break;  // Salir del bucle tan pronto como encuentre una medida superior a 280
+                    } else if (valorMedida >= 13.60 && valorMedida  < 18) {
+                        tipoCamion = 'EXTENSIBLE';
+                    }
+                }
+            }
+        }
+        if (tieneMedidaLongitud18) {
+            tipoCamion = 'ESPECIAL';
+        }
+    }
+    if (tabla === 'alveolar') {
+        let tieneMedidaLongitud18 = false;
+        for (const medida in jsonResponse) {
+            if (jsonResponse.hasOwnProperty(medida)) {
+                if (jsonResponse[medida] && jsonResponse[medida].includes(' X ')) {
+                    const valorDespuesDeX = jsonResponse[medida].split(' X ')[0];
+        
+                    const valorNumerico = parseFloat(valorDespuesDeX) / 100;
+                    console.log("Longitud de alveolar: " + valorNumerico)
+        
+                    if (!isNaN(valorNumerico) && valorNumerico > 18) {
+                        tieneMedidaLongitud18 = true;
+                        break;  // Salir del bucle tan pronto como encuentre una medida superior a 280
+                    } else if (valorNumerico >= 13.60 && valorNumerico < 18) {
+                        tipoCamion = 'EXTENSIBLE';
+                    }
+                }
+            }
+        }
+        if (tieneMedidaLongitud18) {
+            tipoCamion = 'ESPECIAL';
+        }
+    }
+    
+    if (tabla === 'cerramiento') {
+        let tieneMedidaSuperiorA280 = false;
+        for (const medida in jsonResponse) {
+            if (jsonResponse.hasOwnProperty(medida)) {
+                if (jsonResponse[medida] && jsonResponse[medida].includes(' X ')) {
+                    const valorDespuesDeX = jsonResponse[medida].split(' X ')[1];
+        
+                    const valorNumerico = parseFloat(valorDespuesDeX) / 100;
+                    console.log("Altura de cerramiento: " + valorNumerico)
+        
+                    if (!isNaN(valorNumerico) && valorNumerico > 2.80) {
+                        tieneMedidaSuperiorA280 = true;
+                        break;  // Salir del bucle tan pronto como encuentre una medida superior a 280
+                    } else if (valorNumerico > 2.59 && valorNumerico < 2.80) {
+                        tipoCamion = 'ALTURA ESPECIAL';
+                    }
+                }
+            }
+        }
+        if (tieneMedidaSuperiorA280) {
+            tipoCamion = 'GÓNDOLA';
+        }
+    }
+    console.log('Tipo de camión:', tipoCamion);
+    asignarTipoCamion(tabla, obra,nCamion,tipoCamion)
+}
+
+function solicitarMedidas(jsonData) {
+    const url = `http://${rutaServidor}/medidaselementoscamion/`;
+
+    const { tabla, obra, n_camion } = jsonData;
+    const data = JSON.stringify({ tabla, obra, n_camion });
+
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': 'application/json'
+        },
+        body: data
+    };
+
+    fetch(url, options)
+        .then(response => response.json())
+        .then(jsonResponse => {
+            
+            console.log('Respuesta del servidor medidas elementos camion:', jsonResponse);
+            seleccionarTipoCamion(jsonResponse, jsonData);
+        })
+        .catch(error => {
+            console.error('Error al realizar la solicitud:', error.message);
+        });
+}
+
+async function enviarDatosUpdatePosicion(camionId, jsonData) {
+    const url = `http://${rutaServidor}:8000/camiones/${camionId}`;
+    const opciones = {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData),
+    };
+    try {
+        const respuesta = await fetch(url, opciones);
+        if (!respuesta.ok) {
+            throw new Error('Error en la solicitud: ' + respuesta.statusText);
+        }
+        const datos = await respuesta.json();
+        console.log('Respuesta del servidor:', datos);
+        //Solicitar medidas de piezas actuales
+        solicitarMedidas(jsonData)
+    } catch (error) {
+        console.error('Error al enviar la solicitud:', error);
+    }
+}
+
+function creaJsonPosicionNueva(expressID, toneladadTotalesBD) {
+    const elementoEnPrecast = precastElements.find(elemento => elemento.expressID === expressID);
+    if (elementoEnPrecast) {
+        let tipoTabla;
+        let longitud = parseFloat(elementoEnPrecast.ART_Longitud).toFixed(2);
+        longitud = parseFloat(longitud);
+        let altura = parseFloat(elementoEnPrecast.ART_Alto).toFixed(2);
+        altura = parseFloat(altura);
+
+        const letraTransporte= elementoEnPrecast.letraTransporte;
+            if (letraTransporte === 'E') {
+                tipoTabla = 'estructura';
+            } else if (letraTransporte === 'A') {
+                tipoTabla = 'alveolar';
+            } else if (letraTransporte === 'C') {
+                tipoTabla = 'cerramiento';
+            } 
+        let obra;
+            if(letraTransporte === 'E'||letraTransporte === 'C'){
+                    obra=idEstruCerra
+            } else if(letraTransporte === 'A'){
+                obra=idAlveolar
+            }
+        
+        const camion = elementoEnPrecast.numTransporte;
+        const idproduccion = elementoEnPrecast.idproduccion;
+        const posicionNumero = parseInt(elementoEnPrecast.Posicion);
+        const peso = parseFloat(elementoEnPrecast.ART_Peso)
+        let toneladasTotales= toneladadTotalesBD+peso;
+        const jsonDatos = {
+            tabla: tipoTabla,
+            obra:obra,
+            n_camion:camion,
+            posicion_anterior: 0,
+            posicion_final:posicionNumero,
+            valor_final: idproduccion,
+            toneladastotales:toneladasTotales,
+        };
+        console.log("Nueva Posicion: ");
+        console.log(jsonDatos);
+        enviarDatosUpdatePosicion(camion, jsonDatos)
+    }
+}
+
+function creaJsonEliminaPosicion(expressID, toneladasTotalesBD,  posicionAntiguaBorrar, idObra, camion, tabla) {
+    const elementoEnPrecast = precastElements.find(elemento => elemento.expressID === expressID);
+    //console.log(posicionAntiguaBorrar+" AntiguaPos")
+    if (elementoEnPrecast) {
+        let longitud = parseFloat(elementoEnPrecast.ART_Longitud).toFixed(2);
+        longitud = parseFloat(longitud);
+        let altura = parseFloat(elementoEnPrecast.ART_Alto).toFixed(2);
+        altura = parseFloat(altura);
+        const idproduccion = elementoEnPrecast.idproduccion;
+        const posicionNumero = parseInt(elementoEnPrecast.Posicion);
+        const posicionFinal= 'posicion'+posicionAntiguaBorrar;
+        const peso= parseFloat(elementoEnPrecast.ART_Peso);
+        let toneladastotales=toneladasTotalesBD-peso;
+        posicionAntigua='';
+
+        const jsonDatos = {
+            tabla: tabla,
+            obra:idObra,
+            n_camion:camion,
+            posicion_anterior: posicionAntiguaBorrar,
+            posicion_final:0,
+            valor_final: idproduccion,
+            toneladastotales: toneladastotales
+        };
+
+        console.log("Elimina Posicion: ");
+        console.log(jsonDatos);
+        enviarDatosUpdatePosicion(camion, jsonDatos)
+    }    
+}
+
+
+function creaJsonCambiaPosicion(expressID, posicionAntiguaCambio,toneladasTotalesBD) {
+    console.log(posicionAntiguaCambio)
+    if (!isNaN(posicionAntiguaCambio)) {
+        numeroExtraidoPosicionAntigua = parseInt(posicionAntiguaCambio);
+    } else {
+        const matchResult = posicionAntiguaCambio.match(/\d+$/);
+        numeroExtraidoPosicionAntigua = matchResult ? parseInt(matchResult[0]) : null;
+    }
+    const elementoEnPrecast = precastElements.find(elemento => elemento.expressID === parseInt(expressID));
+    if (elementoEnPrecast) {
+        let tipoTabla;
+        const letraTransporte= elementoEnPrecast.letraTransporte;
+            if (letraTransporte === 'E') {
+                tipoTabla = 'estructura';
+            } else if (letraTransporte === 'A') {
+                tipoTabla = 'alveolar';
+            } else if (letraTransporte === 'C') {
+                tipoTabla = 'cerramiento';
+            } 
+        let obra;
+            if(letraTransporte === 'E'||letraTransporte === 'C'){
+                    obra=idEstruCerra
+            } else if(letraTransporte === 'A'){
+                obra=idAlveolar
+            }
+
+        const camion = elementoEnPrecast.numTransporte;
+        const idproduccion = elementoEnPrecast.idproduccion;
+        const posicionNumero = parseInt(elementoEnPrecast.Posicion);
+        let posicionFinal= 'posicion'+posicionNumero;
+        posicionAntigua=posicionFinal;
+        const posicionInicial=posicionAntiguaCambio
+            
+        const jsonDatos = {
+            tabla: tipoTabla,
+            obra:obra,
+            n_camion:camion,
+            posicion_anterior: numeroExtraidoPosicionAntigua,
+            posicion_final:posicionNumero,
+            valor_final: idproduccion,
+            toneladastotales: toneladasTotalesBD
+        };
+        console.log("Cambia de posicion");
+        console.log(jsonDatos);
+        enviarDatosUpdatePosicion(camion, jsonDatos)
+    }
+    
+}
+
+async function Eliminar(expressID, posicionAntiguaEliminar) {
+    let camion;
+    let letraTransporte;
+    let idObra;
+    let tabla;
+    let toneladasTotalesBD;
+
+    for (let i = 0; i < precastElements.length; i++) {
+        const elemento = precastElements[i];
+        if (elemento.expressID === expressID) {
+            //posicionAntigua=parseInt(elemento.Posicion)
+            posicionAntigua=parseInt(posicionAntiguaEliminar)
+            camion = elemento.numTransporte;
+            letraTransporte = elemento.letraTransporte;
+            if(letraTransporte==='E' || letraTransporte=='C'){
+                idObra=idEstruCerra
+                if(letraTransporte==='E'){
+                    tabla='estructura'
+                }
+                if(letraTransporte==='C'){
+                    tabla='cerramiento'
+                }
+            }
+            if(letraTransporte==='A' ){
+                idObra=idAlveolar
+                tabla='alveolar'
+            }
+            //console.log("Hacer peticion de camion: "+camion+" tipo: "+tabla+" identificador de obra: "+idObra)
+            
+            toneladasTotalesBD = await peticionPesoTotalCamion(tabla, idObra, camion);
+            //console.log(toneladasTotales+' TT')
+            posicionAntigua=parseInt(posicionAntiguaEliminar)
+            creaJsonEliminaPosicion(expressID, toneladasTotalesBD, posicionAntigua, idObra, camion, tabla);
+            break;
+        }
+    }
+}
+
+async function obtenerPesoTotalBD(expressID) {
+    let camion;
+    let letraTransporte;
+    let idObra;
+    let tabla;
+    let toneladasTotalesBD;
+
+    for (let i = 0; i < precastElements.length; i++) {
+        const elemento = precastElements[i];
+        if (elemento.expressID === expressID) {
+            
+            camion = elemento.numTransporte;
+            letraTransporte = elemento.letraTransporte;
+            if(letraTransporte==='E' || letraTransporte=='C'){
+                idObra=idEstruCerra
+                if(letraTransporte==='E'){
+                    tabla='estructura'
+                }
+                if(letraTransporte==='C'){
+                    tabla='cerramiento'
+                }
+            }
+            if(letraTransporte==='A' ){
+                idObra=idAlveolar
+                tabla='alveolar'
+            }
+            console.log("Hacer peticion de camion: "+camion+" tipo: "+tabla+" identificador de obra: "+idObra)
+            //Hacer peticion del pesototal 
+            toneladasTotalesBD = await peticionPesoTotalCamion(tabla, idObra, camion);
+            creaJsonPosicionNueva(expressID, toneladasTotalesBD);
+            break;
+        }
+    }
+}
+
+async function CambiaPosicion(expressID, posicionAntigua) {
+    let camion;
+    let letraTransporte;
+    let numTransporte;
+    let idObra;
+    let tabla;
+    let toneladasTotalesBD;
+
+    for (let i = 0; i < precastElements.length; i++) {
+        const elemento = precastElements[i];
+        if (elemento.expressID === parseInt(expressID)) {
+            
+            camion = elemento.Camion;
+            letraTransporte = elemento.letraTransporte;
+            numTransporte=elemento.numTransporte;
+            if(letraTransporte==='E' || letraTransporte=='C'){
+                idObra=idEstruCerra
+                if(letraTransporte==='E'){
+                    tabla='estructura'
+                }
+                if(letraTransporte==='C'){
+                    tabla='cerramiento'
+                }
+            }
+            if(letraTransporte==='A' ){
+                idObra=idAlveolar
+                tabla='alveolar'
+            }
+            console.log("Hacer peticion de camion: "+camion+" tipo: "+tabla+" identificador de obra: "+idObra)
+
+            toneladasTotalesBD = await peticionPesoTotalCamion(tabla, idObra, numTransporte);
+            
+            creaJsonCambiaPosicion(expressID, posicionAntigua,toneladasTotalesBD);
+            break;
+        }
+    }
+}
+
+async function peticionPesoTotalCamion(tabla, obra, nCamion) {
+    const url = `http://${rutaServidor}:8000/pesocamiones`;
+
+    const datos = {
+        tabla: tabla,
+        obra: obra,
+        n_camion: nCamion
+    };
+
+    const headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    };
+
+    try {
+        // Realizar la petición POST
+        const respuesta = await fetch(url, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(datos)
+        });
+
+        // Verificar si la respuesta es exitosa (código de estado 2xx)
+        if (respuesta.ok) {
+            const datosRespuesta = await respuesta.json();
+            console.log('Respuesta de la API:', datosRespuesta);
+            return datosRespuesta.toneladastotales;
+        } else {
+            console.error('Error en la petición:', respuesta.statusText);
+        }
+    } catch (error) {
+        // Manejar errores en la petición
+        console.error('Error en la petición:', error.message);
+    }
+}
+
+function ordenarArrayproduccionNueva(Produccion){
+    Produccion.forEach((item) => {
+        if (item && item.pieza) {
+            const piezaOriginal = item.pieza;
+
+            if (piezaOriginal.length > 3) {
+                const indiceGuion = piezaOriginal.indexOf('-');
+
+                if (indiceGuion !== -1) {
+                    const primeraParte = piezaOriginal.slice(0, indiceGuion);
+                    
+                    const letra = primeraParte[0];
+                    const segundaLetra = primeraParte[1];
+                    
+                    if (letra === 'V') {
+                        
+                        const numero = parseInt(primeraParte.slice(2), 10);
+                        item.pieza = letra + segundaLetra+ (isNaN(numero) ? '' : numero);
+                    } else {
+                        const numero = parseInt(primeraParte.slice(1), 10);
+                        item.pieza = letra + (isNaN(numero) ? '' : numero);
+                    }
+
+                } else {
+                    const matchResult = piezaOriginal.match(/^([A-Za-z]+)(\d+)$/);
+
+                    if (matchResult && matchResult.length >= 3) {
+                        const letras = matchResult[1];
+                        const numero = parseInt(matchResult[2], 10);
+                        item.pieza = letras[0] + (isNaN(numero) ? '' : numero);
+                    } else {
+                        console.error('Error: El formato de pieza no coincide:', piezaOriginal);
+                    }
+                }
+            }
+        }
+    });
+    console.log(`Produccion tiene ${Produccion.length} objetos`);
+
+    // Produccion.forEach((obj) => {
+    //     console.log(JSON.stringify(obj, null, 2));
+    // });
+   // console.log("PRODUCC NUEVA von datos tratados: "+Produccion)
+    rellenaPrecastDatosArrayProduccionNueva();
+    solicitaOrdenViajes(projectName)
+    solicitaOrdenViajes(nombreObraSelect)
+}
+
+let elementViajes;
+function solicitaOrdenViajes(projectName){
+    if(projectName!=''){
+        const url = `http://${rutaServidor}:8000/viajes/` + encodeURIComponent(projectName);
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Procesar los datos recibidos y almacenarlos en el array elementViajes
+            elementViajes = data;
+            console.log('Datos de viajes obtenidos:', elementViajes);
+            agregarCamionAPrecastElements( elementViajes)
+        })
+        .catch(error => {
+            console.error('Hubo un problema con la solicitud:', error);
+        });
+    }
+}
+    
+function agregarCamionAPrecastElements( elementViajes) {
+    elementViajes.forEach(viaje => {
+        const idPiezaViaje = viaje.idpieza;
+        
+        // Buscar el elemento en precastElements que tiene el mismo idproducto
+        const elementoEncontrado = precastElements.find(elemento => elemento.idproduccion === idPiezaViaje);
+        
+        if (elementoEncontrado) {
+            elementoEncontrado.Camion = viaje.orden;
+            elementoEncontrado.letraTransporte=viaje.tabla;
+            elementoEncontrado.numTransporte=viaje.n_camion;
+            elementoEncontrado.idproduccion=viaje.idpieza;
+            elementoEncontrado.Posicion=viaje.posicion
+            elementoEncontrado.tipoTransporte=viaje.n_camion + ' - ' +viaje.tabla
+        }
+    });
+        mostrarElementosRestantes();
+        clasificarPorTipoTransporte();
+        actualizaDesplegables();
+        creaTablaTransporte();
+        
+        nuevoCamionEstructuraBtn.click();
+}
+
+
+function rellenaPrecastDatosArrayProduccionNueva() {
+    // console.log(precastElements);
+    // console.log(Produccion);
+
+    for (let i = 0; i < precastElements.length; i++) {
+        let precastElement = precastElements[i];
+
+        if (precastElement.hasOwnProperty('pieza')) {
+            continue;
+        }
+
+        for (let j = 0; j < Produccion.length; j++) {
+            let produccionElemento = Produccion[j];
+            if (precastElement.ART_Pieza && produccionElemento.pieza && precastElement.ART_Pieza.trim().toUpperCase() === produccionElemento.pieza.trim().toUpperCase()) {
+                if (precastElement.ART_Pieza.trim().toUpperCase() === produccionElemento.pieza.trim().toUpperCase()) {
+                    Object.assign(precastElement, produccionElemento);
+                    Produccion.splice(j, 1); 
+                    break; 
+                }
+            }
+        }
+    }
+    if (Produccion.length > 0) {
+        var mensaje = "Hay algún elemento en producción que no se han asignado al modelo:\n";
+        Produccion.forEach(function(elemento) {
+            mensaje += "- idproduccion: * " + elemento.idproduccion + " *, pieza: * " + elemento.pieza + " *\n";
+        });
+        alert(mensaje);
+    }
+    
+}
+
 
 let projectName = null;
 async function obtieneNameProject(url){
@@ -423,7 +1278,7 @@ async function obtieneNameProject(url){
 
     if (projectName) {
         console.log('Nombre del proyecto:', projectName);
-        precastCollectionRef = collection(db, projectName);
+        //precastCollectionRef = collection(db, projectName);
     } else {
         
         console.log('No se encontró el nombre del proyecto');
@@ -563,8 +1418,6 @@ async function getPlantas(model) {
         divBotonesPlantas.style.display = 'flex'; 
         divBotonesPlantas.style.alignItems = 'center';
         
-        
-
         const button = document.createElement('button');
         divBotonesPlantas.appendChild(button); 
         button.textContent = currentPlan.name; 
@@ -593,8 +1446,6 @@ async function getPlantas(model) {
             viewer.IFC.selector.unpickIfcItems();
             const expressIDplanta = parseInt(button.dataset.expressId);
             console.log("ExpressId: " + expressIDplanta + " de la planta: " + button.textContent);
-        
-            
         
             //comprueba si algun btn2D está pulsado
             var container = document.querySelector('.button-containerP');
@@ -761,62 +1612,54 @@ let floorplansActive = false;
 const floorplanButton = document.getElementById('btn-lateral-plantas');
 let floorplansButtonContainer = document.getElementById('button-containerP');
 floorplanButton.onclick = () => {
-
-    // Obtener el div con id "divNumCamiones"
-const divNumCamiones = document.getElementById("divNumCamiones");
-
-// Verificar si el div existe
-if (divNumCamiones) {
-    // Obtener todos los elementos hijos del div
-    const elementosHijos = divNumCamiones.children;
-
-    // Iterar sobre los elementos hijos
-    for (let i = 0; i < elementosHijos.length; i++) {
-        const elemento = elementosHijos[i];
-
-        // Verificar si el elemento tiene la clase "active"
-        if (elemento.classList.contains("active")) {
-            // Hacer clic en el elemento
-            elemento.click();
+    const divNumCamiones = document.getElementById("divNumCamiones");
+    if (divNumCamiones) {
+        const elementosHijos = divNumCamiones.children;
+        for (let i = 0; i < elementosHijos.length; i++) {
+            const elemento = elementosHijos[i];
+            if (elemento.classList.contains("active")) {
+                elemento.click();
+            }
         }
-    }
-} 
+    } 
     const btnFiltraTipos = document.getElementById('filtraTipos');
     const backgroundColor = window.getComputedStyle(btnFiltraTipos).backgroundColor;
     if (backgroundColor === 'rgb(128, 128, 128)' || backgroundColor === 'gray') {
         btnFiltraTipos.click();
     }
+    const btnExt = document.getElementById('elementosExternos');
+    const backgroundColorExt = window.getComputedStyle(btnExt).backgroundColor;
+    if (backgroundColorExt === 'rgb(128, 128, 128)' || backgroundColorExt === 'gray') {
+        btnExt.click();
+    }
 
     if(floorplansActive) {
         floorplansActive = !floorplansActive;
         floorplanButton.style.backgroundColor = 'transparent';
-        floorplansButtonContainer.classList.remove('visible');
-        elementsArray=[];
+        floorplansButtonContainer.classList.remove('visible');            elementsArray=[];
         
         hideAllItems(viewer, idsTotal );
         showAllItems(viewer, idsTotal);
         floorplansButtonContainer.style.visibility = 'hidden';
-    
+        
         hideAllItems(viewer, idsTotal );
         showAllItems(viewer, allIDs);
-        //desactiva los botones de plantas cuando se apaga el boton que genera los planos
+            //desactiva los botones de plantas cuando se apaga el boton que genera los planos
         const containerForButtons = document.getElementById('button-containerP');
         const buttons = containerForButtons.querySelectorAll('button');
         for (const button of buttons) {
-        if (button.classList.contains('activo')) {
-            button.classList.remove('activo');
-        }
+            if (button.classList.contains('activo')) {
+                button.classList.remove('activo');
+            }
         }
         ocultaBtnRemoveClass();
         ocultarLabels();
-        
-    } else {
-        floorplansActive = !floorplansActive;
-        floorplanButton.style.backgroundColor = 'gray';
-        floorplansButtonContainer = document.getElementById('button-containerP');
-        floorplansButtonContainer.style.visibility = 'visible';
-        
-    };
+        } else {
+            floorplansActive = !floorplansActive;
+            floorplanButton.style.backgroundColor = 'gray';
+            floorplansButtonContainer = document.getElementById('button-containerP');
+            floorplansButtonContainer.style.visibility = 'visible';
+        };
 };
 
 let modelCopyCompleto = null; 
@@ -1073,9 +1916,22 @@ async function crearBotonPrecasFuisonados(){
         const btnFiltrosUnion=document.getElementById('filtraUniones');
         btnFiltrosUnion.style.display="block";
         
-        addAtributosBDprecast();
+        //addAtributosBDCargasPrecast();
+        ordenarArrayproduccionNueva(Produccion);
+        addAtributosBDProduccionPrecast();
 
         btnFiltros.addEventListener('click', function() {
+
+            const btnExt=document.getElementById("elementosExternos")
+            if(btnExt.classList.contains('active')){
+                btnExt.classList.remove('active');
+                btnExt.style.backgroundColor = 'transparent';
+                const divCheckFiltros=document.getElementById("checktiposIfc")
+                divCheckFiltros.innerHTML=""
+                generateCheckboxes(precastElements);
+        
+            }
+
         if (btnFiltros.classList.contains('active')) {
             btnFiltros.classList.remove('active');
             btnFiltros.style.backgroundColor = 'transparent';
@@ -1084,18 +1940,14 @@ async function crearBotonPrecasFuisonados(){
             btnFiltros.classList.add('active');
             btnFiltros.style.backgroundColor = 'gray';
             divFiltros.style.display = 'block';
-
             const btnPlantas = document.getElementById('btn-lateral-plantas');
             const backgroundColor = window.getComputedStyle(btnPlantas).backgroundColor;
             if (backgroundColor === 'rgb(128, 128, 128)' || backgroundColor === 'gray') {
                 btnPlantas.click();
                 btnFiltros.click();
             }
-
-
         }
         });
-
         const btnBuscar=document.getElementById('buscarButton');
         btnBuscar.style.display="block";
         const ifcCompleto=document.getElementById('ifcCompleto');
@@ -1105,93 +1957,161 @@ async function crearBotonPrecasFuisonados(){
         const btnPlantas=document.getElementById('btn-lateral-plantas');
         btnPlantas.style.display="block";
         });    
-        
 }
 
+function addAtributosBDProduccionPrecast() {
+    // console.log(precastElements)
+    // console.log(Produccion)
+    let updatedElements = {};
 
-function addAtributosBDprecast2() {
-    const objetosUsados = {};
+    for (let i = 0; i < precastElements.length; i++) {
+        let precastElement = precastElements[i];
 
-    precastElements.forEach((precastElement, index) => {
-        const ART_PiezaActual = precastElement.ART_Pieza;
-        const indexTransporte = Transporte.findIndex(transporte => transporte.ART_Pieza === ART_PiezaActual);
+        if (updatedElements[precastElement.ART_Pieza]) continue;
 
-        if (indexTransporte !== -1) {
-            const objetoTransporte = Transporte[indexTransporte];
-            Object.assign(precastElement, objetoTransporte);
+        let matchFound = false;
+        for (let j = 0; j < Produccion.length; j++) {
+            let produccion = Produccion[j];
 
-            objetosUsados[objetoTransporte.ART_Pieza] = true;
+            if (precastElement.ART_Pieza === produccion.pieza) {
+                for (let key in produccion) {
+                    precastElement[key] = produccion[key];
+                }
 
-            // Eliminar el objeto de Transporte
-            Transporte.splice(indexTransporte, 1);
-        }
-    });
-    if (Transporte.length > 0) {
-        let mensaje = "Se encuentran "+Transporte.length+" elementos en produccion que no se encuentran en el modelo cargado"+"\n";
-        
-        Transporte.forEach(objetoTransporte => {
-            for (const clave in objetoTransporte) {
-                if (clave === 'ART_Pieza') {
-                    mensaje += `* ${clave}: ${objetoTransporte[clave]}\n`;
-                } 
-                // else {
-                //     mensaje += `${clave}: ${objetoTransporte[clave]}\n`;
-                // }
+                updatedElements[precastElement.ART_Pieza] = true;
+                matchFound = true;
+                break;
             }
-            mensaje += "\n"; // Agregar un espacio en blanco entre objetos
-        });
-    
-        alert(mensaje);
-        alert("Debe cargar un modelo actualizado donde los elementos coincidan.")
+        }
+
+        // if (!matchFound) {
+        //     console.log(`No se encontró una coincidencia para el elemento con ART_Pieza = ${precastElement.ART_Pieza}`);
+        // }
     }
-    
-    
-    
+
+    let expressIDsinProduccion = precastElements .filter(element => !element.hasOwnProperty('idproduccion')).map(element => element.expressID);
+
+    console.log(expressIDsinProduccion)
+    console.log("Elementos sin producción: "+expressIDsinProduccion.length)
+    if(expressIDsinProduccion.length>0){
+        const btnElementoExterno= document.getElementById("elementosExternos")
+        btnElementoExterno.style.display="block"
+        btnElementoExterno.addEventListener('click', function() {
+            if (this.classList.contains('active')) {
+                this.classList.remove('active');
+                btnElementoExterno.style.background=""
+                showAllItems(viewer,expressIDsinProduccion)
+                const divCheckTiposIfc = document.getElementById('checktiposIfc');
+                divCheckTiposIfc.innerHTML = '';
+                generateCheckboxes(precastElements)
+            } else {
+                this.classList.add('active');
+                btnElementoExterno.style.background="grey"
+                hideAllItems(viewer,expressIDsinProduccion)
+                const divCheckTiposIfc = document.getElementById('checktiposIfc');
+                divCheckTiposIfc.innerHTML = '';
+
+                idsTotal = idsTotal.filter(id => !expressIDsinProduccion.includes(id));
+                const precastElementsConProduccion = precastElements.filter(elemento => idsTotal.some(id => id === elemento.expressID));
+                generateCheckboxes(precastElementsConProduccion)
+                divCheckTiposIfc.style.display="block"
+
+                const btnFiltrarTipos= document.getElementById("filtraTipos")
+                if(btnFiltrarTipos.style.backgroundColor==="gray"){
+                    btnFiltrarTipos.style.background=""
+                    btnFiltrarTipos.classList.remove("active");
+                }
+
+            }
+        });
+    }
 }
 
-async function addAtributosBDprecast() {
+async function addAtributosBDCargasPrecast() {
     const objetosUsados = {};
     const precastElementsSinAsignar = [];
 
-    precastElements.forEach((precastElement, index) => {
-        const ART_PiezaActual = precastElement.ART_Pieza;
-        const indexTransporte = Transporte.findIndex(transporte => transporte.ART_Pieza === ART_PiezaActual);
-    
-        if (indexTransporte !== -1) {
-            const objetoTransporte = Transporte[indexTransporte];
-            Object.assign(precastElement, objetoTransporte);
-    
-            objetosUsados[objetoTransporte.ART_Pieza] = true;
-    
-            // Eliminar el objeto de Transporte
-            Transporte.splice(indexTransporte, 1);
-        } else {
-            // Agregar a precastElementsSinAsignar si no se encontró en Transporte
-            precastElementsSinAsignar.push(precastElement.expressID);
-        }
-    });
-
-    if (Transporte.length > 0) {
-        let mensaje = "Se encuentran " + Transporte.length + " elementos en producción que no se encuentran en el modelo cargado" + "\n";
-    
-        Transporte.forEach(objetoTransporte => {
-            for (const clave in objetoTransporte) {
-                if (clave === 'ART_Pieza') {
-                    mensaje += `* ${clave}: ${objetoTransporte[clave]}\n`;
-                }
-                // else {
-                //     mensaje += `${clave}: ${objetoTransporte[clave]}\n`;
-                // }
-            }
-            mensaje += "\n"; 
-        });
-    
-        alert(mensaje);
-        hideAllItems(viewer, idsTotal);
-        showAllItems(viewer, precastElementsSinAsignar);
-        await new Promise(resolve => setTimeout(resolve, 5000));
+   // Verificar si Transporte está definido y no es null
+    if ( Transporte.length > 0) {
+        // Iterar sobre cada elemento de precastElements
+        precastElements.forEach((precastElement, index) => {
+            const ART_PiezaActual = precastElement.ART_Pieza;
+            // Buscar el índice del elemento en Transporte
+            const indexTransporte = Transporte.findIndex(transporte => transporte && transporte.ART_Pieza === ART_PiezaActual);
+            
+            // Verificar si se encontró el elemento en Transporte
+            if (indexTransporte !== -1) {
+                const objetoTransporte = Transporte[indexTransporte];
+                
+                // Asignar las propiedades de objetoTransporte a precastElement
+                Object.assign(precastElement, objetoTransporte);
+                objetosUsados[objetoTransporte.ART_Pieza] = true;
         
+                // Eliminar el objeto de Transporte
+                Transporte.splice(indexTransporte, 1);
+            } else {
+                // Agregar a precastElementsSinAsignar si no se encontró en Transporte
+                precastElementsSinAsignar.push(precastElement.expressID);
+            }
+        });
+    } else {
+        console.error("La variable Transporte está indefinida o no tiene elementos.");
     }
+}
+
+function modalPiezasImagen(message, image) {
+    const modalContainer = document.createElement('div');
+    modalContainer.className = 'modal';
+    document.body.appendChild(modalContainer);
+
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalContainer.appendChild(modalContent);
+
+    const closeButton = document.createElement('span');
+    closeButton.className = 'close';
+    closeButton.innerHTML = '&times;';
+    modalContent.appendChild(closeButton);
+
+    const modalMessage = document.createElement('p');
+    modalMessage.id = 'modal-message';
+    modalMessage.innerHTML = message;
+    modalContent.appendChild(modalMessage);
+
+    // Agregar la imagen de la captura del visor
+    modalContent.appendChild(image);
+
+    modalContainer.style.display = 'block';
+
+    closeButton.onclick = function() {
+        modalContainer.style.display = 'none';
+    };
+}
+
+function mensajeNoConexion(message) {
+    // Crear el elemento de la ventana modal
+    var modal = document.createElement("div");
+    modal.className = "modal";
+    
+    var modalContent = document.createElement("div");
+    modalContent.className = "modal-content";
+    
+    var closeButton = document.createElement("span");
+    closeButton.className = "close";
+    closeButton.innerHTML = "&times;";
+    closeButton.onclick = function() {
+    document.body.removeChild(modal);
+    };
+    
+    var errorText = document.createElement("p");
+    errorText.innerText = message;
+    
+    modalContent.appendChild(closeButton);
+    modalContent.appendChild(errorText);
+    modal.appendChild(modalContent);
+    
+    // Agregar la ventana modal al cuerpo del documento
+    document.body.appendChild(modal);
 }
 
 
@@ -1199,7 +2119,7 @@ function eliminarElementosAssembly() {
     precastElements = precastElements.filter(element => element.ifcType !== 'IFCELEMENTASSEMBLY');
     console.log("TOTAL DE ELEMNTOS EN PRECAST: "+precastElements.length);
     // insertar array precastEleemt en firebase
-    insertaModeloFire();
+    //insertaModeloFire();
     
 }
 
@@ -1212,7 +2132,6 @@ async function crearBotonPrecas(){
     btnCreaPrecast.textContent = "Añade Prop";
     var ultimoBoton = document.querySelector(".button-container .button:last-of-type");
 
-    // Inserta el nuevo botón justo después del último botón existente
     var contenedorBotones = document.querySelector(".button-container");
     contenedorBotones.insertBefore(btnCreaPrecast, ultimoBoton.nextSibling);
 
@@ -1227,7 +2146,7 @@ async function cargaProp() {
     await new Promise(resolve => {
         // Carga las propiedades/psets al array
         precastElements.forEach(precast => {
-            if (precast.ifcType != 'IFCBUILDING' && precast.ifcType != 'IFCBUILDINGELEMENTPART') {
+            if (precast.ifcType != 'IFCBUILDING' && precast.ifcType != 'IFCBUILDINGELEMENTPART' &&  precast.ifcType != 'IFCBUILDINGELEMENTPROXY' ) {
                 precastProperties(precast, 0, precast.expressID);
             }
         });
@@ -1390,7 +2309,6 @@ function updateMissingCamionCount() {
     });
 }
 
-
 function removeLabels(expressIDs) {
     const labels = document.querySelectorAll('.pieza-label'); // Buscar todos los elementos con la clase "pieza-label"
     for (let i = 0; i < labels.length; i++) {
@@ -1404,27 +2322,49 @@ function removeLabels(expressIDs) {
     }
 }
 
+function removeLabel(labelIDToRemove) {
+    const labels = document.querySelectorAll('[id="' + labelIDToRemove+ '"]');
+
+    for (let i = 0; i < labels.length; i++) {
+        const label = labels[i];
+        label.style.visibility = 'hidden';
+    }
+}
+
 async function generateLabels(expressIDs) {
+    // var divEtiquetas = document.querySelector('[style="overflow: hidden; position: absolute; top: 0px; pointer-events: none; height: 771px;"]');
+
+    // divEtiquetas.style.top = '45px';
+    // Obtener el elemento padre
+    var viewerContainer = document.getElementById("viewer-container");
+
+    // Obtener todos los div hijos de viewer-container
+    var divsHijos = viewerContainer.getElementsByTagName("div");
+
+    // Obtener el penúltimo div hijo
+    var penultimoDiv = divsHijos[divsHijos.length - 2];
+    penultimoDiv.style.top = '45px';
+
     for (const expressID of expressIDs) {
-      let ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ;
-      
-      for (const precast of precastElements) {
-        if (precast.expressID === expressID) {
-          ART_Pieza = precast['ART_Pieza'];
-          ART_CoordX = precast['ART_cdgX'];
-          ART_CoordY = precast['ART_cdgY'];
-          ART_CoordZ = precast['ART_cdgZ'];
-          break;
+        let ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ;
+        
+        for (const precast of precastElements) {
+            if (precast.expressID === expressID) {
+            ART_Pieza = precast['ART_Pieza'];
+            ART_CoordX = precast['ART_cdgX'];
+            ART_CoordY = precast['ART_cdgY'];
+            ART_CoordZ = precast['ART_cdgZ'];
+            break;
+            }
         }
-      }
-      muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
-      console.log("ART_Pieza: "+ART_Pieza+" ART_CoordX: "+ART_CoordX +" ART_CoordY: "+ART_CoordY +" ART_CoordZ: "+ART_CoordZ, + "expressID: "+expressID)
-      muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
+        muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID);
     }
     
 }
 
 function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expressID) {
+
+    
     if (ART_Pieza === undefined || ART_CoordX === undefined || ART_CoordY === undefined || ART_CoordZ === undefined) {
         return;
     } else {
@@ -1450,7 +2390,7 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
             const adjustedZ = parseFloat(ART_CoordZ) / 1000;
             labelObject.position.set(adjustedX, adjustedZ, adjustedY); // Ajustar coordenadas Y debido a la conversión de ejes
         
-             console.log("Coordenadas ajustadas:", adjustedX, adjustedY, adjustedZ);
+            //  console.log("Coordenadas ajustadas:", adjustedX, adjustedY, adjustedZ);
             // console.log(labelObject.scale);
             // console.log(labelObject.rotation);
             scene.add(labelObject);
@@ -1458,39 +2398,10 @@ function muestraNombrePieza(ART_Pieza, ART_CoordX, ART_CoordY, ART_CoordZ, expre
     }
 }
 
-// function addCheckboxListeners() {
-//     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-//     checkboxes.forEach(function(checkbox) {
-//         checkbox.addEventListener('change', function() {
-//             viewer.IFC.selector.unpickIfcItems();
-//             const isChecked = this.checked;
-//             const artPieza = this.getAttribute('data-art-pieza');
-//             const matchingIds = [];
-
-//             precastElements.forEach(function(element) {
-//                 if (element.ART_Pieza === 0 || element.ART_Pieza === "0" || element.ART_Pieza === "" || element.ART_Pieza === undefined) {
-//                     return;
-//                 }
-
-//                 // Comparar las dos primeras letras de ART_Pieza con artPieza
-//                 if (element.ART_Pieza.substring(0, artPieza.length).toUpperCase() === artPieza.toUpperCase()) {
-//                     if (!element.hasOwnProperty('Camion') || element.Camion === "") {
-//                         matchingIds.push(element.expressID);
-//                     }
-//                 }
-//             });
-
-//             if (isChecked) {
-//                 showAllItems(viewer, matchingIds);
-//             } else {
-//                 hideAllItems(viewer, matchingIds);
-//             }
-//         });
-//     });
-// }
-
 function addCheckboxListeners() {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const checkboxesContainer = document.getElementById('checktiposIfc');
+    const checkboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]');
+    
     checkboxes.forEach(function(checkbox) {
         const container = document.createElement('label');
         container.className = 'checkbox-container';
@@ -1534,15 +2445,13 @@ function addCheckboxListeners() {
             icon.addEventListener('click', function () {
             if (activeIcon === icon) {
                 icon.classList.remove('active-ojo');
-                // hideAllItems(viewer, allIDs);
-                // showAllItems(viewer, allIDs);
                 activeIcon = null;
                 const activeEyeIcon = document.querySelector('.eye-icon2.active-ojo');
                 if (!activeEyeIcon) {
                     checkboxes.forEach(function (cb) {
                         cb.disabled = false;
                     });
-                    console.log('Checkboxes enabled');
+                    // console.log('Checkboxes enabled');
         
                     let expressCheck=expressCheckActivos();
                     hideAllItems(viewer, allIDs);
@@ -1639,35 +2548,73 @@ function replaceOriginalModelBySubset(viewer, model, subset) {
 	items.pickableIfcModels.push(subset); 
 }
 
-window.ondblclick = async () => {
+window.onclick = async () => {
     const found = await viewer.IFC.selector.pickIfcItem(false);
-    if (found==null){
-        return;
-    }
+    if (found==null){return;}
     const id=found.id;
-    console.log("ID DE PIEZA SELECIONADA: "+id);
     const foundElement = precastElements.find(element => element.expressID === id);
-    if (foundElement.ifcType !== "IFCBUILDINGELEMENTPROXY") {
-        const nuevoCamionCerramiento = document.getElementById("nuevoCamionCerramiento");
-        if (foundElement.ART_Pieza.startsWith("T") && !nuevoCamionCerramiento.classList.contains("seleccionado")) {
-            alert("Panel, SOLO en camion de cerramiento C.");
-            return; 
+    if(foundElement.idproduccion){
+        if (foundElement.ifcType !== "IFCBUILDINGELEMENTPROXY") {
+            const nuevoCamionCerramiento = document.getElementById("nuevoCamionCerramiento");
+            if (foundElement.ART_Pieza.startsWith("T") && !nuevoCamionCerramiento.classList.contains("seleccionado")) {
+                alert("Panel, SOLO en camion de cerramiento C.");
+                return; 
+            }
+            const nuevoCamionAlveolar = document.getElementById("nuevoCamionAlveolar");
+            if (foundElement.ART_Pieza.startsWith("Y") && !nuevoCamionAlveolar.classList.contains("seleccionado")) {
+                alert("Placa Alveolar, SOLO en camion A.");
+                return; 
+            }
+            hideClickedItem(viewer);
+            let idString =id.toString();
+            removeLabels(idString);
+            const numCamionElement = document.getElementById("numCamion");
+            let numCamion = numCamionElement.textContent.trim();
+            const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+            const pesoTotal = calcularPesoTotal(expressIDs);
+            const pesoCamion = document.getElementById("pesoCamion");
+            pesoCamion.textContent = pesoTotal.toString();
         }
-        hideClickedItem(viewer);
-        let idString =id.toString();
-        removeLabels(idString);
-        const numCamionElement = document.getElementById("numCamion");
-        let numCamion = numCamionElement.textContent.trim();
-        const expressIDs = obtenerExpressIDsDelCamion(numCamion);
-        const pesoTotal = calcularPesoTotal(expressIDs);
-        const pesoCamion = document.getElementById("pesoCamion");
-        pesoCamion.textContent = pesoTotal.toString();
+    }else{
+        alert("pieza externa")
     }
-    //actualizarBaseDeDatos();
-    actualizaFireExpress(id);
+    
+};
+window.onclick = async () => {
+    const found = await viewer.IFC.selector.pickIfcItem(false);
+    if (found == null) { return;}
+    const id = found.id;
+    const foundElement = precastElements.find(element => element.expressID === id);
+    if (foundElement.idproduccion) {
+        if (foundElement.ifcType !== "IFCBUILDINGELEMENTPROXY") {
+            const nuevoCamionCerramiento = document.getElementById("nuevoCamionCerramiento");
+            if (foundElement.ART_Pieza.startsWith("T") && !nuevoCamionCerramiento.classList.contains("seleccionado")) {
+                alert("Panel, SOLO en camion de cerramiento C.");
+                return;
+            }
+            const nuevoCamionAlveolar = document.getElementById("nuevoCamionAlveolar");
+            if (foundElement.ART_Pieza.startsWith("Y") && !nuevoCamionAlveolar.classList.contains("seleccionado")) {
+                alert("Placa Alveolar, SOLO en camion A.");
+                return;
+            }
+            hideClickedItem(viewer);
+            let idString = id.toString();
+            removeLabels(idString);
+            const numCamionElement = document.getElementById("numCamion");
+            let numCamion = numCamionElement.textContent.trim();
+            const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+            const pesoTotal = calcularPesoTotal(expressIDs);
+            const pesoCamion = document.getElementById("pesoCamion");
+            pesoCamion.textContent = pesoTotal.toString();
+        }
+    } else {
+        
+        alert("pieza externa");
+    }
 };
 
-   //evento dblClic carga al camion elementos
+
+   //evento Clic carga al camion elementos
 const divNumCamiones = document.getElementById('divNumCamiones');
 let btnsCamionActivo = false;
 for (let i = 0; i < divNumCamiones.children.length; i++) {
@@ -1714,13 +2661,6 @@ function hideAllItems(viewer, ids) {
     );
 }
 
-function hideAllItem(viewer, id) {
-        viewer.IFC.loader.ifcManager.removeFromSubset(
-            0,
-            [id],
-            'full-model-subset',
-        );
-}
 
 let numCamion=1;
 let letraTransporte = 'E';
@@ -1808,8 +2748,8 @@ function crearMenuDesplegable(numElementos, target) { // menú desplegable diná
             }
             document.getElementById("numCamion").innerHTML = numCamion;
         }
-        numCamion=camSeleccionado;
-        // numCamion = parseInt(document.getElementById("numCamion").innerHTML);
+        //numCamion=camSeleccionado;
+        numCamion = parseInt(document.getElementById("numCamion").innerHTML);
     });
 
     for (let i = 0; i <= numElementos; i++) {
@@ -2530,6 +3470,70 @@ function generarTablaPorLetra(letra) {
     $(table).tablesorter();
 }
 
+function peticionElementosCaminon(elementoEnPrecast) {
+    const url = `http://${rutaServidor}:8000/cargacamion/`;
+    let tipoTabla;
+    let idObra;
+    let numeroCamion;
+    if(elementoEnPrecast.letraTransporte==='A'){
+        tipoTabla='alveolar';
+        idObra=idAlveolar;
+        numeroCamion=elementoEnPrecast.numTransporte;
+    }
+    if(elementoEnPrecast.letraTransporte==='C'){
+        tipoTabla='cerramiento';
+        idObra=idEstruCerra;
+        numeroCamion=elementoEnPrecast.numTransporte;
+    }
+    if(elementoEnPrecast.letraTransporte==='E'){
+        tipoTabla='estructura';
+        idObra=idEstruCerra;
+        numeroCamion=elementoEnPrecast.numTransporte;
+    }
+    const datos = {
+      tabla: tipoTabla,
+      obra: idObra,
+      n_camion: numeroCamion
+    };
+    console.log("DATOS enviados a peticionELEMNETOS")
+    console.log(JSON.stringify(datos))
+    function realizarPeticion() {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('accept', 'application/json');
+    
+            xhr.onload = function () {
+            if (xhr.status === 200) {
+                const respuesta = JSON.parse(xhr.responseText);
+                resolve(respuesta);
+            } else {
+                reject(xhr.status);
+            }
+            };
+    
+            xhr.onerror = function () {
+            reject(xhr.status);
+            };
+    
+            const datosJSON = JSON.stringify(datos);
+    
+            xhr.send(datosJSON);
+        });
+    }
+
+    realizarPeticion()
+        .then(respuesta => {
+        console.log(respuesta);
+
+    })
+    .catch(error => {
+
+        console.error('Error en la petición:', error);
+    });
+}
+
 //Lógica para eliminar de la tabla HTML los elementos cargados, volver a visualizarlos
 //los elementos que borra de la tabla HTML los devuelve al array allIDs
 // los elimina de la lista elementosOcultos
@@ -2537,79 +3541,90 @@ function generarTablaPorLetra(letra) {
 const divCargas = document.querySelector('.divCargas');
 let listaElementos = divCargas.querySelector('.item-list-elementos-cargados');
 listaElementos.addEventListener('dblclick', function(event) {
-    const target = event.target;
-    let elementoEliminadoTabla;
-    if (target.tagName === 'TD') {
-        elementoEliminadoTabla = target.parentNode.firstChild.textContent;
-        console.log("elemento eliminado TABLA: " +elementoEliminadoTabla);
+    // const target = event.target;
+    // let elementoEliminadoTabla;
+    // let elementoEnPrecast;
+    // if (target.tagName === 'TD') {
+    //     elementoEliminadoTabla = target.parentNode.firstChild.textContent;
+    //     let elementoEliminadoTablaEntero=parseInt(elementoEliminadoTabla)
+    //     elementoEnPrecast = precastElements.find(elemento => elemento.expressID === parseInt(elementoEliminadoTabla));
         
-        target.parentNode.remove();
-        let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
-        if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
-            elementosOcultos.splice(indexToRemove, 1);
-            globalIds.splice(indexToRemove, 1);
-        }
-        allIDs.push(parseInt(elementoEliminadoTabla));
-        if (document.querySelector(".btnNumCamion.active")) {
-            removeLabels(elementoEliminadoTabla);
-            hideAllItem(viewer, parseInt(elementoEliminadoTabla));
-            
-            const objetoEncontrado = precastElements.find((elemento) => elemento.expressID === parseInt(elementoEliminadoTabla));
-            const objetoEncontradoCamion=objetoEncontrado.Camion;
-
-            const elementosTabla = document.querySelectorAll(".tabla-estilo");
-            const idCorrecto = objetoEncontradoCamion.toString();
-            let tablaConEstilo = false; 
-
-            elementosTabla.forEach(tabla => {
-                if (tabla.getAttribute('data-id') === idCorrecto) {
-                    if (tabla.style.border === "3px solid red") {
-                        tablaConEstilo = true; 
-                    }
-                    eliminarTabla(objetoEncontradoCamion);
-                    const expressIDs = [];
-                    precastElements.forEach((elemento) => {
-                        if (elemento.Camion === objetoEncontradoCamion) {
-                            expressIDs.push(elemento.expressID);
-                        }
-                    });
-                    const expressIDsNuevaTabla = expressIDs.filter((elemento) => elemento !== parseInt(elementoEliminadoTabla));
-                    generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
-                    if(tablaConEstilo === true){
-                        const divPosicionesCamion = document.getElementById("posicionCamion");
-                        divPosicionesCamion.innerHTML = "";
-                        tablaConEstilo = false;
-                    }
-                }
-            });
-            
-        }
-        let elEliminado=parseInt(elementoEliminadoTabla) 
-        actualizaFireExpress(elEliminado) ;
-    }
-    let numCamion=parseInt(document.getElementById("numCamion").textContent);
-    const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
-        if(actValorCamion.Camion===parseInt(numCamion)){
-            const expressIDs = obtenerExpressIDsDelCamion(numCamion);
-            const pesoTotal = calcularPesoTotal(expressIDs);
-            const pesoCamion = document.getElementById("pesoCamion");
-            pesoCamion.textContent =  pesoTotal.toString();
-        }
-    
         
-        if (actValorCamion) {
-            actValorCamion.Camion = "";
-            actValorCamion.tipoTransporte = "";
-            actValorCamion.Posicion = "";
-            actValorCamion.numTransporte = "";
-            actValorCamion.letraTransporte = "";
-        }
-    const expressIDs = obtenerExpressIDsDelCamion(numCamion);
-    const pesoTotal = calcularPesoTotal(expressIDs);
-    const pesoCamion = document.getElementById("pesoCamion");
-    pesoCamion.textContent =  pesoTotal.toString();
-    updateMissingCamionCount();
-    updateElementVisor();
+        
+    //     if(elementoEnPrecast.Posicion){
+    //         let posicionEliminar=elementoEnPrecast.Posicion;
+    //         Eliminar(elementoEliminadoTablaEntero, posicionEliminar)
+    //         peticionElementosCaminon(elementoEnPrecast)
+    //     }
+
+    //     target.parentNode.remove();
+    //     let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
+    //     if (indexToRemove !== -1) {  //elimina de ambos array el elemento deseado a traves del indice
+    //         elementosOcultos.splice(indexToRemove, 1);
+    //         globalIds.splice(indexToRemove, 1);
+    //     }
+    //     allIDs.push(parseInt(elementoEliminadoTabla));
+    //     if (document.querySelector(".btnNumCamion.active")) {
+    //         removeLabels(elementoEliminadoTabla);
+    //         hideAllItem(viewer, parseInt(elementoEliminadoTabla));
+            
+    //         const objetoEncontrado = precastElements.find((elemento) => elemento.expressID === parseInt(elementoEliminadoTabla));
+    //         const objetoEncontradoCamion=objetoEncontrado.Camion;
+
+    //         const elementosTabla = document.querySelectorAll(".tabla-estilo");
+    //         const idCorrecto = objetoEncontradoCamion.toString();
+    //         let tablaConEstilo = false; 
+
+    //         elementosTabla.forEach(tabla => {
+    //             if (tabla.getAttribute('data-id') === idCorrecto) {
+    //                 if (tabla.style.border === "3px solid red") {
+    //                     tablaConEstilo = true; 
+    //                 }
+    //                 eliminarTabla(objetoEncontradoCamion);
+    //                 const expressIDs = [];
+    //                 precastElements.forEach((elemento) => {
+    //                     if (elemento.Camion === objetoEncontradoCamion) {
+    //                         expressIDs.push(elemento.expressID);
+    //                     }
+    //                 });
+    //                 const expressIDsNuevaTabla = expressIDs.filter((elemento) => elemento !== parseInt(elementoEliminadoTabla));
+    //                 generarTabla(expressIDsNuevaTabla, objetoEncontradoCamion);
+    //                 if(tablaConEstilo === true){
+    //                     const divPosicionesCamion = document.getElementById("posicionCamion");
+    //                     divPosicionesCamion.innerHTML = "";
+    //                     tablaConEstilo = false;
+    //                 }
+    //             }
+    //         });
+            
+    //     }
+    //     let elEliminado=parseInt(elementoEliminadoTabla) 
+    //     actualizaFireExpress(elEliminado) ;
+    // }
+    // let numCamion=parseInt(document.getElementById("numCamion").textContent);
+    // const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
+    //     if(actValorCamion.Camion===parseInt(numCamion)){
+    //         const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+    //         const pesoTotal = calcularPesoTotal(expressIDs);
+    //         const pesoCamion = document.getElementById("pesoCamion");
+    //         pesoCamion.textContent =  pesoTotal.toString();
+    //     }
+        
+        
+    //     if (actValorCamion) {
+    //         actValorCamion.Camion = "";
+    //         actValorCamion.tipoTransporte = "";
+    //         actValorCamion.Posicion = "";
+    //         actValorCamion.numTransporte = "";
+    //         actValorCamion.letraTransporte = "";
+    //     }
+        
+    // const expressIDs = obtenerExpressIDsDelCamion(numCamion);
+    // const pesoTotal = calcularPesoTotal(expressIDs);
+    // const pesoCamion = document.getElementById("pesoCamion");
+    // pesoCamion.textContent =  pesoTotal.toString();
+    // updateMissingCamionCount();
+    // updateElementVisor();
 });
 
 function updateElementVisor() {
@@ -3034,9 +4049,13 @@ container.onclick = async () => {
             ART_Ancho = precast['ART_Ancho'];
             ART_Alto = precast['ART_Alto'];
             ART_Peso = precast['ART_Peso'];
+            console.log(precast.ART_Pieza)
+            console.log(precast.idproduccion)
+            
             break;
         }
     }
+    
     muestraPropiedades(ART_Pieza, ART_Longitud, ART_Ancho, ART_Alto, ART_Peso);
 
 };
@@ -3135,9 +4154,13 @@ function muestraPropiedadesExpressId(expressID) {
     propiedadesContainer.appendChild(propiedadesDiv);
 }
 // **************************************************
+
+// TODO: AÑADE Name +GlobalID
 async function precastPropertiesGlobalId(precast,modelID, precastID){
     const props = await viewer.IFC.getProperties(modelID, precastID, true, false);
     precast['GlobalId'] = props['GlobalId'].value; //establece propiedad GlobalId en obj precast y le asigna un valor
+    precast['Name'] = props['Name'].value; //establece propiedad Name en obj precast y le asigna un valor
+    
 }
 
 async function precastProperties(precast,modelID, precastID){
@@ -3274,13 +4297,13 @@ async function createTreeMenu(modelID){
 //+++++++++++++++++++++
 function constructTreeMenuNode(parent, node){
     const children = node.children;
-
     const exists = uniqueTypes.includes(node.type);
 
-   // TODO: elementos de IFC excluidos BUILDING y SITE
-    if (!exists && node.type !== "IFCBUILDING" && node.type !== "IFCSITE" && node.type !== "IFCBUILDINGSTOREY") {
-        precastElements.push({expressID: node.expressID,  ifcType: node.type});
+    if (!exists && node.type !== "IFCBUILDING" && node.type !== "IFCSITE" && node.type !== "IFCBUILDINGSTOREY" && node.type !== "IFCBUILDINGELEMENTPROXY") {
+        let objetoAtributo = { expressID: node.expressID, ifcType: node.type };
+        precastElements.push(objetoAtributo);
     }
+
 
     //console.log(children);
     if(children.length === 0){
@@ -3539,7 +4562,6 @@ function clasificarPorTipoTransporte() {
     buscaMaxTransporte(transporteTu);
 }
 
-
 function buscaMaxTransporte(transporteA){
     let camionMaximo = null;
     let camionMaximoValor = 0;
@@ -3750,7 +4772,7 @@ function generaBotonesNumCamion(camionesUnicos) {
                 generarTabla(expressIDs, camion);
                 botonesActivos++;
                 btnsCamionActivo = true;
-                generateLabels(activeExpressIDs);
+                generateLabels(expressIDs);
             }
             if (botonesActivos === 0) {
                 enableCheckboxes();
@@ -3932,8 +4954,9 @@ function calcularPesoTotal(expressIDs) {
     }
     return pesoTotal.toFixed(2);
 }
-
-
+let usableExpress=false;
+let  posicionAntigua='';
+let expressIDCambioPosicion;
 let contenidoCelda;
 let tablaResaltada = false;
 function generarTabla(expressIDs, camion) {
@@ -3966,13 +4989,33 @@ function generarTabla(expressIDs, camion) {
     const precastElemPieza = precastElements.find(elem => elem.expressID === id );
     tdElemento.textContent = `${id} - ${precastElemPieza && precastElemPieza.ART_Pieza ? precastElemPieza.ART_Pieza : ''}`;
         tdElemento.addEventListener('contextmenu', async function(event) {
-            event.preventDefault(); // evita que aparezca el menú contextual del botón derecho
+            event.preventDefault(); 
+            const tdElemento = event.target;
+
+            const colorFondo = window.getComputedStyle(tdElemento).getPropertyValue('background-color');
+            usableExpress=true;
+            if(colorFondo==='rgb(189, 155, 194)'){
+                const contenidoCelda = tdElemento.textContent;
+                const expresionRegular = /^(\d+) -/i;
+                const coincidencias = contenidoCelda.match(expresionRegular);
+
+                expressIDCambioPosicion = coincidencias ? coincidencias[1] : null;
+                const elementoEnPrecast = precastElements.find(elem => elem.expressID === parseInt(expressIDCambioPosicion));
+                posicionAntigua = parseInt(elementoEnPrecast.Posicion); 
+            
+            }else{
+                posicionAntigua="";
+               // (contenidoCelda)
+                
+            }
+
             contenidoCelda = tdElemento.textContent;
             resaltarTabla(tabla, cabeceraValor);
             tablaResaltada=true;
             celdaSeleccionadaColor(event.target);
             viewer.IFC.selector.pickIfcItemsByID(0, [parseInt(contenidoCelda)], false);
             muestraPropiedadesExpressId(contenidoCelda);
+            
         });
         const fila = document.createElement('tr');
         fila.appendChild(tdElemento);
@@ -3988,9 +5031,25 @@ function generarTabla(expressIDs, camion) {
     });
     contenedorTabla.addEventListener("dblclick", function(event) {
         const target = event.target;
+        let numeroCamion;
+        let letraCamion;
         let elementoEliminadoTabla;
+        let elementoEliminadoCelda;
         if (target.tagName === 'TD') {
             elementoEliminadoTabla = target.parentNode.firstChild.textContent;
+            elementoEliminadoCelda = target.parentNode.firstChild;
+            
+            const backgroundColor = elementoEliminadoCelda.style.backgroundColor;
+            if (backgroundColor === 'rgb(189, 155, 194)') {
+                const numerosExtraidos = elementoEliminadoTabla.match(/\d+/g);
+                let expressIDeliminado=parseInt(numerosExtraidos[0]);
+                const elementoEnPrecast = precastElements.find(elemento => elemento.expressID === expressIDeliminado);
+                let posicionAntiguaBorrar=parseInt(elementoEnPrecast.Posicion)
+                //console.log(expressIDeliminado, posicionAntiguaBorrar)
+                //creaJsonEliminaPosicion(expressIDeliminado, posicionAntiguaBorrar);
+                Eliminar(expressIDeliminado, posicionAntiguaBorrar);
+
+            }
             target.parentNode.remove();
             let indexToRemove = elementosOcultos.indexOf(parseInt(elementoEliminadoTabla));
             if (indexToRemove !== -1) {
@@ -4003,14 +5062,12 @@ function generarTabla(expressIDs, camion) {
             }
             allIDs.push(parseInt(elementoEliminadoTabla));
             removeLabels(elementoEliminadoTabla);
-            
         }
         listarOcultos(elementosOcultos);
         viewer.IFC.selector.unpickIfcItems();
         hideAllItems(viewer, allIDs);
         showAllItems(viewer, expressIDs);
-        // Simula el clic en el elemento
-        const eventoClick = new Event('click', {
+            const eventoClick = new Event('click', {
             bubbles: true, 
             cancelable: true 
         });
@@ -4022,6 +5079,11 @@ function generarTabla(expressIDs, camion) {
             actualizarCabecera(nuevoPesoTotal);
             const labelPesoList = document.getElementById("pesoCamion");
             labelPesoList.textContent=nuevoPesoTotal;
+        }
+        const recogeValorElemento= precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
+        if(recogeValorElemento){
+            numeroCamion=recogeValorElemento.numTransporte;
+            letraCamion=recogeValorElemento.letraTransporte
         }
         const actValorCamion = precastElements.find(element => element.expressID === (parseInt(elementoEliminadoTabla)));
         if (actValorCamion) {
@@ -4035,18 +5097,138 @@ function generarTabla(expressIDs, camion) {
         const nuevoPesoTotal = calcularPesoTotal(expressIDs);
         actualizarCabecera(nuevoPesoTotal);
         let elEliminado= parseInt(elementoEliminadoTabla);
-        actualizaFireExpress(elEliminado)
+        //actualizaFireExpress(elEliminado)
         //actualizarBaseDeDatos();
+        const celdasConColor = contenedorTabla.querySelectorAll('td[style="background-color: rgb(189, 155, 194);"]');
+    
+    if (celdasConColor.length === 0) {
+        console.log("N0000000000000000o hay más celdas con el color de fondo especificado.");
+        let tipoTabla;
+        let idObra;
+        if(letraCamion==='A'){
+            tipoTabla='alveolar';
+            idObra=idAlveolar;
+        }
+        if(letraCamion==='C'){
+            tipoTabla='cerramiento';
+            idObra=idEstruCerra
+        }
+        if(letraCamion==='E'){
+            tipoTabla='estructura';
+            idObra=idEstruCerra
+        }
+        eliminarCamion(numeroCamion, tipoTabla, idObra)
+    } 
     });
     contenedorTabla.appendChild(tabla);
     thElemento.classList.add('cabecera-tabla');
     divTabla.appendChild(contenedorTabla);
-    
+
+    // const celdasConColor = contenedorTabla.querySelectorAll('td[style="background-color: rgb(189, 155, 194);"]');
+    // if (celdasConColor.length === 0) {
+    //     console.log("N0000000000000000o hay más celdas con el color de fondo especificado.");
+    //     // Aquí puedes realizar acciones adicionales si no hay celdas con el color de fondo.
+    // } 
 }
 
+
+
 let ultimaCeldaSeleccionada = null;
+async function creaCamion(celdaSeleccionada) {
+    //console.log(celdaSeleccionada)
+    //await obtenerIdentificadores();
+    
+    const contenidoCelda = celdaSeleccionada.textContent;
+    const expressIDseleccionado = parseInt(contenidoCelda.match(/\d+/)[0]);
+    const objetoSeleccionado = precastElements.find(elemento => elemento.expressID === expressIDseleccionado);
+    const camion_n = objetoSeleccionado.numTransporte;
+    const tipoTrans= objetoSeleccionado.letraTransporte;
+    const nOrden=objetoSeleccionado.Camion;
+    let proyecto_id;
+
+    if (tipoTrans === 'E' || tipoTrans === 'C') {
+        proyecto_id = idEstruCerra;
+    } else if (tipoTrans === 'A') {
+        proyecto_id = idAlveolar;
+    }
+
+    if (tipoTrans === 'E' ) {
+        tabla = 'estructura';
+    } else if (tipoTrans === 'C') {
+        tabla = 'cerramiento';
+    } else if (tipoTrans === 'A') {
+        tabla = 'alveolar';
+    }
+   // Crea Camion
+
+    const url = `http://${rutaServidor}:8000/camiones/`;
+
+    try {
+        const requestBody = {
+            tabla: tabla,
+            obra: proyecto_id,
+            n_camion: camion_n
+        };
+    
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(requestBody)
+        });
+    
+        console.log('JSON enviado a la API:', JSON.stringify(requestBody));
+    
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Camión creado exitosamente:', data);
+    } catch (error) {
+        console.error('Error al crear el camión:', error);
+    }
+
+    //Crea registro camion y orden
+    const urlOrden = `http://${rutaServidor}:8000/viajes/`;
+
+    try {
+        const requestBodyOrden = {
+            idobra: proyecto_id,
+            n_camion: camion_n,
+            tabla: tipoTrans,
+            n_orden:nOrden
+        };
+    
+        const response = await fetch(urlOrden, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(requestBodyOrden)
+        });
+    
+        console.log('JSON enviado a viajes:', JSON.stringify(requestBodyOrden));
+    
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('ViajeOrden creado exitosamente:', data);
+    } catch (error) {
+        console.error('Error al crear el camión:', error);
+    }
+}
+
 
 function celdaSeleccionadaColor(celdaSeleccionada) {
+    const algunaCeldaConColor = Array.from(celdaSeleccionada.parentNode.parentNode.querySelectorAll('td')).some(celda => celda.style.backgroundColor);
+
+    if (!algunaCeldaConColor) {
+        creaCamion(celdaSeleccionada); 
+    }
     if (ultimaCeldaSeleccionada) {
         const ultimoContenidoCelda = ultimaCeldaSeleccionada.textContent;
         const elementoAnterior = precastElements.find(elem => parseInt(ultimoContenidoCelda.split(' ')[0]) === elem.expressID);
@@ -4223,25 +5405,58 @@ function posicionesCamion(tabla, cabeceraValor) {
                 cajon.classList.add("cajon");
                 fila.appendChild(cajon);
                 
-                cajon.addEventListener("contextmenu", function (event) {
+                cajon.addEventListener("contextmenu", function (event) { 
                     event.preventDefault();
-                    if (cajon.innerText === "") {
-                        asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
-                        actualizarTablaDerecha();
-                        simularEventoClic();
-                        let elAsignadaPosicion = parseInt(contenidoCelda);
-                        actualizaFireExpress(elAsignadaPosicion);
-                        //actualizarBaseDeDatos()
-                    }
-                    
+                   // if(event.button === 2) {
+                       
+                        cajon.blur();
+                        if(usableExpress===true){
+                            
+                            if (cajon.innerText === "") {
+                            
+                            //const expressID=parseInt(contenidoCelda)
+                            
+                            
+                                posicionAntiguaBorrar=cajon.id;
+                                asignaIdCelda(cajon, contenidoCelda, expressIdByCamion);
+                                actualizarTablaDerecha();
+                                simularEventoClic();
+                                let elAsignadaPosicion = parseInt(contenidoCelda);
+                                //actualizaFireExpress(elAsignadaPosicion);
+                                if(posicionAntigua===''){
+                                    obtenerPesoTotalBD(elAsignadaPosicion)
+                                    //creaJsonPosicionNueva(elAsignadaPosicion);
+                                }
+                                else{
+                                    posicionAntiguaBorrar=parseInt(cajon.id);
+                                    CambiaPosicion(expressIDCambioPosicion, posicionAntigua)
+                                }
+                                usableExpress=false;
+                            }
+                        }
+                   // }
                 });
                 
                 cajon.addEventListener("dblclick", function (event) {
+
+                    const tablaIzq = document.getElementById('tabla-izquierda');
+
+                    // Obtiene el contenido de la celda de la cabecera
+                    const numCamionCabecera = obtenerNumeroCabecera(tablaIzq);
+                    const letraCamionCabecera = obtenerLetraCabecera(tablaIzq);
+                    const ordenCamion= obtenerOrden(tablaIzq)
+                    // console.log(numCamionCabecera)
+                    // console.log(cajon.id)
+                    posicionAntiguaEliminar=cajon.id;
+                    
                     limpiaPosicion(cajon, tabla);
-                    actualizarTablaDerecha();
+                    actualizarTablaDerecha(numCamionCabecera);
+
+
                     let elAsignadaPosicion = parseInt(contenidoCelda);
-                    actualizaFireExpress(elAsignadaPosicion);
-                    //actualizarBaseDeDatos();
+                    Eliminar(elAsignadaPosicion, posicionAntiguaEliminar)
+                    //actualizaFireExpress(elAsignadaPosicion);
+                    verificarCeldasVacias(numCamionCabecera, letraCamionCabecera, ordenCamion )
                 });
                 
                 cajon.addEventListener("click", async function (event) {
@@ -4263,6 +5478,158 @@ function posicionesCamion(tabla, cabeceraValor) {
         posicionCamion.appendChild(tablaNueva);
         actualizaCajones(expressIdByCamion);
         crearTablaDerecha(tabla, cabeceraValor)
+}
+
+function obtenerOrden(tablaIzq) {
+    const filaCabecera = tablaIzq.querySelector('tr:first-child');
+    if (filaCabecera) {
+        const celdaCabecera = filaCabecera.querySelector('th');
+
+        // Utiliza una expresión regular para extraer el primer número
+        const regex = /\| (\d+)/;
+        const coincidencia = celdaCabecera.textContent.trim().match(regex);
+
+        // Verificar si se encontró una coincidencia y devolver el número extraído
+        if (coincidencia && coincidencia.length > 1) {
+            return coincidencia[1];
+        }
+    }
+
+    return null;
+}
+
+function obtenerLetraCabecera(tabla) {
+    const filaCabecera = tabla.querySelector('tr:first-child');
+    if (filaCabecera) {
+        const celdaCabecera = filaCabecera.querySelector('th');
+        
+        // Utiliza una expresión regular para extraer el número y la letra entre | y -
+        const regex = /\| (\d+) - (\w+)/;
+        const coincidencia = celdaCabecera.textContent.trim().match(regex);
+
+        // Verificar si se encontró una coincidencia y devolver la letra extraída
+        if (coincidencia && coincidencia.length > 2) {
+            return coincidencia[2];
+        }
+    }
+
+    return null;
+}
+
+function obtenerNumeroCabecera(tabla) {
+    const filaCabecera = tabla.querySelector('tr:first-child');
+    if (filaCabecera) {
+        const celdaCabecera = filaCabecera.querySelector('th');
+        
+        const regex = /\| (\d+) -/;
+        const coincidencia = celdaCabecera.textContent.trim().match(regex);
+
+        if (coincidencia && coincidencia.length > 1) {
+            return coincidencia[1];
+        }
+    }
+    return null;
+}
+
+function verificarCeldasVacias(numCamionCabecera, letraCamionCabecera, ordenCamion) {
+    var celdas = document.querySelectorAll('.cajon');
+    var celdaVaciaEncontrada = false;
+
+    for (var i = 0; i < celdas.length; i++) {
+        if (celdas[i].innerHTML.trim() !== "") {
+            celdaVaciaEncontrada = true;
+            break; 
+        }
+    }
+
+    if (!celdaVaciaEncontrada) {
+        console.log("Celdas vacias. Peticion al servidor para eliminar camion");
+        let tipoTabla;
+        let idObra;
+        if(letraCamionCabecera==='A'){
+            tipoTabla="alveolar"
+            idObra=idAlveolar
+        }
+        if(letraCamionCabecera==='C'){
+            tipoTabla="cerramiento"
+            idObra=idEstruCerra
+        }
+        if(letraCamionCabecera==='E'){
+            tipoTabla="estructura"
+            idObra=idEstruCerra
+        }
+        eliminarCamion(numCamionCabecera, tipoTabla, idObra)
+        eliminaOrdenViaje(numCamionCabecera, letraCamionCabecera, idObra, ordenCamion)
+    } 
+}
+function eliminaOrdenViaje(numCamionCabecera, letraCamionCabecera, idObra, ordenCamion) {
+    const url = `http://${rutaServidor}:8000/viajes/`;
+
+    const datosJsonEliminaViajeOrden = {
+        tabla: letraCamionCabecera,
+        idobra: idObra,
+        n_camion: parseInt(numCamionCabecera),
+        n_orden:parseInt(ordenCamion)
+    };
+    console.log("JSON BORRA VIAJE-ORDEN", JSON.stringify(datosJsonEliminaViajeOrden, null, 2));
+    
+    const opciones = {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(datosJsonEliminaViajeOrden)
+    };
+
+    fetch(url, opciones)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error en la solicitud: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Camión eliminado:', data);
+        })
+        .catch(error => {
+            console.error('Error al eliminar el camión:', error);
+        });
+}
+
+function eliminarCamion(numCamionCabecera, tipoTabla, idObra) {
+    const url = `http://${rutaServidor}:8000/camiones/`;
+    console.log('URL de la solicitud DELETE:', url);
+
+    const datosJsonEliminaCamion = {
+        tabla: tipoTabla,
+        obra: idObra,
+        n_camion: parseInt(numCamionCabecera)
+    };
+    console.log("JSON BORRA CAMION", JSON.stringify(datosJsonEliminaCamion, null, 2));
+    // Configuración de la solicitud
+    const opciones = {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(datosJsonEliminaCamion)
+    };
+
+    fetch(url, opciones)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error en la solicitud: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Camión eliminado:', data);
+        })
+        .catch(error => {
+            console.error('Error al eliminar el camión:', error);
+        });
 }
 
 function simularEventoClic() {
@@ -4316,18 +5683,18 @@ function crearTablaDerecha(tabla, cabeceraValor) {
             const cajon = document.createElement("td");
     
             if (cantidadFilas === 4) {
-            cajon.style.height = "38px";
-    
-            if (j === 1) {
-                cajon.style.borderRight = "3px solid #4c7a90"; 
-            }
+                cajon.style.height = "38px";
+        
+                if (j === 1) {
+                    cajon.style.borderRight = "3px solid #4c7a90"; 
+                }
             }
             if (cantidadFilas === 1) {
-            if (j === 6) {
-                cajon.style.borderRight = "3px solid #90834c"; 
-                cajon.style.borderLeft = "3px solid #90834c";
+                if (j === 6) {
+                    cajon.style.borderRight = "3px solid #90834c"; 
+                    cajon.style.borderLeft = "3px solid #90834c";
+                }
             }
-        }
         const idCajon = i * cantidadColumnas + j + 1;
         cajon.setAttribute("id", idCajon);
         cajon.setAttribute("data-id", idCajon);
